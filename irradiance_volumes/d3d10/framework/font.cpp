@@ -7,7 +7,7 @@
 
 
 
-#include "Font.h"
+#include "font.h"
 #include <stdio.h>
 
 #define BATCH_CHARS 64

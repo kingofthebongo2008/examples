@@ -45,7 +45,7 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDI_MAINICON               ICON                    "ATI.ICO"
+IDI_MAINICON               ICON                    "ati.ico"
 
 
 

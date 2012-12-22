@@ -85,11 +85,5 @@ struct half
 #define DEBUG
 #endif
 
-#pragma warning(push)
-#pragma warning(disable: 4035)
-inline uint64 GetCycle(){
-	__asm rdtsc;
-}
-#pragma warning(pop)
 
 #endif // _PLATFORM_H_
