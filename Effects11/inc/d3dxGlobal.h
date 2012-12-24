@@ -24,7 +24,13 @@ namespace D3DX11Debug
     inline void SetDebugObjectName(_In_ ID3D11DeviceChild* resource, _In_z_ const char *name )
     {
         #if defined(_DEBUG) || defined(PROFILE)
-            resource->SetPrivateData( WKPDID_D3DDebugObjectName, static_cast<UINT>(strlen(name)), name );
+			UINT dataSize = 0;
+			resource->GetPrivateData( WKPDID_D3DDebugObjectName, &dataSize, 0 );
+
+			if (dataSize == 0)
+			{
+	            resource->SetPrivateData( WKPDID_D3DDebugObjectName, static_cast<UINT>(strlen(name)), name );
+			}
         #else
             UNREFERENCED_PARAMETER(resource);
             UNREFERENCED_PARAMETER(name);
