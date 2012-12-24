@@ -14,6 +14,8 @@
 #include "../GUI.h"
 #include "../Math/Camera.h"
 
+#include <d3d11.h>
+
 /** \file
     D3D10 base application class.
 */
@@ -81,8 +83,8 @@ protected:
 	void RenderCameraPath();
 
 	// Various debugging tools
-	void DebugViewTexture2D(ID3D10ShaderResourceView *srv, const float x, const float y, const float width, const float height, const int slice = -1);
-	void DebugViewTexture3D(ID3D10ShaderResourceView *srv, const float x, const float y, const float width, const float height, const float z);
+	void DebugViewTexture2D(ID3D11ShaderResourceView *srv, const float x, const float y, const float width, const float height, const int slice = -1);
+	void DebugViewTexture3D(ID3D11ShaderResourceView *srv, const float x, const float y, const float width, const float height, const float z);
 
 	bool SetToolsVBSize(const uint size);
 
@@ -105,12 +107,12 @@ protected:
 
 private:
 	// Internal variables for the rendering and debugging tool functions
-	ID3D10Effect *m_toolsEffect;
-	ID3D10Buffer *m_toolsVB;
-	ID3D10Buffer *m_toolsVsCB, *m_toolsPsCB;
+	ID3DX11Effect *m_toolsEffect;
+	ID3D11Buffer *m_toolsVB;
+	ID3D11Buffer *m_toolsVsCB, *m_toolsPsCB;
 	uint m_toolsVBSize;
-	ID3D10InputLayout *m_pos3Layout;
-	ID3D10InputLayout *m_pos2Tex3Layout;
+	ID3D11InputLayout *m_pos3Layout;
+	ID3D11InputLayout *m_pos2Tex3Layout;
 
 	// For displaying and debuggint camera paths
 	bool m_displayPath;

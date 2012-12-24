@@ -192,11 +192,11 @@ bool Model::Load(const TCHAR *name, const TCHAR *texture_path)
 			switch (Type)
 			{
 				case PL_TRIANGLE_STRIP:
-					m_pMesh[i].m_pPrimitive[p].type = D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
+					m_pMesh[i].m_pPrimitive[p].type = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 					break;
 
 				case PL_TRIANGLE_LIST:
-					m_pMesh[i].m_pPrimitive[p].type = D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+					m_pMesh[i].m_pPrimitive[p].type = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 					break;
 
 				case PL_TRIANGLE_FAN:

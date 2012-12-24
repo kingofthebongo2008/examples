@@ -6,8 +6,7 @@
 #ifndef _ANIMATION_H_
 #define _ANIMATION_H_
 
-#include <d3d10.h>
-#include <d3dx10.h>
+#include <d3d11.h>
 #include "../math/Vector.h"
 
 struct AnimationKey

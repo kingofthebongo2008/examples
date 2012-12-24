@@ -102,25 +102,25 @@ public:
 	MyModel();
 	virtual ~MyModel();
 
-	void Setup(ID3D10Device *dev);
-	void SetupTexture(ID3D10Device *dev, const int index);
-	void SetupMaterial(ID3D10Device *dev, const int index);
+	void Setup(ID3D11DeviceContext *dev);
+	void SetupTexture(ID3D11DeviceContext *dev, const int index);
+	void SetupMaterial(ID3D11DeviceContext *dev, const int index);
 
-	void RenderMaterial(ID3D10Device *dev, const int material, const int count = 1);
-	void RenderAll(ID3D10Device *dev);
+	void RenderMaterial(ID3D11DeviceContext *dev, const int material, const int count = 1);
+	void RenderAll(ID3D11DeviceContext *dev);
 
 	virtual bool Load(D3D10Context *context, const TCHAR *name, const TCHAR *texturePath);
 
 private:
 	void AddToMaterialRange(uint32 *indices, int &index, const int mat, const uint startMesh, const uint meshCount);
 
-	ID3D10Buffer *m_vertexBuffer;
-	ID3D10Buffer *m_indexBuffer;
+	ID3D11Buffer *m_vertexBuffer;
+	ID3D11Buffer *m_indexBuffer;
 
-	ID3D10Texture2D *m_textures[7];
-	ID3D10ShaderResourceView *m_textureSRVs[7];
+	ID3D11Texture2D *m_textures[7];
+	ID3D11ShaderResourceView *m_textureSRVs[7];
 
-	ID3D10Buffer *m_materials[10];
+	ID3D11Buffer *m_materials[10];
 
 	int m_materialRange[14];
 };
@@ -151,23 +151,23 @@ protected:
 	void RenderScene(const int passIndex, const float4x4 *mvp, const float4x4 *mvpInv, const int matrixCount);
 
 	// Main effect and some extracted shaders
-	ID3D10Effect *m_lighting, *m_shEffect;
-	ID3D10PixelShader *m_lightingPS[LIGHTING_TECH];
-	ID3D10GeometryShader *m_shadowGS[2];
-	ID3D10InputLayout *m_lightingIL;
+	ID3DX11Effect *m_lighting, *m_shEffect;
+	ID3D11PixelShader *m_lightingPS[LIGHTING_TECH];
+	ID3D11GeometryShader *m_shadowGS[2];
+	ID3D11InputLayout *m_lightingIL;
 
-	ID3D10RasterizerState *m_cullBack, *m_cullNone;
+	ID3D11RasterizerState *m_cullBack, *m_cullNone;
 
-	ID3D10SamplerState *m_baseSS;
-	ID3D10SamplerState *m_lightMapSS;
+	ID3D11SamplerState *m_baseSS;
+	ID3D11SamplerState *m_lightMapSS;
 
-	ID3D10Texture2D *m_shadowMap;
-	ID3D10RenderTargetView *m_shadowMapRTV;
-	ID3D10ShaderResourceView *m_shadowMapSRV;
-	ID3D10SamplerState *m_shadowMapSS;
+	ID3D11Texture2D *m_shadowMap;
+	ID3D11RenderTargetView *m_shadowMapRTV;
+	ID3D11ShaderResourceView *m_shadowMapSRV;
+	ID3D11SamplerState *m_shadowMapSS;
 
-	ID3D10Texture2D *m_shadowMapDepth;
-	ID3D10DepthStencilView *m_shadowMapDepthDSV;
+	ID3D11Texture2D *m_shadowMapDepth;
+	ID3D11DepthStencilView *m_shadowMapDepthDSV;
 
 	float3 m_probePos[MAX_PROBE_COUNT];
 
@@ -184,40 +184,40 @@ protected:
 
 
 	// Render target for the light probes
-	ID3D10Texture3D *m_probes;
-	ID3D10RenderTargetView *m_probesRTV;
-	ID3D10RenderTargetView *m_probesChunkRTVs[PROBE_PASSES_PER_FRAME];
-	ID3D10ShaderResourceView *m_probesSRV;
+	ID3D11Texture3D *m_probes;
+	ID3D11RenderTargetView *m_probesRTV;
+	ID3D11RenderTargetView *m_probesChunkRTVs[PROBE_PASSES_PER_FRAME];
+	ID3D11ShaderResourceView *m_probesSRV;
 
 	// Depth surfaces for the light probes
-	ID3D10Texture2D *m_probesDepth;
-	ID3D10DepthStencilView *m_probesDepthDSV;
-	ID3D10DepthStencilView *m_probesDepthChunkDSVs[PROBE_PASSES_PER_FRAME];
+	ID3D11Texture2D *m_probesDepth;
+	ID3D11DepthStencilView *m_probesDepthDSV;
+	ID3D11DepthStencilView *m_probesDepthChunkDSVs[PROBE_PASSES_PER_FRAME];
 
 
 
-	ID3D10Buffer *m_perFrameCB;
-	ID3D10Buffer *m_gsMvpCB;
-	ID3D10Buffer *m_gsMvpInvCB;
+	ID3D11Buffer *m_perFrameCB;
+	ID3D11Buffer *m_gsMvpCB;
+	ID3D11Buffer *m_gsMvpInvCB;
 
-	ID3D10Texture3D *m_shTable[SH_COEFF_VECTORS];
-	ID3D10ShaderResourceView *m_shTableSRV[SH_COEFF_VECTORS];
+	ID3D11Texture3D *m_shTable[SH_COEFF_VECTORS];
+	ID3D11ShaderResourceView *m_shTableSRV[SH_COEFF_VECTORS];
 
-	ID3D10Texture2D *m_shCube[SH_COEFF_VECTORS];
-	ID3D10ShaderResourceView *m_shCubeSRV[SH_COEFF_VECTORS];
+	ID3D11Texture2D *m_shCube[SH_COEFF_VECTORS];
+	ID3D11ShaderResourceView *m_shCubeSRV[SH_COEFF_VECTORS];
 
 
 	// 3D textures containing the resulting SH coefficients
-	ID3D10Texture3D *m_shCoeffs[3][SH_COEFF_VECTORS];
-	ID3D10RenderTargetView *m_shCoeffsRTV[3][SH_COEFF_VECTORS];
-	ID3D10ShaderResourceView *m_shCoeffsSRV[3][SH_COEFF_VECTORS];
-	ID3D10SamplerState *m_shCoeffsSS;
+	ID3D11Texture3D *m_shCoeffs[3][SH_COEFF_VECTORS];
+	ID3D11RenderTargetView *m_shCoeffsRTV[3][SH_COEFF_VECTORS];
+	ID3D11ShaderResourceView *m_shCoeffsSRV[3][SH_COEFF_VECTORS];
+	ID3D11SamplerState *m_shCoeffsSS;
 
-	ID3D10Buffer *m_shCoeffVB;
-	ID3D10InputLayout *m_shCoeffIL;
+	ID3D11Buffer *m_shCoeffVB;
+	ID3D11InputLayout *m_shCoeffIL;
 
-	ID3D10Texture1D *m_texLightGrad;
-	ID3D10ShaderResourceView *m_texLightGradSRV;
+	ID3D11Texture1D *m_texLightGrad;
+	ID3D11ShaderResourceView *m_texLightGradSRV;
 
 	Camera m_lightCamera;
 	MyModel *m_model;

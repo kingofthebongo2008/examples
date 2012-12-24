@@ -6,8 +6,6 @@
 #ifndef _TRANSFORM_H_
 #define _TRANSFORM_H_
 
-#include <d3d10.h>
-#include <d3dx10.h>
 #include "../math/Vector.h"
 #include "Animation.h"
 

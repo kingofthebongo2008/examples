@@ -10,8 +10,11 @@
 #include "D3D10App.h"
 #include <stdio.h>
 
-#pragma comment (lib, "d3d10.lib")
-#pragma comment (lib, "d3dx10.lib")
+#pragma comment (lib, "d3d11.lib")
+#pragma comment (lib, "d3dx11.lib")
+#pragma comment (lib, "dxguid.lib")
+#pragma comment (lib, "d3dcompiler.lib")
+#pragma comment (lib, "Effects11.lib")
 
 // Vertex structure for the tool functions
 struct Pos2Tex3
@@ -68,16 +71,16 @@ bool D3D10App::Create()
 	if ((m_toolsVsCB = m_context->CreateEffectConstantBuffer(m_toolsEffect, "MainVS")) == NULL) return false;
 	if ((m_toolsPsCB = m_context->CreateEffectConstantBuffer(m_toolsEffect, "MainPS")) == NULL) return false;
 
-	D3D10_INPUT_ELEMENT_DESC layout0[] =
+	D3D11_INPUT_ELEMENT_DESC layout0[] =
 	{
-		{ "SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D10_INPUT_PER_VERTEX_DATA, 0 },
+		{ "SV_Position", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	if ((m_pos3Layout = m_context->CreateInputLayout(m_toolsEffect->GetTechniqueByIndex(0)->GetPassByIndex(0), layout0, elementsOf(layout0))) == NULL) return false;
 
-	D3D10_INPUT_ELEMENT_DESC layout1[] =
+	D3D11_INPUT_ELEMENT_DESC layout1[] =
 	{
-		{ "SV_Position", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 0, D3D10_INPUT_PER_VERTEX_DATA, 0 },
-		{ "TexCoord",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 8, D3D10_INPUT_PER_VERTEX_DATA, 0 },
+		{ "SV_Position", 0, DXGI_FORMAT_R32G32_FLOAT,    0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 },
+		{ "TexCoord",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 },
 	};
 	if ((m_pos2Tex3Layout = m_context->CreateInputLayout(m_toolsEffect->GetTechniqueByIndex(2)->GetPassByIndex(0), layout1, elementsOf(layout1))) == NULL) return false;
 
@@ -360,7 +363,7 @@ void D3D10App::RenderGUI()
 		// Render in upper left corner of the window
 		int w = m_context->GetWidth();
 		int h = m_context->GetHeight();
-		m_mainFont.DrawText(str, 10.0f / w - 1, 1 - 10.0f / h, 80.0f / w, 60.0f / h, HA_LEFT, VA_TOP);
+		m_mainFont.DrawText(m_context->GetDeviceContext(), str, 10.0f / w - 1, 1 - 10.0f / h, 80.0f / w, 60.0f / h, HA_LEFT, VA_TOP);
 	}
 }
 
@@ -374,7 +377,13 @@ void D3D10App::RenderBillboards(const float3 *position, const int count, const f
 
 	// Fill vertex buffer
 	float3 *dest;
-	m_toolsVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void **) &dest);
+	ID3D11DeviceContext* context = m_context->GetDeviceContext();
+
+	D3D11_MAPPED_SUBRESOURCE resource;
+
+	context->Map( m_toolsVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+
+	dest = reinterpret_cast<float3*> ( resource.pData );
 	for (int i = 0; i < count; i++)
 	{
 		dest[6 * i + 0] = position[i] + size * (-dx + dy);
@@ -384,21 +393,25 @@ void D3D10App::RenderBillboards(const float3 *position, const int count, const f
 		dest[6 * i + 4] = position[i] + size * ( dx + dy);
 		dest[6 * i + 5] = position[i] + size * ( dx - dy);
 	}
-	m_toolsVB->Unmap();
+	context->Unmap(m_toolsVB, 0 );
 
 
-	ID3D10Device *dev = m_context->GetDevice();
+	ID3D11DeviceContext *dev = m_context->GetDeviceContext();
 
 	// Set constants
 	float4x4 *mvp;
-	m_toolsVsCB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void **) &mvp);
+
+	dev->Map(m_toolsVsCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+	mvp = reinterpret_cast<float4x4*> ( resource.pData );
 		*mvp = m_camera.GetModelViewProjection();
-	m_toolsVsCB->Unmap();
+	dev->Unmap(m_toolsVsCB, 0);
 
 	float4 *col;
-	m_toolsPsCB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void **) &col);
+
+	dev->Map( m_toolsPsCB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+		col = reinterpret_cast<float4*> ( resource.pData );
 		*col = color;
-	m_toolsPsCB->Unmap();
+	dev->Unmap( m_toolsPsCB, 0 );
 
 	// Setup effect
 	m_context->SetEffect(m_toolsEffect);
@@ -411,7 +424,7 @@ void D3D10App::RenderBillboards(const float3 *position, const int count, const f
 	dev->IASetVertexBuffers(0, 1, &m_toolsVB, &stride, &offset);
 
 	// Render the quads
-	dev->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	dev->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	dev->Draw(6 * count, 0);
 }
 
@@ -434,7 +447,11 @@ void D3D10App::RenderCameraPath()
 
 		// Fill vertex buffer
 		float3 *dest;
-		m_toolsVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void **) &dest);
+		ID3D11DeviceContext* context = m_context->GetDeviceContext();
+
+		D3D11_MAPPED_SUBRESOURCE resource;
+		context->Map(m_toolsVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+		dest = reinterpret_cast<float3*> ( resource.pData ) ;
 		if (m_displaySmooth)
 		{
 			float d = 1.0f / smoothCount;
@@ -453,16 +470,18 @@ void D3D10App::RenderCameraPath()
 			}
 			if (m_displayPathLooping) dest[count] = m_camera.GetPathNodePosition(0);
 		}
-		m_toolsVB->Unmap();
+		context->Unmap(m_toolsVB, 0);
 
 
-		ID3D10Device *dev = m_context->GetDevice();
+		ID3D11DeviceContext *dev = m_context->GetDeviceContext();
 
 		// Set constants
 		float4x4 *mvp;
-		m_toolsVsCB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void **) &mvp);
+
+		dev->Map( m_toolsVsCB, 0, D3D11_MAP_WRITE_DISCARD, 0,  &resource);
+			mvp = reinterpret_cast<float4x4*> ( resource.pData ) ;
 			*mvp = m_camera.GetModelViewProjection();
-		m_toolsVsCB->Unmap();
+			dev->Unmap(m_toolsVsCB, 0 );
 
 		// Setup effect
 		m_context->SetEffect(m_toolsEffect);
@@ -475,19 +494,22 @@ void D3D10App::RenderCameraPath()
 		dev->IASetVertexBuffers(0, 1, &m_toolsVB, &stride, &offset);
 
 		// Render the camera path
-		dev->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_LINESTRIP);
+		dev->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP);
 		dev->Draw(vertexCount, 0);
 	}
 }
 
-void D3D10App::DebugViewTexture2D(ID3D10ShaderResourceView *srv, const float x, const float y, const float width, const float height, const int slice)
+void D3D10App::DebugViewTexture2D(ID3D11ShaderResourceView *srv, const float x, const float y, const float width, const float height, const int slice)
 {
 	// Make sure we have enough space in the vertex buffer
 	SetToolsVBSize(4 * sizeof(Pos2Tex3));
 
 	// Fill vertex buffer
 	Pos2Tex3 *dest;
-	m_toolsVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void **) &dest);
+	ID3D11DeviceContext* context = m_context->GetDeviceContext();
+	D3D11_MAPPED_SUBRESOURCE resource;
+	context->Map(m_toolsVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+	dest = reinterpret_cast<Pos2Tex3*> ( resource.pData );
 		dest[0].pos = float2(x, y + height);
 		dest[0].tex = float3(0, 0, (float) slice);
 		dest[1].pos = float2(x + width, y + height);
@@ -496,10 +518,10 @@ void D3D10App::DebugViewTexture2D(ID3D10ShaderResourceView *srv, const float x, 
 		dest[2].tex = float3(0, 1, (float) slice);
 		dest[3].pos = float2(x + width, y);
 		dest[3].tex = float3(1, 1, (float) slice);
-	m_toolsVB->Unmap();
+	context->Unmap(m_toolsVB, 0);
 
 
-	ID3D10Device *dev = m_context->GetDevice();
+	ID3D11DeviceContext *dev = m_context->GetDeviceContext();
 
 	// Setup the effect
 	m_context->SetEffect(m_toolsEffect);
@@ -521,18 +543,22 @@ void D3D10App::DebugViewTexture2D(ID3D10ShaderResourceView *srv, const float x, 
 	dev->IASetVertexBuffers(0, 1, &m_toolsVB, &stride, &offset);
 
 	// Render a textured quad
-	dev->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	dev->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	dev->Draw(4, 0);
 }
 
-void D3D10App::DebugViewTexture3D(ID3D10ShaderResourceView *srv, const float x, const float y, const float width, const float height, const float z)
+void D3D10App::DebugViewTexture3D(ID3D11ShaderResourceView *srv, const float x, const float y, const float width, const float height, const float z)
 {
 	// Make sure we have enough space in the vertex buffer
 	SetToolsVBSize(4 * sizeof(Pos2Tex3));
 
+	ID3D11DeviceContext* context = m_context->GetDeviceContext();
+
 	// Fill vertex buffer
 	Pos2Tex3 *dest;
-	m_toolsVB->Map(D3D10_MAP_WRITE_DISCARD, 0, (void **) &dest);
+	D3D11_MAPPED_SUBRESOURCE resource;	
+	context->Map( m_toolsVB, 0, D3D11_MAP_WRITE_DISCARD, 0, &resource);
+		dest = reinterpret_cast< Pos2Tex3* > ( resource.pData );
 		dest[0].pos = float2(x, y + height);
 		dest[0].tex = float3(0, 0, z);
 		dest[1].pos = float2(x + width, y + height);
@@ -541,10 +567,10 @@ void D3D10App::DebugViewTexture3D(ID3D10ShaderResourceView *srv, const float x, 
 		dest[2].tex = float3(0, 1, z);
 		dest[3].pos = float2(x + width, y);
 		dest[3].tex = float3(1, 1, z);
-	m_toolsVB->Unmap();
+	context->Unmap( m_toolsVB, 0);
 
 
-	ID3D10Device *dev = m_context->GetDevice();
+	ID3D11DeviceContext *dev = m_context->GetDeviceContext();
 
 	// Setup the effect
 	m_context->SetEffect(m_toolsEffect);
@@ -558,7 +584,7 @@ void D3D10App::DebugViewTexture3D(ID3D10ShaderResourceView *srv, const float x, 
 	dev->IASetVertexBuffers(0, 1, &m_toolsVB, &stride, &offset);
 
 	// Render a texture quad
-	dev->IASetPrimitiveTopology(D3D10_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	dev->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
 	dev->Draw(4, 0);
 }
 
@@ -573,13 +599,13 @@ bool D3D10App::SetToolsVBSize(const uint size)
 		if (m_toolsVB)
 		{
 			UINT so = 0;
-			ID3D10Buffer *null = NULL;
+			ID3D11Buffer *null = NULL;
 			// Set first VB to NULL in case this buffer is bound already ...
-			m_context->GetDevice()->IASetVertexBuffers(0, 1, &null, &so, &so);
+			m_context->GetDeviceContext()->IASetVertexBuffers(0, 1, &null, &so, &so);
 			// ... then delete it
 			m_toolsVB->Release();
 		}
-		if ((m_toolsVB = m_context->CreateVertexBuffer(m_toolsVBSize, D3D10_USAGE_DYNAMIC, NULL)) == NULL)
+		if ((m_toolsVB = m_context->CreateVertexBuffer(m_toolsVBSize, D3D11_USAGE_DYNAMIC, NULL)) == NULL)
 		{
 			m_toolsVBSize = 0;
 			return false;
@@ -633,7 +659,7 @@ int D3D10App::Run()
 			} while (true);
 
 			// Clear state first to get rid of "currently bound" warnings
-			m_context->GetDevice()->ClearState();
+			m_context->GetDeviceContext()->ClearState();
 
 			Unload();
 		}

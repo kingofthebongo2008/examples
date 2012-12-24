@@ -8,7 +8,9 @@
 
 
 #include "D3D10Context.h"
+#include <D3DCompiler.h.>
 #include <stdio.h>
+#include <D3DX11.h>
 
 #pragma comment (lib, "dxgi.lib")
 
@@ -217,8 +219,7 @@ bool D3D10Context::Create(const TCHAR *windowTitle, const DXGI_FORMAT backBuffer
 
 
 	// Create device and swap chain
-	DXGI_SWAP_CHAIN_DESC sd;
-	memset(&sd, 0, sizeof(sd));
+	DXGI_SWAP_CHAIN_DESC sd = {};
 	sd.BufferDesc.Width  = rect.right;
 	sd.BufferDesc.Height = rect.bottom;
 	sd.BufferDesc.Format = backBufferFormat;
@@ -231,12 +232,14 @@ bool D3D10Context::Create(const TCHAR *windowTitle, const DXGI_FORMAT backBuffer
 	sd.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
 	sd.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 
-	DWORD flags = D3D10_CREATE_DEVICE_SINGLETHREADED;
+	DWORD flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
 #ifdef _DEBUG
-    flags |= D3D10_CREATE_DEVICE_DEBUG;
+    flags |= D3D11_CREATE_DEVICE_DEBUG;
 #endif
 
-	if (FAILED(D3D10CreateDeviceAndSwapChain(adapter, D3D10_DRIVER_TYPE_HARDWARE,  NULL, flags, D3D10_SDK_VERSION, &sd, &m_swapChain, &m_device)))
+	D3D_FEATURE_LEVEL level = D3D_FEATURE_LEVEL_11_0;
+
+	if (FAILED(D3D11CreateDeviceAndSwapChain(adapter, D3D_DRIVER_TYPE_UNKNOWN,  NULL, flags, &level, 1, D3D11_SDK_VERSION, &sd, &m_swapChain, &m_device, 0, &m_device_context)))
 //	if (FAILED(D3D10CreateDeviceAndSwapChain(adapter, D3D10_DRIVER_TYPE_REFERENCE, NULL, flags, D3D10_SDK_VERSION, &sd, &m_swapChain, &m_device)))
 	{
 		MessageBoxA(m_hwnd, "D3D device creation failed", "Error", MB_OK | MB_ICONERROR);
@@ -351,13 +354,13 @@ void D3D10Context::SetPosition(const int x, const int y)
 	m_windowedY = y;
 }
 
-ID3D10Texture2D *D3D10Context::CreateRenderTarget2D(const DXGI_FORMAT format, const int width, const int height, const int arraySize, const int samples, const int mipmapCount,
-	ID3D10RenderTargetView **rtRTV, ID3D10ShaderResourceView **rtSRV, ID3D10ShaderResourceView **rtSliceSRVs, const unsigned int flags)
+ID3D11Texture2D *D3D10Context::CreateRenderTarget2D(const DXGI_FORMAT format, const int width, const int height, const int arraySize, const int samples, const int mipmapCount,
+	ID3D11RenderTargetView **rtRTV, ID3D11ShaderResourceView **rtSRV, ID3D11ShaderResourceView **rtSliceSRVs, const unsigned int flags)
 {
-	ID3D10Texture2D *renderTarget;
+	ID3D11Texture2D *renderTarget;
 
 	// Setup texture description
-	D3D10_TEXTURE2D_DESC desc;
+	D3D11_TEXTURE2D_DESC desc;
 	desc.Width  = width;
 	desc.Height = height;
 	desc.MipLevels = mipmapCount;
@@ -365,8 +368,8 @@ ID3D10Texture2D *D3D10Context::CreateRenderTarget2D(const DXGI_FORMAT format, co
 	desc.SampleDesc.Count = samples;
 	desc.SampleDesc.Quality = 0;
 	desc.Format = format;
-	desc.Usage = D3D10_USAGE_DEFAULT;
-	desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = 0;
 	if (FAILED(m_device->CreateTexture2D(&desc, NULL, &renderTarget)))
@@ -380,18 +383,18 @@ ID3D10Texture2D *D3D10Context::CreateRenderTarget2D(const DXGI_FORMAT format, co
 	// Create render target view if requested
 	if (rtRTV)
 	{
-		D3D10_RENDER_TARGET_VIEW_DESC rtDesc;
+		D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
 		rtDesc.Format = format;
 		if (arraySize > 1)
 		{
-			rtDesc.ViewDimension = D3D10_RTV_DIMENSION_TEXTURE2DARRAY;
+			rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 			rtDesc.Texture2DArray.FirstArraySlice = 0;
 			rtDesc.Texture2DArray.ArraySize = arraySize;
 			rtDesc.Texture2DArray.MipSlice = 0;
 		}
 		else
 		{
-			rtDesc.ViewDimension = (samples > 1)? D3D10_RTV_DIMENSION_TEXTURE2DMS : D3D10_RTV_DIMENSION_TEXTURE2D;
+			rtDesc.ViewDimension = (samples > 1)? D3D11_RTV_DIMENSION_TEXTURE2DMS : D3D11_RTV_DIMENSION_TEXTURE2D;
 			rtDesc.Texture2D.MipSlice = 0;
 		}
 		if (FAILED(m_device->CreateRenderTargetView(renderTarget, &rtDesc, rtRTV)))
@@ -404,11 +407,11 @@ ID3D10Texture2D *D3D10Context::CreateRenderTarget2D(const DXGI_FORMAT format, co
 	// Create shader resource view if requested
 	if (rtSRV)
 	{
-		D3D10_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = format;
 		if (arraySize > 1)
 		{
-			srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2DARRAY;
+			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 			srvDesc.Texture2DArray.FirstArraySlice = 0;
 			srvDesc.Texture2DArray.ArraySize = arraySize;
 			srvDesc.Texture2DArray.MostDetailedMip = 0;
@@ -416,7 +419,7 @@ ID3D10Texture2D *D3D10Context::CreateRenderTarget2D(const DXGI_FORMAT format, co
 		}
 		else
 		{
-			srvDesc.ViewDimension = (samples > 1)? D3D10_SRV_DIMENSION_TEXTURE2DMS : D3D10_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.ViewDimension = (samples > 1)? D3D11_SRV_DIMENSION_TEXTURE2DMS : D3D11_SRV_DIMENSION_TEXTURE2D;
 			srvDesc.Texture2D.MostDetailedMip = 0;
 			srvDesc.Texture2D.MipLevels = mipmapCount;
 		}
@@ -430,9 +433,9 @@ ID3D10Texture2D *D3D10Context::CreateRenderTarget2D(const DXGI_FORMAT format, co
 	// Create shader resource view for each slice if requested
 	if (rtSliceSRVs)
 	{
-		D3D10_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = format;
-		srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2DARRAY;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 		srvDesc.Texture2DArray.ArraySize = 1;
 		srvDesc.Texture2DArray.MostDetailedMip = 0;
 		srvDesc.Texture2DArray.MipLevels = mipmapCount;
@@ -451,19 +454,19 @@ ID3D10Texture2D *D3D10Context::CreateRenderTarget2D(const DXGI_FORMAT format, co
 	return renderTarget;
 }
 
-ID3D10Texture3D *D3D10Context::CreateRenderTarget3D(const DXGI_FORMAT format, const int width, const int height, const int depth, const int mipmapCount, ID3D10RenderTargetView **rtRTV, ID3D10ShaderResourceView **rtSRV, const unsigned int flags)
+ID3D11Texture3D *D3D10Context::CreateRenderTarget3D(const DXGI_FORMAT format, const int width, const int height, const int depth, const int mipmapCount, ID3D11RenderTargetView **rtRTV, ID3D11ShaderResourceView **rtSRV, const unsigned int flags)
 {
-	ID3D10Texture3D *renderTarget;
+	ID3D11Texture3D *renderTarget;
 
 	// Setup texture description
-	D3D10_TEXTURE3D_DESC desc;
+	D3D11_TEXTURE3D_DESC desc;
 	desc.Width  = width;
 	desc.Height = height;
 	desc.Depth  = depth;
 	desc.MipLevels = mipmapCount;
 	desc.Format = format;
-	desc.Usage = D3D10_USAGE_DEFAULT;
-	desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = 0;
 	if (FAILED(m_device->CreateTexture3D(&desc, NULL, &renderTarget)))
@@ -477,9 +480,9 @@ ID3D10Texture3D *D3D10Context::CreateRenderTarget3D(const DXGI_FORMAT format, co
 	// Create render target view if requested
 	if (rtRTV)
 	{
-		D3D10_RENDER_TARGET_VIEW_DESC rtDesc;
+		D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
 		rtDesc.Format = format;
-		rtDesc.ViewDimension = D3D10_RTV_DIMENSION_TEXTURE3D;
+		rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE3D;
 		rtDesc.Texture3D.FirstWSlice = 0;
 		rtDesc.Texture3D.WSize = -1;
 		rtDesc.Texture3D.MipSlice = 0;
@@ -493,9 +496,9 @@ ID3D10Texture3D *D3D10Context::CreateRenderTarget3D(const DXGI_FORMAT format, co
 	// Create shader resource view if requested
 	if (rtSRV)
 	{
-		D3D10_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = format;
-		srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE3D;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
 		srvDesc.Texture3D.MostDetailedMip = 0;
 		srvDesc.Texture3D.MipLevels = mipmapCount;
 		if (FAILED(m_device->CreateShaderResourceView(renderTarget, &srvDesc, rtSRV)))
@@ -508,13 +511,13 @@ ID3D10Texture3D *D3D10Context::CreateRenderTarget3D(const DXGI_FORMAT format, co
 	return renderTarget;
 }
 
-ID3D10Texture2D *D3D10Context::CreateRenderTargetCube(const DXGI_FORMAT format, const int size, const int samples, const int mipmapCount,
-	ID3D10RenderTargetView **rtArrayRTV, ID3D10RenderTargetView *rtFaceRTVs[6], ID3D10ShaderResourceView **rtSRV, const unsigned int flags)
+ID3D11Texture2D *D3D10Context::CreateRenderTargetCube(const DXGI_FORMAT format, const int size, const int samples, const int mipmapCount,
+	ID3D11RenderTargetView **rtArrayRTV, ID3D11RenderTargetView *rtFaceRTVs[6], ID3D11ShaderResourceView **rtSRV, const unsigned int flags)
 {
-	ID3D10Texture2D *renderTarget;
+	ID3D11Texture2D *renderTarget;
 
 	// Setup texture description
-	D3D10_TEXTURE2D_DESC desc;
+	D3D11_TEXTURE2D_DESC desc;
 	desc.Width  = size;
 	desc.Height = size;
 	desc.MipLevels = mipmapCount;
@@ -522,10 +525,10 @@ ID3D10Texture2D *D3D10Context::CreateRenderTargetCube(const DXGI_FORMAT format, 
 	desc.SampleDesc.Count = samples;
 	desc.SampleDesc.Quality = 0;
 	desc.Format = format;
-	desc.Usage = D3D10_USAGE_DEFAULT;
-	desc.BindFlags = D3D10_BIND_RENDER_TARGET | D3D10_BIND_SHADER_RESOURCE;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
 	desc.CPUAccessFlags = 0;
-	desc.MiscFlags = D3D10_RESOURCE_MISC_TEXTURECUBE;
+	desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 	if (FAILED(m_device->CreateTexture2D(&desc, NULL, &renderTarget)))
 	{
 		char str[256];
@@ -537,9 +540,9 @@ ID3D10Texture2D *D3D10Context::CreateRenderTargetCube(const DXGI_FORMAT format, 
 	// Create render target view if requested
 	if (rtArrayRTV)
 	{
-		D3D10_RENDER_TARGET_VIEW_DESC rtDesc;
+		D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
 		rtDesc.Format = format;
-		rtDesc.ViewDimension = D3D10_RTV_DIMENSION_TEXTURE2DARRAY;
+		rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 		rtDesc.Texture2DArray.FirstArraySlice = 0;
 		rtDesc.Texture2DArray.ArraySize = 6;
 		rtDesc.Texture2DArray.MipSlice = 0;
@@ -553,9 +556,9 @@ ID3D10Texture2D *D3D10Context::CreateRenderTargetCube(const DXGI_FORMAT format, 
 	// Create render target view of individual faces if requested
 	if (rtFaceRTVs)
 	{
-		D3D10_RENDER_TARGET_VIEW_DESC rtDesc;
+		D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
 		rtDesc.Format = format;
-		rtDesc.ViewDimension = D3D10_RTV_DIMENSION_TEXTURE2DARRAY;
+		rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 		rtDesc.Texture2DArray.ArraySize = 1;
 		rtDesc.Texture2DArray.MipSlice = 0;
 		for (int i = 0; i < 6; i++)
@@ -572,9 +575,9 @@ ID3D10Texture2D *D3D10Context::CreateRenderTargetCube(const DXGI_FORMAT format, 
 	// Create shader resource view if requested
 	if (rtSRV)
 	{
-		D3D10_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = format;
-		srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURECUBE;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 		srvDesc.TextureCube.MostDetailedMip = 0;
 		srvDesc.TextureCube.MipLevels = mipmapCount;
 		if (FAILED(m_device->CreateShaderResourceView(renderTarget, &srvDesc, rtSRV)))
@@ -587,13 +590,13 @@ ID3D10Texture2D *D3D10Context::CreateRenderTargetCube(const DXGI_FORMAT format, 
 	return renderTarget;
 }
 
-ID3D10Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, const int width, const int height, const int arraySize, const int samples, const int mipmapCount,
-	ID3D10DepthStencilView **rtArrayDSV, ID3D10DepthStencilView **rtSliceDSVs,  ID3D10ShaderResourceView **rtArraySRV, ID3D10ShaderResourceView **rtSliceSRVs, const unsigned int flags)
+ID3D11Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, const int width, const int height, const int arraySize, const int samples, const int mipmapCount,
+	ID3D11DepthStencilView **rtArrayDSV, ID3D11DepthStencilView **rtSliceDSVs,  ID3D11ShaderResourceView **rtArraySRV, ID3D11ShaderResourceView **rtSliceSRVs, const unsigned int flags)
 {
-	ID3D10Texture2D *depthTarget;
+	ID3D11Texture2D *depthTarget;
 
 	// Setup depth stencil texture description
-	D3D10_TEXTURE2D_DESC desc;
+	D3D11_TEXTURE2D_DESC desc;
 	desc.Width  = width;
 	desc.Height = height;
 	desc.MipLevels = mipmapCount;
@@ -601,8 +604,8 @@ ID3D10Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, con
 	desc.Format = format;
 	desc.SampleDesc.Count = samples;
 	desc.SampleDesc.Quality = 0;
-	desc.Usage = D3D10_USAGE_DEFAULT;
-	desc.BindFlags = D3D10_BIND_DEPTH_STENCIL;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = 0;
 
@@ -610,7 +613,7 @@ ID3D10Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, con
 	DXGI_FORMAT dsvFormat = DXGI_FORMAT_UNKNOWN;
 	if (rtArraySRV || rtSliceSRVs)
 	{
-		desc.BindFlags |= D3D10_BIND_SHADER_RESOURCE;
+		desc.BindFlags |= D3D11_BIND_SHADER_RESOURCE;
 		if (format == DXGI_FORMAT_R16_TYPELESS)
 		{
 			srvFormat = DXGI_FORMAT_R16_UNORM;
@@ -634,18 +637,18 @@ ID3D10Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, con
 	// Create depth stencil view if requested
 	if (rtArrayDSV)
 	{
-		D3D10_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 		dsvDesc.Format = dsvFormat;
 		if (arraySize > 1)
 		{
-			dsvDesc.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2DARRAY;
+			dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
 			dsvDesc.Texture2DArray.FirstArraySlice = 0;
 			dsvDesc.Texture2DArray.ArraySize = arraySize;
 			dsvDesc.Texture2DArray.MipSlice = 0;
 		}
 		else
 		{
-			dsvDesc.ViewDimension = (samples > 1)? D3D10_DSV_DIMENSION_TEXTURE2DMS : D3D10_DSV_DIMENSION_TEXTURE2D;
+			dsvDesc.ViewDimension = (samples > 1)? D3D11_DSV_DIMENSION_TEXTURE2DMS : D3D11_DSV_DIMENSION_TEXTURE2D;
 			dsvDesc.Texture2D.MipSlice = 0;
 		}
 		if (FAILED(m_device->CreateDepthStencilView(depthTarget, &dsvDesc, rtArrayDSV)))
@@ -658,9 +661,9 @@ ID3D10Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, con
 	// Create depth stencil view for each slice if requested
 	if (rtSliceDSVs)
 	{
-		D3D10_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 		dsvDesc.Format = dsvFormat;
-		dsvDesc.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2DARRAY;
+		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
 		dsvDesc.Texture2DArray.ArraySize = 1;
 		dsvDesc.Texture2DArray.MipSlice = 0;
 		for (int i = 0; i < arraySize; i++)
@@ -677,11 +680,11 @@ ID3D10Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, con
 	// Create shader resource view if requested
 	if (rtArraySRV)
 	{
-		D3D10_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = srvFormat;
 		if (arraySize > 1)
 		{
-			srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2DARRAY;
+			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 			srvDesc.Texture2DArray.FirstArraySlice = 0;
 			srvDesc.Texture2DArray.ArraySize = arraySize;
 			srvDesc.Texture2DArray.MostDetailedMip = 0;
@@ -689,7 +692,7 @@ ID3D10Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, con
 		}
 		else
 		{
-			srvDesc.ViewDimension = (samples > 1)? D3D10_SRV_DIMENSION_TEXTURE2DMS : D3D10_SRV_DIMENSION_TEXTURE2D;
+			srvDesc.ViewDimension = (samples > 1)? D3D11_SRV_DIMENSION_TEXTURE2DMS : D3D11_SRV_DIMENSION_TEXTURE2D;
 			srvDesc.Texture2D.MipLevels = mipmapCount;
 			srvDesc.Texture2D.MostDetailedMip = 0;
 		}
@@ -703,9 +706,9 @@ ID3D10Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, con
 	// Create shader resource view for each slice if requested
 	if (rtSliceSRVs)
 	{
-		D3D10_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		srvDesc.Format = srvFormat;
-		srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2DARRAY;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 		srvDesc.Texture2DArray.ArraySize = 1;
 		srvDesc.Texture2DArray.MostDetailedMip = 0;
 		srvDesc.Texture2DArray.MipLevels = mipmapCount;
@@ -724,13 +727,13 @@ ID3D10Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, con
 	return depthTarget;
 }
 
-ID3D10Texture2D *D3D10Context::CreateDepthTargetCube(const DXGI_FORMAT format, const int size, const int samples, const int mipmapCount,
-	ID3D10DepthStencilView **rtArrayDSV, ID3D10DepthStencilView *rtFaceDSVs[6], const unsigned int flags)
+ID3D11Texture2D *D3D10Context::CreateDepthTargetCube(const DXGI_FORMAT format, const int size, const int samples, const int mipmapCount,
+	ID3D11DepthStencilView **rtArrayDSV, ID3D11DepthStencilView *rtFaceDSVs[6], const unsigned int flags)
 {
-	ID3D10Texture2D *depthTarget;
+	ID3D11Texture2D *depthTarget;
 
 	// Setup depth stencil texture description
-	D3D10_TEXTURE2D_DESC desc;
+	D3D11_TEXTURE2D_DESC desc;
 	desc.Width  = size;
 	desc.Height = size;
 	desc.MipLevels = mipmapCount;
@@ -738,10 +741,10 @@ ID3D10Texture2D *D3D10Context::CreateDepthTargetCube(const DXGI_FORMAT format, c
 	desc.Format = format;
 	desc.SampleDesc.Count = samples;
 	desc.SampleDesc.Quality = 0;
-	desc.Usage = D3D10_USAGE_DEFAULT;
-	desc.BindFlags = D3D10_BIND_DEPTH_STENCIL;
+	desc.Usage = D3D11_USAGE_DEFAULT;
+	desc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	desc.CPUAccessFlags = 0;
-	desc.MiscFlags = D3D10_RESOURCE_MISC_TEXTURECUBE;
+	desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 	if (FAILED(m_device->CreateTexture2D(&desc, NULL, &depthTarget)))
 	{
 		char str[256];
@@ -753,9 +756,9 @@ ID3D10Texture2D *D3D10Context::CreateDepthTargetCube(const DXGI_FORMAT format, c
 	// Create depth stencil view if requested
 	if (rtArrayDSV)
 	{
-		D3D10_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 		dsvDesc.Format = format;
-		dsvDesc.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2DARRAY;
+		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
 		dsvDesc.Texture2DArray.FirstArraySlice = 0;
 		dsvDesc.Texture2DArray.ArraySize = 6;
 		dsvDesc.Texture2DArray.MipSlice = 0;
@@ -769,9 +772,9 @@ ID3D10Texture2D *D3D10Context::CreateDepthTargetCube(const DXGI_FORMAT format, c
 	// Create depth stencil view for each face if requested
 	if (rtFaceDSVs)
 	{
-		D3D10_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+		D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 		dsvDesc.Format = format;
-		dsvDesc.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2DARRAY;
+		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
 		dsvDesc.Texture2DArray.ArraySize = 1;
 		dsvDesc.Texture2DArray.MipSlice = 0;
 		for (int i = 0; i < 6; i++)
@@ -789,19 +792,19 @@ ID3D10Texture2D *D3D10Context::CreateDepthTargetCube(const DXGI_FORMAT format, c
 }
 
 
-ID3D10Buffer *D3D10Context::CreateVertexBuffer(const int size, const D3D10_USAGE usage, const void *data)
+ID3D11Buffer *D3D10Context::CreateVertexBuffer(const int size, const D3D11_USAGE usage, const void *data)
 {
-	ID3D10Buffer *vertexBuffer;
+	ID3D11Buffer *vertexBuffer;
 
 	// Setup vertex buffer description
-	D3D10_BUFFER_DESC bd;
+	D3D11_BUFFER_DESC bd;
 	bd.Usage = usage;
 	bd.ByteWidth = size;
-	bd.BindFlags = D3D10_BIND_VERTEX_BUFFER;
-	bd.CPUAccessFlags = (usage == D3D10_USAGE_IMMUTABLE)? 0 : D3D10_CPU_ACCESS_WRITE;
+	bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+	bd.CPUAccessFlags = (usage == D3D11_USAGE_IMMUTABLE)? 0 : D3D11_CPU_ACCESS_WRITE;
 	bd.MiscFlags = 0;
 
-	D3D10_SUBRESOURCE_DATA srData;
+	D3D11_SUBRESOURCE_DATA srData;
 	srData.pSysMem = data;
 	srData.SysMemPitch = 0;
 	srData.SysMemSlicePitch = 0;
@@ -814,19 +817,19 @@ ID3D10Buffer *D3D10Context::CreateVertexBuffer(const int size, const D3D10_USAGE
 	return vertexBuffer;
 }
 
-ID3D10Buffer *D3D10Context::CreateIndexBuffer(const int size, const D3D10_USAGE usage, const void *data)
+ID3D11Buffer *D3D10Context::CreateIndexBuffer(const int size, const D3D11_USAGE usage, const void *data)
 {
-	ID3D10Buffer *indexBuffer;
+	ID3D11Buffer *indexBuffer;
 
 	// Setup index buffer description
-	D3D10_BUFFER_DESC bd;
+	D3D11_BUFFER_DESC bd;
 	bd.Usage = usage;
 	bd.ByteWidth = size;
-	bd.BindFlags = D3D10_BIND_INDEX_BUFFER;
-	bd.CPUAccessFlags = (usage == D3D10_USAGE_IMMUTABLE)? 0 : D3D10_CPU_ACCESS_WRITE;
+	bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+	bd.CPUAccessFlags = (usage == D3D11_USAGE_IMMUTABLE)? 0 : D3D11_CPU_ACCESS_WRITE;
 	bd.MiscFlags = 0;
 
-	D3D10_SUBRESOURCE_DATA srData;
+	D3D11_SUBRESOURCE_DATA srData;
 	srData.pSysMem = data;
 	srData.SysMemPitch = 0;
 	srData.SysMemSlicePitch = 0;
@@ -839,19 +842,19 @@ ID3D10Buffer *D3D10Context::CreateIndexBuffer(const int size, const D3D10_USAGE 
 	return indexBuffer;
 }
 
-ID3D10Buffer *D3D10Context::CreateConstantBuffer(const int size, const D3D10_USAGE usage, const void *data)
+ID3D11Buffer *D3D10Context::CreateConstantBuffer(const int size, const D3D11_USAGE usage, const void *data)
 {
-	ID3D10Buffer *constantBuffer;
+	ID3D11Buffer *constantBuffer;
 
 	// Setup constant buffer description
-	D3D10_BUFFER_DESC bd;
+	D3D11_BUFFER_DESC bd;
 	bd.Usage = usage;
 	bd.ByteWidth = size;
-	bd.BindFlags = D3D10_BIND_CONSTANT_BUFFER;
-	bd.CPUAccessFlags = (usage == D3D10_USAGE_IMMUTABLE)? 0 : D3D10_CPU_ACCESS_WRITE;
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	bd.CPUAccessFlags = (usage == D3D11_USAGE_IMMUTABLE)? 0 : D3D11_CPU_ACCESS_WRITE;
 	bd.MiscFlags = 0;
 
-	D3D10_SUBRESOURCE_DATA srData;
+	D3D11_SUBRESOURCE_DATA srData;
 	srData.pSysMem = data;
 	srData.SysMemPitch = 0;
 	srData.SysMemSlicePitch = 0;
@@ -864,10 +867,10 @@ ID3D10Buffer *D3D10Context::CreateConstantBuffer(const int size, const D3D10_USA
 	return constantBuffer;
 }
 
-ID3D10Buffer *D3D10Context::CreateEffectConstantBuffer(ID3D10Effect *effect, const char *name)
+ID3D11Buffer *D3D10Context::CreateEffectConstantBuffer(ID3DX11Effect *effect, const char *name)
 {
 	// Get constant buffer variable from the effect
-	ID3D10EffectConstantBuffer *cbVar = effect->GetConstantBufferByName(name);
+	ID3DX11EffectConstantBuffer *cbVar = effect->GetConstantBufferByName(name);
 	if (!cbVar->IsValid())
 	{
 		char str[256];
@@ -877,19 +880,20 @@ ID3D10Buffer *D3D10Context::CreateEffectConstantBuffer(ID3D10Effect *effect, con
 	}
 
 	// Get the actual constant buffer ...
-	ID3D10Buffer *cb;
+	ID3D11Buffer *cb;
 	cbVar->GetConstantBuffer(&cb);
 
 	// ... get its info ...
-	D3D10_BUFFER_DESC desc;
+	D3D11_BUFFER_DESC desc;
 	cb->GetDesc(&desc);
 
 	// ... delete it ...
 	cb->Release();
 
 	// ... and replace with a better one
-	desc.Usage = D3D10_USAGE_DYNAMIC;
-	desc.CPUAccessFlags = D3D10_CPU_ACCESS_WRITE;
+	desc.Usage = D3D11_USAGE_DYNAMIC;
+	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+
 	if (FAILED(m_device->CreateBuffer(&desc, NULL, &cb)))
 	{
 		MessageBoxA(m_hwnd, "Constant buffer creation failed", "Error", MB_OK | MB_ICONERROR);
@@ -897,16 +901,16 @@ ID3D10Buffer *D3D10Context::CreateEffectConstantBuffer(ID3D10Effect *effect, con
 	}
 
 	cbVar->SetConstantBuffer(cb);
-
 	return cb;
 }
 
-ID3D10InputLayout *D3D10Context::CreateInputLayout(ID3D10EffectPass *effectPass, const D3D10_INPUT_ELEMENT_DESC *layout, const int elementCount)
+ID3D11InputLayout *D3D10Context::CreateInputLayout(ID3DX11EffectPass *effectPass, const D3D11_INPUT_ELEMENT_DESC *layout, const int elementCount)
 {
-	D3D10_PASS_DESC passDesc;
+	D3DX11_PASS_DESC passDesc;
 	if (FAILED(effectPass->GetDesc(&passDesc))) return NULL;
 
-	ID3D10InputLayout *inputLayout;
+	ID3D11InputLayout *inputLayout;
+
 	if (FAILED(m_device->CreateInputLayout(layout, elementCount, passDesc.pIAInputSignature, passDesc.IAInputSignatureSize, &inputLayout)))
 	{
 		MessageBoxA(m_hwnd, "Input layout creation failed", "Error", MB_OK | MB_ICONERROR);
@@ -916,24 +920,24 @@ ID3D10InputLayout *D3D10Context::CreateInputLayout(ID3D10EffectPass *effectPass,
 	return inputLayout;
 }
 
-ID3D10RenderTargetView *D3D10Context::CreateRenderTargetView2D(ID3D10Texture2D *renderTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
+ID3D11RenderTargetView *D3D10Context::CreateRenderTargetView2D(ID3D11Texture2D *renderTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
 {
-	D3D10_RENDER_TARGET_VIEW_DESC rtDesc;
+	D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
 	rtDesc.Format = format;
 	if (arraySize > 0)
 	{
-		rtDesc.ViewDimension = D3D10_RTV_DIMENSION_TEXTURE2DARRAY;
+		rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DARRAY;
 		rtDesc.Texture2DArray.FirstArraySlice = firstSlice;
 		rtDesc.Texture2DArray.ArraySize = arraySize;
 		rtDesc.Texture2DArray.MipSlice = 0;
 	}
 	else
 	{
-		rtDesc.ViewDimension = D3D10_RTV_DIMENSION_TEXTURE2D;
+		rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
 		rtDesc.Texture2D.MipSlice = 0;
 	}
 
-	ID3D10RenderTargetView *rtv;
+	ID3D11RenderTargetView *rtv;
 	if (FAILED(m_device->CreateRenderTargetView(renderTarget, &rtDesc, &rtv)))
 	{
 		MessageBoxA(m_hwnd, "CreateRenderTargetView failed", "Error", MB_OK | MB_ICONERROR);
@@ -943,16 +947,16 @@ ID3D10RenderTargetView *D3D10Context::CreateRenderTargetView2D(ID3D10Texture2D *
 	return rtv;
 }
 
-ID3D10RenderTargetView *D3D10Context::CreateRenderTargetView3D(ID3D10Texture3D *renderTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
+ID3D11RenderTargetView *D3D10Context::CreateRenderTargetView3D(ID3D11Texture3D *renderTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
 {
-	D3D10_RENDER_TARGET_VIEW_DESC rtDesc;
+	D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
 	rtDesc.Format = format;
-	rtDesc.ViewDimension = D3D10_RTV_DIMENSION_TEXTURE3D;
+	rtDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE3D;
 	rtDesc.Texture3D.FirstWSlice = firstSlice;
 	rtDesc.Texture3D.WSize = arraySize;
 	rtDesc.Texture3D.MipSlice = 0;
 
-	ID3D10RenderTargetView *rtv;
+	ID3D11RenderTargetView *rtv;
 	if (FAILED(m_device->CreateRenderTargetView(renderTarget, &rtDesc, &rtv)))
 	{
 		MessageBoxA(m_hwnd, "CreateRenderTargetView failed", "Error", MB_OK | MB_ICONERROR);
@@ -962,24 +966,24 @@ ID3D10RenderTargetView *D3D10Context::CreateRenderTargetView3D(ID3D10Texture3D *
 	return rtv;
 }
 
-ID3D10DepthStencilView *D3D10Context::CreateDepthStencilView2D(ID3D10Texture2D *depthTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
+ID3D11DepthStencilView *D3D10Context::CreateDepthStencilView2D(ID3D11Texture2D *depthTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
 {
-	D3D10_DEPTH_STENCIL_VIEW_DESC dsvDesc;
+	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 	dsvDesc.Format = format;
 	if (arraySize > 0)
 	{
-		dsvDesc.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2DARRAY;
+		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DARRAY;
 		dsvDesc.Texture2DArray.FirstArraySlice = firstSlice;
 		dsvDesc.Texture2DArray.ArraySize = arraySize;
 		dsvDesc.Texture2DArray.MipSlice = 0;
 	}
 	else
 	{
-		dsvDesc.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2D;
+		dsvDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 		dsvDesc.Texture2D.MipSlice = 0;
 	}
 
-	ID3D10DepthStencilView *dsv;
+	ID3D11DepthStencilView *dsv;
 	if (FAILED(m_device->CreateDepthStencilView(depthTarget, &dsvDesc, &dsv)))
 	{
 		MessageBoxA(m_hwnd, "CreateDepthStencilView failed", "Error", MB_OK | MB_ICONERROR);
@@ -990,26 +994,26 @@ ID3D10DepthStencilView *D3D10Context::CreateDepthStencilView2D(ID3D10Texture2D *
 }
 
 
-ID3D10ShaderResourceView *D3D10Context::CreateDefaultSRV(ID3D10Resource *resource)
+ID3D11ShaderResourceView *D3D10Context::CreateDefaultSRV(ID3D11Resource *resource)
 {
 	// Check what kind of texture it is
-	D3D10_RESOURCE_DIMENSION type;
+	D3D11_RESOURCE_DIMENSION type;
 	resource->GetType(&type);
 
-	D3D10_SHADER_RESOURCE_VIEW_DESC srvDesc;
-	ID3D10ShaderResourceView *srv;
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+	ID3D11ShaderResourceView *srv;
 
 	// Fill shader resrouce view description based on input texture format and type
 	switch (type)
 	{
-		case D3D10_RESOURCE_DIMENSION_TEXTURE1D:
-			D3D10_TEXTURE1D_DESC desc1d;
-			((ID3D10Texture1D *) resource)->GetDesc(&desc1d);
+		case D3D11_RESOURCE_DIMENSION_TEXTURE1D:
+			D3D11_TEXTURE1D_DESC desc1d;
+			((ID3D11Texture1D *) resource)->GetDesc(&desc1d);
 
 			srvDesc.Format = desc1d.Format;
 			if (desc1d.ArraySize > 1)
 			{
-				srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2DARRAY;
+				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 				srvDesc.Texture1DArray.FirstArraySlice = 0;
 				srvDesc.Texture1DArray.ArraySize = desc1d.ArraySize;
 				srvDesc.Texture1DArray.MostDetailedMip = 0;
@@ -1017,27 +1021,27 @@ ID3D10ShaderResourceView *D3D10Context::CreateDefaultSRV(ID3D10Resource *resourc
 			}
 			else
 			{
-				srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE1D;
+				srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE1D;
 				srvDesc.Texture1D.MostDetailedMip = 0;
 				srvDesc.Texture1D.MipLevels = desc1d.MipLevels;
 			}
 			break;
-		case D3D10_RESOURCE_DIMENSION_TEXTURE2D:
-			D3D10_TEXTURE2D_DESC desc2d;
-			((ID3D10Texture2D *) resource)->GetDesc(&desc2d);
+		case D3D11_RESOURCE_DIMENSION_TEXTURE2D:
+			D3D11_TEXTURE2D_DESC desc2d;
+			((ID3D11Texture2D *) resource)->GetDesc(&desc2d);
 
 			srvDesc.Format = desc2d.Format;
 			if (desc2d.ArraySize > 1)
 			{
-				if (desc2d.MiscFlags & D3D10_RESOURCE_MISC_TEXTURECUBE)
+				if (desc2d.MiscFlags & D3D11_RESOURCE_MISC_TEXTURECUBE)
 				{
-					srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURECUBE;
+					srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 					srvDesc.TextureCube.MostDetailedMip = 0;
 					srvDesc.TextureCube.MipLevels = desc2d.MipLevels;
 				}
 				else
 				{
-					srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE2DARRAY;
+					srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DARRAY;
 					srvDesc.Texture2DArray.FirstArraySlice = 0;
 					srvDesc.Texture2DArray.ArraySize = desc2d.ArraySize;
 					srvDesc.Texture2DArray.MostDetailedMip = 0;
@@ -1046,17 +1050,17 @@ ID3D10ShaderResourceView *D3D10Context::CreateDefaultSRV(ID3D10Resource *resourc
 			}
 			else
 			{
-				srvDesc.ViewDimension = (desc2d.SampleDesc.Count > 1)? D3D10_SRV_DIMENSION_TEXTURE2DMS : D3D10_SRV_DIMENSION_TEXTURE2D;
+				srvDesc.ViewDimension = (desc2d.SampleDesc.Count > 1)? D3D11_SRV_DIMENSION_TEXTURE2DMS : D3D11_SRV_DIMENSION_TEXTURE2D;
 				srvDesc.Texture2D.MostDetailedMip = 0;
 				srvDesc.Texture2D.MipLevels = desc2d.MipLevels;
 			}
 			break;
-		case D3D10_RESOURCE_DIMENSION_TEXTURE3D:
-			D3D10_TEXTURE3D_DESC desc3d;
-			((ID3D10Texture3D *) resource)->GetDesc(&desc3d);
+		case D3D11_RESOURCE_DIMENSION_TEXTURE3D:
+			D3D11_TEXTURE3D_DESC desc3d;
+			((ID3D11Texture3D *) resource)->GetDesc(&desc3d);
 
 			srvDesc.Format = desc3d.Format;
-			srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURE3D;
+			srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE3D;
 			srvDesc.Texture3D.MostDetailedMip = 0;
 			srvDesc.Texture3D.MipLevels = desc3d.MipLevels;
 			break;
@@ -1074,17 +1078,17 @@ ID3D10ShaderResourceView *D3D10Context::CreateDefaultSRV(ID3D10Resource *resourc
 	return srv;
 }
 
-ID3D10SamplerState *D3D10Context::CreateSamplerState(const D3D10_FILTER filter, D3D10_TEXTURE_ADDRESS_MODE addressMode, const float maxLOD)
+ID3D11SamplerState *D3D10Context::CreateSamplerState(const D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, const float maxLOD)
 {
 	// Fill sampler state description
-	D3D10_SAMPLER_DESC desc;
+	D3D11_SAMPLER_DESC desc;
 	desc.Filter = filter;
 	desc.AddressU = addressMode;
 	desc.AddressV = addressMode;
 	desc.AddressW = addressMode;
 	desc.MipLODBias = 0;
-	desc.MaxAnisotropy = (filter == D3D10_FILTER_ANISOTROPIC || filter == D3D10_FILTER_COMPARISON_ANISOTROPIC)? 16 : 1;
-	desc.ComparisonFunc = D3D10_COMPARISON_LESS;
+	desc.MaxAnisotropy = (filter == D3D11_FILTER_ANISOTROPIC || filter == D3D11_FILTER_COMPARISON_ANISOTROPIC)? 16 : 1;
+	desc.ComparisonFunc = D3D11_COMPARISON_LESS;
 	desc.BorderColor[0] = 0;
 	desc.BorderColor[1] = 0;
 	desc.BorderColor[2] = 0;
@@ -1092,7 +1096,7 @@ ID3D10SamplerState *D3D10Context::CreateSamplerState(const D3D10_FILTER filter, 
 	desc.MinLOD = 0;
 	desc.MaxLOD = maxLOD;
 
-	ID3D10SamplerState *samplerState;
+	ID3D11SamplerState *samplerState;
 	if (FAILED(m_device->CreateSamplerState(&desc, &samplerState)))
 	{
 		MessageBoxA(m_hwnd, "CreateSamplerState failed", "Error", MB_OK | MB_ICONERROR);
@@ -1102,30 +1106,31 @@ ID3D10SamplerState *D3D10Context::CreateSamplerState(const D3D10_FILTER filter, 
 	return samplerState;
 }
 
-ID3D10BlendState *D3D10Context::CreateBlendState(const D3D10_BLEND src, const D3D10_BLEND dst, const D3D10_BLEND_OP op, const UINT8 mask, const int count)
+ID3D11BlendState *D3D10Context::CreateBlendState(const D3D11_BLEND src, const D3D11_BLEND dst, const D3D11_BLEND_OP op, const UINT8 mask, const int count)
 {
-	BOOL blendEnable = (src != D3D10_BLEND_ONE || dst != D3D10_BLEND_ZERO);
+	BOOL blendEnable = (src != D3D11_BLEND_ONE || dst != D3D11_BLEND_ZERO);
 
 	// Fill blendstate description
-	D3D10_BLEND_DESC desc;
+	D3D11_BLEND_DESC desc;
+	D3D11_RENDER_TARGET_BLEND_DESC blend_desc;
+	
 	desc.AlphaToCoverageEnable = false;
-	desc.BlendOp = op;
-	desc.SrcBlend = src;
-	desc.DestBlend = dst;
-	desc.BlendOpAlpha = op;
-	desc.SrcBlendAlpha = src;
-	desc.DestBlendAlpha = dst;
+	desc.IndependentBlendEnable = false;
 
-	// Enable blend and set the mask for the provided number of MRTs
-	memset(&desc.BlendEnable, 0, sizeof(desc.BlendEnable));
-	memset(&desc.RenderTargetWriteMask, 0, sizeof(desc.RenderTargetWriteMask));
+	blend_desc.BlendOp = op;
+	blend_desc.SrcBlend = src;
+	blend_desc.DestBlend = dst;
+	blend_desc.BlendOpAlpha = op;
+	blend_desc.SrcBlendAlpha = src;
+	blend_desc.DestBlendAlpha = dst;
+
 	for (int i = 0; i < count; i++)
 	{
-		desc.BlendEnable[i] = blendEnable;
-		desc.RenderTargetWriteMask[i] = mask;
+		desc.RenderTarget[i].BlendEnable = blendEnable;
+		desc.RenderTarget[i].RenderTargetWriteMask = mask;
 	}
 
-	ID3D10BlendState *blendState;
+	ID3D11BlendState *blendState;
 	if (FAILED(m_device->CreateBlendState(&desc, &blendState)))
 	{
 		MessageBoxA(m_hwnd, "CreateBlendState failed", "Error", MB_OK | MB_ICONERROR);
@@ -1135,11 +1140,11 @@ ID3D10BlendState *D3D10Context::CreateBlendState(const D3D10_BLEND src, const D3
 	return blendState;
 }
 
-ID3D10RasterizerState *D3D10Context::CreateRasterizerState(const D3D10_CULL_MODE cullMode, const D3D10_FILL_MODE fillMode, const bool multisampleEnable,
+ID3D11RasterizerState *D3D10Context::CreateRasterizerState(const D3D11_CULL_MODE cullMode, const D3D11_FILL_MODE fillMode, const bool multisampleEnable,
 	const bool depthClipEnable, const int depthBias, const float slopeScaledDepthBias, const bool scissorEnable)
 {
 	// Fill in the rasterizer state description
-	D3D10_RASTERIZER_DESC desc;
+	D3D11_RASTERIZER_DESC desc;
 	desc.AntialiasedLineEnable = false;
 	desc.CullMode = cullMode;
 	desc.DepthBias = depthBias;
@@ -1151,7 +1156,7 @@ ID3D10RasterizerState *D3D10Context::CreateRasterizerState(const D3D10_CULL_MODE
 	desc.ScissorEnable = scissorEnable;
 	desc.SlopeScaledDepthBias = slopeScaledDepthBias;
 
-	ID3D10RasterizerState *rasterizerState;
+	ID3D11RasterizerState *rasterizerState;
 	if (FAILED(m_device->CreateRasterizerState(&desc, &rasterizerState)))
 	{
 		MessageBoxA(m_hwnd, "CreateRasterizerState failed", "Error", MB_OK | MB_ICONERROR);
@@ -1161,26 +1166,26 @@ ID3D10RasterizerState *D3D10Context::CreateRasterizerState(const D3D10_CULL_MODE
 	return rasterizerState;
 }
 
-ID3D10DepthStencilState *D3D10Context::CreateDepthStencilState(const bool depthEnable, const bool depthWriteEnable, const D3D10_COMPARISON_FUNC depthFunc)
+ID3D11DepthStencilState *D3D10Context::CreateDepthStencilState(const bool depthEnable, const bool depthWriteEnable, const D3D11_COMPARISON_FUNC depthFunc)
 {
 	// Fill in the depth stencil state description
-	D3D10_DEPTH_STENCIL_DESC desc;
+	D3D11_DEPTH_STENCIL_DESC desc;
 	desc.DepthEnable = depthEnable;
-	desc.DepthWriteMask = depthWriteEnable? D3D10_DEPTH_WRITE_MASK_ALL : D3D10_DEPTH_WRITE_MASK_ZERO;
+	desc.DepthWriteMask = depthWriteEnable? D3D11_DEPTH_WRITE_MASK_ALL : D3D11_DEPTH_WRITE_MASK_ZERO;
 	desc.DepthFunc = depthFunc;
 	desc.StencilEnable = false;
 	desc.StencilReadMask = 0;
 	desc.StencilWriteMask = 0;
-	desc.BackFace.StencilFunc = D3D10_COMPARISON_ALWAYS;
-	desc.BackFace.StencilDepthFailOp = D3D10_STENCIL_OP_KEEP;
-	desc.BackFace.StencilFailOp = D3D10_STENCIL_OP_KEEP;
-	desc.BackFace.StencilPassOp = D3D10_STENCIL_OP_KEEP;
-	desc.FrontFace.StencilFunc = D3D10_COMPARISON_ALWAYS;
-	desc.FrontFace.StencilDepthFailOp = D3D10_STENCIL_OP_KEEP;
-	desc.FrontFace.StencilFailOp = D3D10_STENCIL_OP_KEEP;
-	desc.FrontFace.StencilPassOp = D3D10_STENCIL_OP_KEEP;
+	desc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	desc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	desc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	desc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
+	desc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+	desc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_KEEP;
+	desc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
+	desc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
 
-	ID3D10DepthStencilState *depthStencilState;
+	ID3D11DepthStencilState *depthStencilState;
 	if (FAILED(m_device->CreateDepthStencilState(&desc, &depthStencilState)))
 	{
 		MessageBoxA(m_hwnd, "CreateDepthStencilState failed", "Error", MB_OK | MB_ICONERROR);
@@ -1190,21 +1195,21 @@ ID3D10DepthStencilState *D3D10Context::CreateDepthStencilState(const bool depthE
 	return depthStencilState;	
 }
 
-ID3D10Texture1D *D3D10Context::CreateTexture1D(const void *data, const DXGI_FORMAT format, const int width, const int arraySize, ID3D10ShaderResourceView **resourceView, const unsigned int flags)
+ID3D11Texture1D *D3D10Context::CreateTexture1D(const void *data, const DXGI_FORMAT format, const int width, const int arraySize, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
 {
 	// Setup the texture description
-	D3D10_TEXTURE1D_DESC desc;
+	D3D11_TEXTURE1D_DESC desc;
 	desc.Width  = width;
 	desc.Format = format;
 	desc.MipLevels = 1;
 	desc.ArraySize = arraySize;
-	desc.Usage = D3D10_USAGE_IMMUTABLE;
-	desc.BindFlags = D3D10_BIND_SHADER_RESOURCE;
+	desc.Usage = D3D11_USAGE_IMMUTABLE;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = 0;
 
 	// Setup data pointers
-	D3D10_SUBRESOURCE_DATA *texData = new D3D10_SUBRESOURCE_DATA[arraySize];
+	D3D11_SUBRESOURCE_DATA *texData = new D3D11_SUBRESOURCE_DATA[arraySize];
 	int size = width * g_formats[format].bpp / 8;
 
 	for (int i = 0; i < arraySize; i++)
@@ -1212,7 +1217,7 @@ ID3D10Texture1D *D3D10Context::CreateTexture1D(const void *data, const DXGI_FORM
 		texData[i].pSysMem = ((ubyte *) data) + i * size;
 	}
 
-	ID3D10Texture1D *texture;
+	ID3D11Texture1D *texture;
 	HRESULT hr = m_device->CreateTexture1D(&desc, texData, &texture);
 	delete texData;
 
@@ -1231,10 +1236,10 @@ ID3D10Texture1D *D3D10Context::CreateTexture1D(const void *data, const DXGI_FORM
 	return texture;
 }
 
-ID3D10Texture2D *D3D10Context::CreateTexture2D(const void *data, const DXGI_FORMAT format, const int width, const int height, const int arraySize, ID3D10ShaderResourceView **resourceView, const unsigned int flags)
+ID3D11Texture2D *D3D10Context::CreateTexture2D(const void *data, const DXGI_FORMAT format, const int width, const int height, const int arraySize, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
 {
 	// Setup the texture description
-	D3D10_TEXTURE2D_DESC desc;
+	D3D11_TEXTURE2D_DESC desc;
 	desc.Width  = width;
 	desc.Height = height;
 	desc.Format = format;
@@ -1242,13 +1247,13 @@ ID3D10Texture2D *D3D10Context::CreateTexture2D(const void *data, const DXGI_FORM
 	desc.ArraySize = arraySize;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
-	desc.Usage = D3D10_USAGE_IMMUTABLE;
-	desc.BindFlags = D3D10_BIND_SHADER_RESOURCE;
+	desc.Usage = D3D11_USAGE_IMMUTABLE;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = 0;
 
 	// Setup data pointers
-	D3D10_SUBRESOURCE_DATA *texData = new D3D10_SUBRESOURCE_DATA[arraySize];
+	D3D11_SUBRESOURCE_DATA *texData = new D3D11_SUBRESOURCE_DATA[arraySize];
 	int lineSize = width * g_formats[format].bpp / 8;
 	if (format >= DXGI_FORMAT_BC1_TYPELESS && format <= DXGI_FORMAT_BC5_SNORM) lineSize *= 4;
 	int sliceSize = height * lineSize;
@@ -1259,7 +1264,7 @@ ID3D10Texture2D *D3D10Context::CreateTexture2D(const void *data, const DXGI_FORM
 		texData[i].SysMemPitch = lineSize;
 	}
 
-	ID3D10Texture2D *texture;
+	ID3D11Texture2D *texture;
 	HRESULT hr = m_device->CreateTexture2D(&desc, texData, &texture);
 	delete texData;
 
@@ -1278,27 +1283,27 @@ ID3D10Texture2D *D3D10Context::CreateTexture2D(const void *data, const DXGI_FORM
 	return texture;
 }
 
-ID3D10Texture3D *D3D10Context::CreateTexture3D(const void *data, const DXGI_FORMAT format, const int width, const int height, const int depth, ID3D10ShaderResourceView **resourceView, const unsigned int flags)
+ID3D11Texture3D *D3D10Context::CreateTexture3D(const void *data, const DXGI_FORMAT format, const int width, const int height, const int depth, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
 {
 	// Setup the texture description
-	D3D10_TEXTURE3D_DESC desc;
+	D3D11_TEXTURE3D_DESC desc;
 	desc.Width  = width;
 	desc.Height = height;
 	desc.Depth  = depth;
 	desc.Format = format;
 	desc.MipLevels = 1;
-	desc.Usage = D3D10_USAGE_IMMUTABLE;
-	desc.BindFlags = D3D10_BIND_SHADER_RESOURCE;
+	desc.Usage = D3D11_USAGE_IMMUTABLE;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	desc.CPUAccessFlags = 0;
 	desc.MiscFlags = 0;
 
 	// Setup data pointer
-	D3D10_SUBRESOURCE_DATA texData;
+	D3D11_SUBRESOURCE_DATA texData;
 	texData.pSysMem = data;
 	texData.SysMemPitch = width * g_formats[format].bpp / 8;
 	texData.SysMemSlicePitch = texData.SysMemPitch * height;
 
-	ID3D10Texture3D *texture;
+	ID3D11Texture3D *texture;
 	if (FAILED(m_device->CreateTexture3D(&desc, &texData, &texture)))
 	{
 		MessageBoxA(m_hwnd, "CreateTexture3D failed", "Error", MB_OK | MB_ICONERROR);
@@ -1314,10 +1319,10 @@ ID3D10Texture3D *D3D10Context::CreateTexture3D(const void *data, const DXGI_FORM
 	return texture;
 }
 
-ID3D10Texture2D *D3D10Context::CreateTextureCube(const void *data, const DXGI_FORMAT format, const int size, ID3D10ShaderResourceView **resourceView, const unsigned int flags)
+ID3D11Texture2D *D3D10Context::CreateTextureCube(const void *data, const DXGI_FORMAT format, const int size, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
 {
 	// Setup the texture description
-	D3D10_TEXTURE2D_DESC desc;
+	D3D11_TEXTURE2D_DESC desc;
 	desc.Width  = size;
 	desc.Height = size;
 	desc.Format = format;
@@ -1325,12 +1330,12 @@ ID3D10Texture2D *D3D10Context::CreateTextureCube(const void *data, const DXGI_FO
 	desc.ArraySize = 6;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
-	desc.Usage = D3D10_USAGE_IMMUTABLE;
-	desc.BindFlags = D3D10_BIND_SHADER_RESOURCE;
+	desc.Usage = D3D11_USAGE_IMMUTABLE;
+	desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	desc.CPUAccessFlags = 0;
-	desc.MiscFlags = D3D10_RESOURCE_MISC_TEXTURECUBE;
+	desc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE;
 
-	D3D10_SUBRESOURCE_DATA texData[6];
+	D3D11_SUBRESOURCE_DATA texData[6];
 	int lineSize  = size * g_formats[format].bpp / 8;
 	int sliceSize = size * lineSize;
 	for (int i = 0; i < 6; i++)
@@ -1339,7 +1344,7 @@ ID3D10Texture2D *D3D10Context::CreateTextureCube(const void *data, const DXGI_FO
 		texData[i].SysMemPitch = lineSize;
 	}
 
-	ID3D10Texture2D *texture;
+	ID3D11Texture2D *texture;
 	if (FAILED(m_device->CreateTexture2D(&desc, texData, &texture)))
 	{
 		MessageBoxA(m_hwnd, "CreateTexture2D failed", "Error", MB_OK | MB_ICONERROR);
@@ -1349,10 +1354,10 @@ ID3D10Texture2D *D3D10Context::CreateTextureCube(const void *data, const DXGI_FO
 	// Return a shader resource view if requested
 	if (resourceView)
 	{
-		D3D10_SHADER_RESOURCE_VIEW_DESC srvDesc;
+		D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
 		ZeroMemory(&srvDesc, sizeof(srvDesc));
 		srvDesc.Format = desc.Format;
-		srvDesc.ViewDimension = D3D10_SRV_DIMENSION_TEXTURECUBE;
+		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
 		srvDesc.TextureCube.MostDetailedMip = 0;
 		srvDesc.TextureCube.MipLevels = 1;
 		if (FAILED(m_device->CreateShaderResourceView(texture, &srvDesc, resourceView)))
@@ -1365,7 +1370,7 @@ ID3D10Texture2D *D3D10Context::CreateTextureCube(const void *data, const DXGI_FO
 	return texture;
 }
 
-ID3D10Resource *D3D10Context::LoadTexture(const TCHAR *fileName, ID3D10ShaderResourceView **resourceView, const unsigned int flags)
+ID3D11Resource *D3D10Context::LoadTexture(const TCHAR *fileName, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
 {
 	TCHAR str[256];
 /*
@@ -1397,7 +1402,7 @@ ID3D10Resource *D3D10Context::LoadTexture(const TCHAR *fileName, ID3D10ShaderRes
 	}
 
 	D3DX10_IMAGE_LOAD_INFO loadInfo;
-	loadInfo.BindFlags = D3D10_BIND_SHADER_RESOURCE;
+	loadInfo.BindFlags = D3D11_BIND_SHADER_RESOURCE;
 	loadInfo.CpuAccessFlags = 0;
 	loadInfo.Depth = info.Depth;
 	loadInfo.Filter = D3DX10_FILTER_NONE;
@@ -1408,7 +1413,7 @@ ID3D10Resource *D3D10Context::LoadTexture(const TCHAR *fileName, ID3D10ShaderRes
 	loadInfo.MipLevels = info.MipLevels;
 	loadInfo.MiscFlags = info.MiscFlags;
 	loadInfo.pSrcInfo = &info;
-	loadInfo.Usage = D3D10_USAGE_IMMUTABLE;
+	loadInfo.Usage = D3D11_USAGE_IMMUTABLE;
 	loadInfo.Width = info.Width;
 
 	ID3D10Resource *texture;
@@ -1419,8 +1424,9 @@ ID3D10Resource *D3D10Context::LoadTexture(const TCHAR *fileName, ID3D10ShaderRes
 	if (FAILED(hr))
 */
 
-	ID3D10Resource *texture;
-	if (FAILED(D3DX10CreateTextureFromFile(m_device, fileName, NULL, NULL, &texture, NULL)))
+	ID3D11Resource *texture;
+
+	if (FAILED(D3DX11CreateTextureFromFile(m_device, fileName, NULL, NULL, &texture, NULL)))
 	{
 		_stprintf(str, _T("Couldn't load \"%s\""), fileName);
 		MessageBox(m_hwnd, str, _T("Error"), MB_OK | MB_ICONERROR);
@@ -1434,25 +1440,27 @@ ID3D10Resource *D3D10Context::LoadTexture(const TCHAR *fileName, ID3D10ShaderRes
 		*resourceView = CreateDefaultSRV(texture);
 	}
 
+
 	return texture;
 }
 
-ID3D10Effect *D3D10Context::LoadEffect(const TCHAR *fileName, const D3D10_SHADER_MACRO *defines, const unsigned int flags)
-{
+ID3DX11Effect *D3D10Context::LoadEffect(const TCHAR *fileName, const D3D_SHADER_MACRO *defines, const unsigned int flags)
+{ 
 	TCHAR str[256];
 
-	ID3D10Effect *effect = NULL;
-	ID3D10Blob *errors = NULL;
+	ID3DX11Effect *effect = NULL;
+	ID3DBlob *errors = NULL;
+
 
 	// Load the effect
-	HRESULT hr = D3DX10CreateEffectFromFile(fileName, defines, NULL, "fx_4_0", D3D10_SHADER_ENABLE_STRICTNESS | D3D10_SHADER_PACK_MATRIX_ROW_MAJOR, D3D10_EFFECT_SINGLE_THREADED, m_device, NULL, NULL, &effect, &errors, NULL);
+	HRESULT hr = D3DX11CompileEffectFromFile(fileName, defines, NULL, D3DCOMPILE_ENABLE_STRICTNESS | D3DCOMPILE_PACK_MATRIX_ROW_MAJOR, 0, m_device, &effect, &errors);
 	if (SUCCEEDED(hr))
 	{
 		// Output assembly if requested
-		if (flags & ASSEMBLY)
+		if ( (flags & ASSEMBLY) && false)
 		{
-			ID3D10Blob *assembly = NULL;
-			D3D10DisassembleEffect(effect, FALSE, &assembly);
+			ID3DBlob *assembly = NULL;
+			//D3DX11DisassembleEffect(effect, FALSE, &assembly);
 			if (assembly)
 			{
 				if (flags & DUMP_TO_FILE)
@@ -1501,7 +1509,7 @@ ID3D10Effect *D3D10Context::LoadEffect(const TCHAR *fileName, const D3D10_SHADER
 	return effect;
 }
 
-void D3D10Context::SetEffect(ID3D10Effect *effect)
+void D3D10Context::SetEffect(ID3DX11Effect *effect)
 {
 	m_currentEffect = effect;
 }
@@ -1518,98 +1526,98 @@ void D3D10Context::SetEffect(ID3D10Effect *effect)
 #define CHECK_VAR(var, type, name)
 #endif
 
-void D3D10Context::SetTexture(const char *textureName, ID3D10ShaderResourceView *resourceView)
+void D3D10Context::SetTexture(const char *textureName, ID3D11ShaderResourceView *resourceView)
 {
-	ID3D10EffectVariable *var = m_currentEffect->GetVariableByName(textureName);
+	ID3DX11EffectVariable *var = m_currentEffect->GetVariableByName(textureName);
 	CHECK_VAR(var, "Texture \"%s\"", textureName);
 	var->AsShaderResource()->SetResource(resourceView);
 }
 
 void D3D10Context::SetConstant(const char *constantName, const float value)
 {
-	ID3D10EffectScalarVariable *var = m_currentEffect->GetVariableByName(constantName)->AsScalar();
+	ID3DX11EffectScalarVariable *var = m_currentEffect->GetVariableByName(constantName)->AsScalar();
 	CHECK_VAR(var, "Constant \"%s\" as float", constantName);
 	var->SetFloat(value);
 }
 
 void D3D10Context::SetConstant(const char *constantName, const float2 &value)
 {
-	ID3D10EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
+	ID3DX11EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
 	CHECK_VAR(var, "Constant \"%s\" as float2", constantName);
 	var->SetRawValue((void *) &value, 0, sizeof(value));
 }
 
 void D3D10Context::SetConstant(const char *constantName, const float3 &value)
 {
-	ID3D10EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
+	ID3DX11EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
 	CHECK_VAR(var, "Constant \"%s\" as float3", constantName);
 	var->SetRawValue((void *) &value, 0, sizeof(value));
 }
 
 void D3D10Context::SetConstant(const char *constantName, const float4 &value)
 {
-	ID3D10EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
+	ID3DX11EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
 	CHECK_VAR(var, "Constant \"%s\" as float4", constantName);
 	var->SetRawValue((void *) &value, 0, sizeof(value));
 }
 
 void D3D10Context::SetConstant(const char *constantName, const float4x4 &value)
 {
-	ID3D10EffectMatrixVariable *var = m_currentEffect->GetVariableByName(constantName)->AsMatrix();
+	ID3DX11EffectMatrixVariable *var = m_currentEffect->GetVariableByName(constantName)->AsMatrix();
 	CHECK_VAR(var, "Constant \"%s\" as float4x4", constantName);
 	var->SetMatrix((float *) &value);
 }
 
 void D3D10Context::SetConstantArray(const char *constantName, const float4 *value, const int count)
 {
-	ID3D10EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
+	ID3DX11EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
 	CHECK_VAR(var, "Constant \"%s\" as float4 array", constantName);
 	var->SetFloatVectorArray((float *) value, 0, count);
 }
 
 void D3D10Context::Apply(const char *techniqueName, const char *passName)
 {
-	ID3D10EffectTechnique *tech = m_currentEffect->GetTechniqueByName(techniqueName);
+	ID3DX11EffectTechnique *tech = m_currentEffect->GetTechniqueByName(techniqueName);
 	CHECK_VAR(tech, "Technique \"%s\"", techniqueName);
 
-	ID3D10EffectPass *p = tech->GetPassByName(passName);
+	ID3DX11EffectPass *p = tech->GetPassByName(passName);
 	CHECK_VAR(p, "Pass \"%s\"", passName);
-	p->Apply(0);
+	p->Apply(0, m_device_context);
 }
 
 void D3D10Context::Apply(const char *techniqueName, const int passIndex)
 {
-	ID3D10EffectTechnique *tech = m_currentEffect->GetTechniqueByName(techniqueName);
+	ID3DX11EffectTechnique *tech = m_currentEffect->GetTechniqueByName(techniqueName);
 	CHECK_VAR(tech, "Technique \"%s\"", techniqueName);
 
-	ID3D10EffectPass *p = tech->GetPassByIndex(passIndex);
+	ID3DX11EffectPass *p = tech->GetPassByIndex(passIndex);
 	CHECK_VAR(p, "Pass %d", passIndex);
-	p->Apply(0);
+	p->Apply(0, m_device_context);
 }
 
 void D3D10Context::Apply(const int techniqueIndex, const int passIndex)
 {
-	ID3D10EffectTechnique *tech = m_currentEffect->GetTechniqueByIndex(techniqueIndex);
+	ID3DX11EffectTechnique *tech = m_currentEffect->GetTechniqueByIndex(techniqueIndex);
 	CHECK_VAR(tech, "Technique %d", techniqueIndex);
 
-	ID3D10EffectPass *p = tech->GetPassByIndex(passIndex);
+	ID3DX11EffectPass *p = tech->GetPassByIndex(passIndex);
 	CHECK_VAR(p, "Pass %d", passIndex);
-	p->Apply(0);
+	p->Apply(0, m_device_context);
 }
 
 void D3D10Context::Clear(const float *clearColor, const UINT dsClearFlags, const float depth, const UINT8 stencil)
 {
 	// Grab the list of render target targets and the depth buffer
-	ID3D10RenderTargetView *rtViews[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
-	ID3D10DepthStencilView *dsView = NULL;
-	m_device->OMGetRenderTargets(clearColor? 8 : 0, rtViews, dsClearFlags? &dsView : NULL);
+	ID3D11RenderTargetView *rtViews[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
+	ID3D11DepthStencilView *dsView = NULL;
+	m_device_context->OMGetRenderTargets(clearColor? 8 : 0, rtViews, dsClearFlags? &dsView : NULL);
 
 	// Clear all active render target
 	for (int i = 0; i < 8; i++)
 	{
 		if (rtViews[i])
 		{
-			m_device->ClearRenderTargetView(rtViews[i], clearColor);
+			m_device_context->ClearRenderTargetView(rtViews[i], clearColor);
 			rtViews[i]->Release();
 		}
 	}
@@ -1617,7 +1625,7 @@ void D3D10Context::Clear(const float *clearColor, const UINT dsClearFlags, const
 	// Clear depth stencil buffer
 	if (dsView)
 	{
-		m_device->ClearDepthStencilView(dsView, dsClearFlags, depth, stencil);
+		m_device_context->ClearDepthStencilView(dsView, dsClearFlags, depth, stencil);
 		dsView->Release();
 	}
 }
@@ -1642,37 +1650,37 @@ void D3D10Context::Present()
 	Sleep(sleepTime);
 }
 
-void D3D10Context::SetRenderTarget(const int width, const int height, ID3D10RenderTargetView **renderTargets, const int renderTargetCount, ID3D10DepthStencilView *depthTarget)
+void D3D10Context::SetRenderTarget(const int width, const int height, ID3D11RenderTargetView **renderTargets, const int renderTargetCount, ID3D11DepthStencilView *depthTarget)
 {
-	m_device->OMSetRenderTargets(renderTargetCount, renderTargets, depthTarget);
+	m_device_context->OMSetRenderTargets(renderTargetCount, renderTargets, depthTarget);
 
-	D3D10_VIEWPORT viewport;
+	D3D11_VIEWPORT viewport;
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
-	viewport.Width  = width;
-	viewport.Height = height;
-	viewport.MinDepth = 0;
-	viewport.MaxDepth = 1;
-	m_device->RSSetViewports(1, &viewport);
+	viewport.Width  = static_cast<FLOAT> ( width );
+	viewport.Height = static_cast<FLOAT> ( height );
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	m_device_context->RSSetViewports(1, &viewport);
 }
 
 void D3D10Context::SetRTToBackBuffer()
 {
-	m_device->OMSetRenderTargets(1, &m_backBufferView, m_depthBufferView);
+	m_device_context->OMSetRenderTargets(1, &m_backBufferView, m_depthBufferView);
 
-	D3D10_VIEWPORT viewport;
+	D3D11_VIEWPORT viewport;
 	viewport.TopLeftX = 0;
 	viewport.TopLeftY = 0;
-	viewport.Width  = m_width;
-	viewport.Height = m_height;
-	viewport.MinDepth = 0;
-	viewport.MaxDepth = 1;
-	m_device->RSSetViewports(1, &viewport);
+	viewport.Width  = static_cast<FLOAT> (m_width);
+	viewport.Height = static_cast<FLOAT> (m_height);
+	viewport.MinDepth = 0.0f;
+	viewport.MaxDepth = 1.0f;
+	m_device_context->RSSetViewports(1, &viewport);
 }
 
 bool D3D10Context::InitializeBuffers()
 {
-	if (FAILED(m_swapChain->GetBuffer(0, __uuidof(ID3D10Texture2D), (LPVOID *) &m_backBuffer))) return false;
+	if (FAILED(m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID *) &m_backBuffer))) return false;
 
 	if (FAILED(m_device->CreateRenderTargetView(m_backBuffer, NULL, &m_backBufferView)))
 	{
@@ -1681,7 +1689,7 @@ bool D3D10Context::InitializeBuffers()
 	}
 
 	// Create depth stencil texture
-	D3D10_TEXTURE2D_DESC descDepth;
+	D3D11_TEXTURE2D_DESC descDepth = {};
 	descDepth.Width  = m_width;
 	descDepth.Height = m_height;
 	descDepth.MipLevels = 1;
@@ -1689,8 +1697,8 @@ bool D3D10Context::InitializeBuffers()
 	descDepth.Format = m_depthBufferFormat;
 	descDepth.SampleDesc.Count = m_msaaSamples;
 	descDepth.SampleDesc.Quality = 0;
-	descDepth.Usage = D3D10_USAGE_DEFAULT;
-	descDepth.BindFlags = D3D10_BIND_DEPTH_STENCIL;
+	descDepth.Usage = D3D11_USAGE_DEFAULT;
+	descDepth.BindFlags = D3D11_BIND_DEPTH_STENCIL;
 	descDepth.CPUAccessFlags = 0;
 	descDepth.MiscFlags = 0;
 	if (FAILED(m_device->CreateTexture2D(&descDepth, NULL, &m_depthBuffer)))
@@ -1700,15 +1708,15 @@ bool D3D10Context::InitializeBuffers()
 	}
 
 	// Create the depth stencil view
-	D3D10_DEPTH_STENCIL_VIEW_DESC descDSV;
+	D3D11_DEPTH_STENCIL_VIEW_DESC descDSV = {};
 	descDSV.Format = descDepth.Format;
 	if (m_msaaSamples > 1)
 	{
-		descDSV.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2DMS;
+		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
 	}
 	else
 	{
-		descDSV.ViewDimension = D3D10_DSV_DIMENSION_TEXTURE2D;
+		descDSV.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
 		descDSV.Texture2D.MipSlice = 0;
 	}
 	if (FAILED(m_device->CreateDepthStencilView(m_depthBuffer, &descDSV, &m_depthBufferView)))
@@ -1717,24 +1725,24 @@ bool D3D10Context::InitializeBuffers()
 		return false;
 	}
 
-	m_device->OMSetRenderTargets(1, &m_backBufferView, m_depthBufferView);
+	m_device_context->OMSetRenderTargets(1, &m_backBufferView, m_depthBufferView);
 
 	// Setup the viewport
-	D3D10_VIEWPORT vp;
-	vp.Width    = m_width;
-	vp.Height   = m_height;
+	D3D11_VIEWPORT vp;
+	vp.Width    = static_cast<FLOAT> (m_width);
+	vp.Height   = static_cast<FLOAT> (m_height);
 	vp.MinDepth = 0.0f;
 	vp.MaxDepth = 1.0f;
 	vp.TopLeftX = 0;
 	vp.TopLeftY = 0;
-	m_device->RSSetViewports(1, &vp);
+	m_device_context->RSSetViewports(1, &vp);
 
 	return true;
 }
 
 bool D3D10Context::ReleaseBuffers()
 {
-	if (m_device) m_device->OMSetRenderTargets(0, NULL, NULL);
+	if (m_device_context) m_device_context->OMSetRenderTargets(0, NULL, NULL);
 
 	SAFE_RELEASE(m_backBuffer);
 	SAFE_RELEASE(m_backBufferView);
@@ -1747,7 +1755,7 @@ bool D3D10Context::ReleaseBuffers()
 #include <io.h>
 #include <errno.h>
 
-bool D3D10Context::SaveScreenshot(const TCHAR *name, const D3DX10_IMAGE_FILE_FORMAT format)
+bool D3D10Context::SaveScreenshot(const TCHAR *name, const D3DX11_IMAGE_FILE_FORMAT format)
 {
 	TCHAR fileName[256];
 	TCHAR *ext = NULL;
@@ -1755,25 +1763,25 @@ bool D3D10Context::SaveScreenshot(const TCHAR *name, const D3DX10_IMAGE_FILE_FOR
 	// Select file extension
 	switch (format)
 	{
-	case D3DX10_IFF_DDS:
+	case D3DX11_IFF_DDS:
 		ext = _T("dds");
 		break;
-	case D3DX10_IFF_BMP:
+	case D3DX11_IFF_BMP:
 		ext = _T("bmp");
 		break;
-	case D3DX10_IFF_PNG:
+	case D3DX11_IFF_PNG:
 		ext = _T("png");
 		break;
-	case D3DX10_IFF_JPG:
+	case D3DX11_IFF_JPG:
 		ext = _T("jpg");
 		break;
-	case D3DX10_IFF_TIFF:
+	case D3DX11_IFF_TIFF:
 		ext = _T("tiff");
 		break;
-	case D3DX10_IFF_GIF:
+	case D3DX11_IFF_GIF:
 		ext = _T("gif");
 		break;
-	case D3DX10_IFF_WMP:
+	case D3DX11_IFF_WMP:
 		ext = _T("wmp");
 		break;
 	default:
@@ -1794,18 +1802,18 @@ bool D3D10Context::SaveScreenshot(const TCHAR *name, const D3DX10_IMAGE_FILE_FOR
 	if (m_msaaSamples > 1)
 	{
 		// Create temporary texture of the same type as the backbuffer
-		D3D10_TEXTURE2D_DESC desc;
+		D3D11_TEXTURE2D_DESC desc;
 		m_backBuffer->GetDesc(&desc);
 		desc.SampleDesc.Count = 1;
 		desc.SampleDesc.Quality = 0;
 
-		ID3D10Texture2D *texture;
+		ID3D11Texture2D *texture;
 		if (SUCCEEDED(m_device->CreateTexture2D(&desc, NULL, &texture)))
 		{
 			// Resolve buckbuffer into our temporary texture
-			m_device->ResolveSubresource(texture, 0, m_backBuffer, 0, m_backBufferFormat);
+			m_device_context->ResolveSubresource(texture, 0, m_backBuffer, 0, m_backBufferFormat);
 
-			HRESULT hr = D3DX10SaveTextureToFile(texture, format, fileName);
+			HRESULT hr = D3DX11SaveTextureToFile(m_device_context, texture, format, fileName);
 
 			// Remove the temporary texture
 			texture->Release();
@@ -1816,7 +1824,7 @@ bool D3D10Context::SaveScreenshot(const TCHAR *name, const D3DX10_IMAGE_FILE_FOR
 	else
 	{
 		// Write out backbuffer directly
-		if (SUCCEEDED(D3DX10SaveTextureToFile(m_backBuffer, format, fileName))) return true;
+		if (SUCCEEDED(D3DX11SaveTextureToFile(m_device_context, m_backBuffer, format, fileName))) return true;
 	}
 
 	return false;

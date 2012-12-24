@@ -18,7 +18,7 @@ enum
 
 struct Primitive
 {
-	D3D10_PRIMITIVE_TOPOLOGY type;
+	D3D11_PRIMITIVE_TOPOLOGY type;
 	DWORD baseIndex;
 	DWORD numIndices;
 	DWORD *pIndices;
