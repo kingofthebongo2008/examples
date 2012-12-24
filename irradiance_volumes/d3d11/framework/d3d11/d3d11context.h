@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// File: Framework\D3D10\D3D10Context.h
+// File: Framework\D3D10\D3D11Context.h
 // Copyright (c) 2007 Advanced Micro Devices Inc. All rights reserved.
 //-----------------------------------------------------------------------------
 
@@ -27,11 +27,11 @@
 #define VENDOR_ATI    0x1002
 #define VENDOR_NVIDIA 0x10DE
 
-class D3D10Context
+class D3D11Context
 {
 public:
-	D3D10Context();
-	virtual ~D3D10Context();
+	D3D11Context();
+	virtual ~D3D11Context();
 
 	// Creates and destroys this rendering context
 	bool Create(const TCHAR *windowTitle, const DXGI_FORMAT backBufferFormat, const DXGI_FORMAT depthBufferFormat, const int width, const int height, const int msaaSamples, const bool fullscreen);

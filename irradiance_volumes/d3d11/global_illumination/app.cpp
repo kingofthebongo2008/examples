@@ -10,7 +10,7 @@
 #include "App.h"
 #include <stdio.h>
 
-D3D10App *app = new App();
+D3D11App *app = new App();
 
 const int SAMPLE_COUNT = 256;
 float3 samples[SAMPLE_COUNT];
@@ -141,7 +141,7 @@ void MyModel::AddToMaterialRange(uint32 *indices, int &index, const int mat, con
 	m_materialRange[mat + 1] = index;
 }
 
-bool MyModel::Load(D3D10Context *context, const TCHAR *name, const TCHAR *texturePath)
+bool MyModel::Load(D3D11Context *context, const TCHAR *name, const TCHAR *texturePath)
 {
 	if (!Model::Load(name, texturePath)) return false;
 
@@ -280,7 +280,7 @@ void App::ResetCamera()
 bool App::OnKeyPress(HWND hwnd, const unsigned int key, const bool pressed)
 {
 	// Let framework process key first
-	if (D3D10App::OnKeyPress(hwnd, key, pressed)) return true;
+	if (D3D11App::OnKeyPress(hwnd, key, pressed)) return true;
 
 	if (pressed)
 	{
@@ -338,11 +338,11 @@ bool App::Create()
 
 
 	// Create our rendering context. It'll take care of our D3D10 device and simplify some tasks.
-	m_context = new D3D10Context();
-	if (!m_context->Create(_T("Global Illumination"), DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_D24_UNORM_S8_UINT, 800, 600, 4, false)) return false;
+	m_context = new D3D11Context();
+	if (!m_context->Create(_T("Global Illumination"), DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_D24_UNORM_S8_UINT, 1280, 720, 4, false)) return false;
 
 	// Let base-class initialize itself as well
-	if (!D3D10App::Create()) return false;
+	if (!D3D11App::Create()) return false;
 
 	// Setup some camera parameters
 	m_camera.SetFrustumExtents(1.5f, 0.1f, 50.0f);
@@ -371,7 +371,7 @@ void App::Destroy()
 {
 //	m_camera.SavePath(_T("Path.pth"));
 
-	D3D10App::Destroy();
+	D3D11App::Destroy();
 }
 
 /*

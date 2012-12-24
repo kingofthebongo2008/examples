@@ -186,8 +186,8 @@
       <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
       <XMLDocumentationFileName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)%(Filename)1.xdc</XMLDocumentationFileName>
     </ClCompile>
-    <ClCompile Include="..\framework\d3d10\d3d10app.cpp" />
-    <ClCompile Include="..\framework\d3d10\d3d10context.cpp" />
+    <ClCompile Include="..\framework\d3d11\d3d11app.cpp" />
+    <ClCompile Include="..\framework\d3d11\d3d11context.cpp" />
     <ClCompile Include="..\framework\math\camera.cpp" />
     <ClCompile Include="..\framework\math\vector.cpp" />
     <ClCompile Include="..\framework\model\animation.cpp" />
@@ -201,8 +201,8 @@
     <ClInclude Include="..\framework\font.h" />
     <ClInclude Include="..\framework\gui.h" />
     <ClInclude Include="..\framework\platform.h" />
-    <ClInclude Include="..\framework\d3d10\d3d10app.h" />
-    <ClInclude Include="..\framework\d3d10\d3d10context.h" />
+    <ClInclude Include="..\framework\d3d11\d3d11app.h" />
+    <ClInclude Include="..\framework\d3d11\d3d11context.h" />
     <ClInclude Include="..\framework\math\camera.h" />
     <ClInclude Include="..\framework\math\vector.h" />
     <ClInclude Include="..\framework\model\animation.h" />

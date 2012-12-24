@@ -8,7 +8,7 @@
 #ifndef _GUI_H_
 #define _GUI_H_
 
-#include "D3D10/D3D10Context.h"
+#include "D3D11/D3D11Context.h"
 #include "Font.h"
 
 class Widget

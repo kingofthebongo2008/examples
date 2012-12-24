@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// File: Framework\D3D10\D3D10Context.cpp
+// File: Framework\D3D10\D3D11Context.cpp
 // Copyright (c) 2007 Advanced Micro Devices Inc. All rights reserved.
 //-----------------------------------------------------------------------------
 
@@ -7,7 +7,7 @@
 
 
 
-#include "D3D10Context.h"
+#include "D3D11Context.h"
 #include <D3DCompiler.h.>
 #include <stdio.h>
 #include <D3DX11.h>
@@ -114,7 +114,7 @@ static const FormatDescription g_formats[] =
 	{ 32,  "B8G8R8X8_UNORM" },
 };
 
-D3D10Context::D3D10Context()
+D3D11Context::D3D11Context()
 {
 	// Initialize all pointers to NULL
 	m_backBuffer = NULL;
@@ -135,12 +135,12 @@ D3D10Context::D3D10Context()
 	m_fullscreen = false;
 }
 
-D3D10Context::~D3D10Context()
+D3D11Context::~D3D11Context()
 {
 
 }
 
-bool D3D10Context::Create(const TCHAR *windowTitle, const DXGI_FORMAT backBufferFormat, const DXGI_FORMAT depthBufferFormat, const int width, const int height, const int msaaSamples, const bool fullscreen)
+bool D3D11Context::Create(const TCHAR *windowTitle, const DXGI_FORMAT backBufferFormat, const DXGI_FORMAT depthBufferFormat, const int width, const int height, const int msaaSamples, const bool fullscreen)
 {
 	// Save context information
 	m_backBufferFormat = backBufferFormat;
@@ -182,7 +182,7 @@ bool D3D10Context::Create(const TCHAR *windowTitle, const DXGI_FORMAT backBuffer
 		y = m_windowedY;
 	}
 
-	m_hwnd = CreateWindowEx(0, _T("D3D10App"), windowTitle, style, x, y, w, h, HWND_DESKTOP, NULL, NULL, NULL);
+	m_hwnd = CreateWindowEx(0, _T("D3D11App"), windowTitle, style, x, y, w, h, HWND_DESKTOP, NULL, NULL, NULL);
 
 
 	// Find the size of our client area
@@ -254,7 +254,7 @@ bool D3D10Context::Create(const TCHAR *windowTitle, const DXGI_FORMAT backBuffer
 	return true;
 }
 
-void D3D10Context::Destroy()
+void D3D11Context::Destroy()
 {
 	ReleaseBuffers();
 
@@ -285,12 +285,12 @@ void D3D10Context::Destroy()
 	}
 }
 
-bool D3D10Context::ToggleFullscreen()
+bool D3D11Context::ToggleFullscreen()
 {
 	return SetMode(m_backBufferFormat, m_depthBufferFormat, m_width, m_height, m_msaaSamples, !m_fullscreen);
 }
 
-bool D3D10Context::SetMode(const DXGI_FORMAT backBufferFormat, const DXGI_FORMAT depthBufferFormat, const int width, const int height, const int msaaSamples, const bool fullscreen)
+bool D3D11Context::SetMode(const DXGI_FORMAT backBufferFormat, const DXGI_FORMAT depthBufferFormat, const int width, const int height, const int msaaSamples, const bool fullscreen)
 {
 	// Save new context information
 	m_backBufferFormat  = backBufferFormat;
@@ -330,7 +330,7 @@ bool D3D10Context::SetMode(const DXGI_FORMAT backBufferFormat, const DXGI_FORMAT
 	return result;
 }
 
-bool D3D10Context::Resize(const int width, const int height)
+bool D3D11Context::Resize(const int width, const int height)
 {
 	// Sanity check
 	if (m_backBuffer == NULL) return false;
@@ -348,13 +348,13 @@ bool D3D10Context::Resize(const int width, const int height)
 	return true;
 }
 
-void D3D10Context::SetPosition(const int x, const int y)
+void D3D11Context::SetPosition(const int x, const int y)
 {
 	m_windowedX = x;
 	m_windowedY = y;
 }
 
-ID3D11Texture2D *D3D10Context::CreateRenderTarget2D(const DXGI_FORMAT format, const int width, const int height, const int arraySize, const int samples, const int mipmapCount,
+ID3D11Texture2D *D3D11Context::CreateRenderTarget2D(const DXGI_FORMAT format, const int width, const int height, const int arraySize, const int samples, const int mipmapCount,
 	ID3D11RenderTargetView **rtRTV, ID3D11ShaderResourceView **rtSRV, ID3D11ShaderResourceView **rtSliceSRVs, const unsigned int flags)
 {
 	ID3D11Texture2D *renderTarget;
@@ -454,7 +454,7 @@ ID3D11Texture2D *D3D10Context::CreateRenderTarget2D(const DXGI_FORMAT format, co
 	return renderTarget;
 }
 
-ID3D11Texture3D *D3D10Context::CreateRenderTarget3D(const DXGI_FORMAT format, const int width, const int height, const int depth, const int mipmapCount, ID3D11RenderTargetView **rtRTV, ID3D11ShaderResourceView **rtSRV, const unsigned int flags)
+ID3D11Texture3D *D3D11Context::CreateRenderTarget3D(const DXGI_FORMAT format, const int width, const int height, const int depth, const int mipmapCount, ID3D11RenderTargetView **rtRTV, ID3D11ShaderResourceView **rtSRV, const unsigned int flags)
 {
 	ID3D11Texture3D *renderTarget;
 
@@ -511,7 +511,7 @@ ID3D11Texture3D *D3D10Context::CreateRenderTarget3D(const DXGI_FORMAT format, co
 	return renderTarget;
 }
 
-ID3D11Texture2D *D3D10Context::CreateRenderTargetCube(const DXGI_FORMAT format, const int size, const int samples, const int mipmapCount,
+ID3D11Texture2D *D3D11Context::CreateRenderTargetCube(const DXGI_FORMAT format, const int size, const int samples, const int mipmapCount,
 	ID3D11RenderTargetView **rtArrayRTV, ID3D11RenderTargetView *rtFaceRTVs[6], ID3D11ShaderResourceView **rtSRV, const unsigned int flags)
 {
 	ID3D11Texture2D *renderTarget;
@@ -590,7 +590,7 @@ ID3D11Texture2D *D3D10Context::CreateRenderTargetCube(const DXGI_FORMAT format, 
 	return renderTarget;
 }
 
-ID3D11Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, const int width, const int height, const int arraySize, const int samples, const int mipmapCount,
+ID3D11Texture2D *D3D11Context::CreateDepthTarget2D(const DXGI_FORMAT format, const int width, const int height, const int arraySize, const int samples, const int mipmapCount,
 	ID3D11DepthStencilView **rtArrayDSV, ID3D11DepthStencilView **rtSliceDSVs,  ID3D11ShaderResourceView **rtArraySRV, ID3D11ShaderResourceView **rtSliceSRVs, const unsigned int flags)
 {
 	ID3D11Texture2D *depthTarget;
@@ -727,7 +727,7 @@ ID3D11Texture2D *D3D10Context::CreateDepthTarget2D(const DXGI_FORMAT format, con
 	return depthTarget;
 }
 
-ID3D11Texture2D *D3D10Context::CreateDepthTargetCube(const DXGI_FORMAT format, const int size, const int samples, const int mipmapCount,
+ID3D11Texture2D *D3D11Context::CreateDepthTargetCube(const DXGI_FORMAT format, const int size, const int samples, const int mipmapCount,
 	ID3D11DepthStencilView **rtArrayDSV, ID3D11DepthStencilView *rtFaceDSVs[6], const unsigned int flags)
 {
 	ID3D11Texture2D *depthTarget;
@@ -792,7 +792,7 @@ ID3D11Texture2D *D3D10Context::CreateDepthTargetCube(const DXGI_FORMAT format, c
 }
 
 
-ID3D11Buffer *D3D10Context::CreateVertexBuffer(const int size, const D3D11_USAGE usage, const void *data)
+ID3D11Buffer *D3D11Context::CreateVertexBuffer(const int size, const D3D11_USAGE usage, const void *data)
 {
 	ID3D11Buffer *vertexBuffer;
 
@@ -817,7 +817,7 @@ ID3D11Buffer *D3D10Context::CreateVertexBuffer(const int size, const D3D11_USAGE
 	return vertexBuffer;
 }
 
-ID3D11Buffer *D3D10Context::CreateIndexBuffer(const int size, const D3D11_USAGE usage, const void *data)
+ID3D11Buffer *D3D11Context::CreateIndexBuffer(const int size, const D3D11_USAGE usage, const void *data)
 {
 	ID3D11Buffer *indexBuffer;
 
@@ -842,7 +842,7 @@ ID3D11Buffer *D3D10Context::CreateIndexBuffer(const int size, const D3D11_USAGE 
 	return indexBuffer;
 }
 
-ID3D11Buffer *D3D10Context::CreateConstantBuffer(const int size, const D3D11_USAGE usage, const void *data)
+ID3D11Buffer *D3D11Context::CreateConstantBuffer(const int size, const D3D11_USAGE usage, const void *data)
 {
 	ID3D11Buffer *constantBuffer;
 
@@ -867,7 +867,7 @@ ID3D11Buffer *D3D10Context::CreateConstantBuffer(const int size, const D3D11_USA
 	return constantBuffer;
 }
 
-ID3D11Buffer *D3D10Context::CreateEffectConstantBuffer(ID3DX11Effect *effect, const char *name)
+ID3D11Buffer *D3D11Context::CreateEffectConstantBuffer(ID3DX11Effect *effect, const char *name)
 {
 	// Get constant buffer variable from the effect
 	ID3DX11EffectConstantBuffer *cbVar = effect->GetConstantBufferByName(name);
@@ -904,7 +904,7 @@ ID3D11Buffer *D3D10Context::CreateEffectConstantBuffer(ID3DX11Effect *effect, co
 	return cb;
 }
 
-ID3D11InputLayout *D3D10Context::CreateInputLayout(ID3DX11EffectPass *effectPass, const D3D11_INPUT_ELEMENT_DESC *layout, const int elementCount)
+ID3D11InputLayout *D3D11Context::CreateInputLayout(ID3DX11EffectPass *effectPass, const D3D11_INPUT_ELEMENT_DESC *layout, const int elementCount)
 {
 	D3DX11_PASS_DESC passDesc;
 	if (FAILED(effectPass->GetDesc(&passDesc))) return NULL;
@@ -920,7 +920,7 @@ ID3D11InputLayout *D3D10Context::CreateInputLayout(ID3DX11EffectPass *effectPass
 	return inputLayout;
 }
 
-ID3D11RenderTargetView *D3D10Context::CreateRenderTargetView2D(ID3D11Texture2D *renderTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
+ID3D11RenderTargetView *D3D11Context::CreateRenderTargetView2D(ID3D11Texture2D *renderTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
 {
 	D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
 	rtDesc.Format = format;
@@ -947,7 +947,7 @@ ID3D11RenderTargetView *D3D10Context::CreateRenderTargetView2D(ID3D11Texture2D *
 	return rtv;
 }
 
-ID3D11RenderTargetView *D3D10Context::CreateRenderTargetView3D(ID3D11Texture3D *renderTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
+ID3D11RenderTargetView *D3D11Context::CreateRenderTargetView3D(ID3D11Texture3D *renderTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
 {
 	D3D11_RENDER_TARGET_VIEW_DESC rtDesc;
 	rtDesc.Format = format;
@@ -966,7 +966,7 @@ ID3D11RenderTargetView *D3D10Context::CreateRenderTargetView3D(ID3D11Texture3D *
 	return rtv;
 }
 
-ID3D11DepthStencilView *D3D10Context::CreateDepthStencilView2D(ID3D11Texture2D *depthTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
+ID3D11DepthStencilView *D3D11Context::CreateDepthStencilView2D(ID3D11Texture2D *depthTarget, const DXGI_FORMAT format, const int firstSlice, const int arraySize)
 {
 	D3D11_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
 	dsvDesc.Format = format;
@@ -994,7 +994,7 @@ ID3D11DepthStencilView *D3D10Context::CreateDepthStencilView2D(ID3D11Texture2D *
 }
 
 
-ID3D11ShaderResourceView *D3D10Context::CreateDefaultSRV(ID3D11Resource *resource)
+ID3D11ShaderResourceView *D3D11Context::CreateDefaultSRV(ID3D11Resource *resource)
 {
 	// Check what kind of texture it is
 	D3D11_RESOURCE_DIMENSION type;
@@ -1078,7 +1078,7 @@ ID3D11ShaderResourceView *D3D10Context::CreateDefaultSRV(ID3D11Resource *resourc
 	return srv;
 }
 
-ID3D11SamplerState *D3D10Context::CreateSamplerState(const D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, const float maxLOD)
+ID3D11SamplerState *D3D11Context::CreateSamplerState(const D3D11_FILTER filter, D3D11_TEXTURE_ADDRESS_MODE addressMode, const float maxLOD)
 {
 	// Fill sampler state description
 	D3D11_SAMPLER_DESC desc;
@@ -1106,7 +1106,7 @@ ID3D11SamplerState *D3D10Context::CreateSamplerState(const D3D11_FILTER filter, 
 	return samplerState;
 }
 
-ID3D11BlendState *D3D10Context::CreateBlendState(const D3D11_BLEND src, const D3D11_BLEND dst, const D3D11_BLEND_OP op, const UINT8 mask, const int count)
+ID3D11BlendState *D3D11Context::CreateBlendState(const D3D11_BLEND src, const D3D11_BLEND dst, const D3D11_BLEND_OP op, const UINT8 mask, const int count)
 {
 	BOOL blendEnable = (src != D3D11_BLEND_ONE || dst != D3D11_BLEND_ZERO);
 
@@ -1140,7 +1140,7 @@ ID3D11BlendState *D3D10Context::CreateBlendState(const D3D11_BLEND src, const D3
 	return blendState;
 }
 
-ID3D11RasterizerState *D3D10Context::CreateRasterizerState(const D3D11_CULL_MODE cullMode, const D3D11_FILL_MODE fillMode, const bool multisampleEnable,
+ID3D11RasterizerState *D3D11Context::CreateRasterizerState(const D3D11_CULL_MODE cullMode, const D3D11_FILL_MODE fillMode, const bool multisampleEnable,
 	const bool depthClipEnable, const int depthBias, const float slopeScaledDepthBias, const bool scissorEnable)
 {
 	// Fill in the rasterizer state description
@@ -1166,7 +1166,7 @@ ID3D11RasterizerState *D3D10Context::CreateRasterizerState(const D3D11_CULL_MODE
 	return rasterizerState;
 }
 
-ID3D11DepthStencilState *D3D10Context::CreateDepthStencilState(const bool depthEnable, const bool depthWriteEnable, const D3D11_COMPARISON_FUNC depthFunc)
+ID3D11DepthStencilState *D3D11Context::CreateDepthStencilState(const bool depthEnable, const bool depthWriteEnable, const D3D11_COMPARISON_FUNC depthFunc)
 {
 	// Fill in the depth stencil state description
 	D3D11_DEPTH_STENCIL_DESC desc;
@@ -1195,7 +1195,7 @@ ID3D11DepthStencilState *D3D10Context::CreateDepthStencilState(const bool depthE
 	return depthStencilState;	
 }
 
-ID3D11Texture1D *D3D10Context::CreateTexture1D(const void *data, const DXGI_FORMAT format, const int width, const int arraySize, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
+ID3D11Texture1D *D3D11Context::CreateTexture1D(const void *data, const DXGI_FORMAT format, const int width, const int arraySize, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
 {
 	// Setup the texture description
 	D3D11_TEXTURE1D_DESC desc;
@@ -1236,7 +1236,7 @@ ID3D11Texture1D *D3D10Context::CreateTexture1D(const void *data, const DXGI_FORM
 	return texture;
 }
 
-ID3D11Texture2D *D3D10Context::CreateTexture2D(const void *data, const DXGI_FORMAT format, const int width, const int height, const int arraySize, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
+ID3D11Texture2D *D3D11Context::CreateTexture2D(const void *data, const DXGI_FORMAT format, const int width, const int height, const int arraySize, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
 {
 	// Setup the texture description
 	D3D11_TEXTURE2D_DESC desc;
@@ -1283,7 +1283,7 @@ ID3D11Texture2D *D3D10Context::CreateTexture2D(const void *data, const DXGI_FORM
 	return texture;
 }
 
-ID3D11Texture3D *D3D10Context::CreateTexture3D(const void *data, const DXGI_FORMAT format, const int width, const int height, const int depth, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
+ID3D11Texture3D *D3D11Context::CreateTexture3D(const void *data, const DXGI_FORMAT format, const int width, const int height, const int depth, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
 {
 	// Setup the texture description
 	D3D11_TEXTURE3D_DESC desc;
@@ -1319,7 +1319,7 @@ ID3D11Texture3D *D3D10Context::CreateTexture3D(const void *data, const DXGI_FORM
 	return texture;
 }
 
-ID3D11Texture2D *D3D10Context::CreateTextureCube(const void *data, const DXGI_FORMAT format, const int size, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
+ID3D11Texture2D *D3D11Context::CreateTextureCube(const void *data, const DXGI_FORMAT format, const int size, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
 {
 	// Setup the texture description
 	D3D11_TEXTURE2D_DESC desc;
@@ -1370,7 +1370,7 @@ ID3D11Texture2D *D3D10Context::CreateTextureCube(const void *data, const DXGI_FO
 	return texture;
 }
 
-ID3D11Resource *D3D10Context::LoadTexture(const TCHAR *fileName, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
+ID3D11Resource *D3D11Context::LoadTexture(const TCHAR *fileName, ID3D11ShaderResourceView **resourceView, const unsigned int flags)
 {
 	TCHAR str[256];
 /*
@@ -1444,7 +1444,7 @@ ID3D11Resource *D3D10Context::LoadTexture(const TCHAR *fileName, ID3D11ShaderRes
 	return texture;
 }
 
-ID3DX11Effect *D3D10Context::LoadEffect(const TCHAR *fileName, const D3D_SHADER_MACRO *defines, const unsigned int flags)
+ID3DX11Effect *D3D11Context::LoadEffect(const TCHAR *fileName, const D3D_SHADER_MACRO *defines, const unsigned int flags)
 { 
 	TCHAR str[256];
 
@@ -1509,7 +1509,7 @@ ID3DX11Effect *D3D10Context::LoadEffect(const TCHAR *fileName, const D3D_SHADER_
 	return effect;
 }
 
-void D3D10Context::SetEffect(ID3DX11Effect *effect)
+void D3D11Context::SetEffect(ID3DX11Effect *effect)
 {
 	m_currentEffect = effect;
 }
@@ -1526,56 +1526,56 @@ void D3D10Context::SetEffect(ID3DX11Effect *effect)
 #define CHECK_VAR(var, type, name)
 #endif
 
-void D3D10Context::SetTexture(const char *textureName, ID3D11ShaderResourceView *resourceView)
+void D3D11Context::SetTexture(const char *textureName, ID3D11ShaderResourceView *resourceView)
 {
 	ID3DX11EffectVariable *var = m_currentEffect->GetVariableByName(textureName);
 	CHECK_VAR(var, "Texture \"%s\"", textureName);
 	var->AsShaderResource()->SetResource(resourceView);
 }
 
-void D3D10Context::SetConstant(const char *constantName, const float value)
+void D3D11Context::SetConstant(const char *constantName, const float value)
 {
 	ID3DX11EffectScalarVariable *var = m_currentEffect->GetVariableByName(constantName)->AsScalar();
 	CHECK_VAR(var, "Constant \"%s\" as float", constantName);
 	var->SetFloat(value);
 }
 
-void D3D10Context::SetConstant(const char *constantName, const float2 &value)
+void D3D11Context::SetConstant(const char *constantName, const float2 &value)
 {
 	ID3DX11EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
 	CHECK_VAR(var, "Constant \"%s\" as float2", constantName);
 	var->SetRawValue((void *) &value, 0, sizeof(value));
 }
 
-void D3D10Context::SetConstant(const char *constantName, const float3 &value)
+void D3D11Context::SetConstant(const char *constantName, const float3 &value)
 {
 	ID3DX11EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
 	CHECK_VAR(var, "Constant \"%s\" as float3", constantName);
 	var->SetRawValue((void *) &value, 0, sizeof(value));
 }
 
-void D3D10Context::SetConstant(const char *constantName, const float4 &value)
+void D3D11Context::SetConstant(const char *constantName, const float4 &value)
 {
 	ID3DX11EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
 	CHECK_VAR(var, "Constant \"%s\" as float4", constantName);
 	var->SetRawValue((void *) &value, 0, sizeof(value));
 }
 
-void D3D10Context::SetConstant(const char *constantName, const float4x4 &value)
+void D3D11Context::SetConstant(const char *constantName, const float4x4 &value)
 {
 	ID3DX11EffectMatrixVariable *var = m_currentEffect->GetVariableByName(constantName)->AsMatrix();
 	CHECK_VAR(var, "Constant \"%s\" as float4x4", constantName);
 	var->SetMatrix((float *) &value);
 }
 
-void D3D10Context::SetConstantArray(const char *constantName, const float4 *value, const int count)
+void D3D11Context::SetConstantArray(const char *constantName, const float4 *value, const int count)
 {
 	ID3DX11EffectVectorVariable *var = m_currentEffect->GetVariableByName(constantName)->AsVector();
 	CHECK_VAR(var, "Constant \"%s\" as float4 array", constantName);
 	var->SetFloatVectorArray((float *) value, 0, count);
 }
 
-void D3D10Context::Apply(const char *techniqueName, const char *passName)
+void D3D11Context::Apply(const char *techniqueName, const char *passName)
 {
 	ID3DX11EffectTechnique *tech = m_currentEffect->GetTechniqueByName(techniqueName);
 	CHECK_VAR(tech, "Technique \"%s\"", techniqueName);
@@ -1585,7 +1585,7 @@ void D3D10Context::Apply(const char *techniqueName, const char *passName)
 	p->Apply(0, m_device_context);
 }
 
-void D3D10Context::Apply(const char *techniqueName, const int passIndex)
+void D3D11Context::Apply(const char *techniqueName, const int passIndex)
 {
 	ID3DX11EffectTechnique *tech = m_currentEffect->GetTechniqueByName(techniqueName);
 	CHECK_VAR(tech, "Technique \"%s\"", techniqueName);
@@ -1595,7 +1595,7 @@ void D3D10Context::Apply(const char *techniqueName, const int passIndex)
 	p->Apply(0, m_device_context);
 }
 
-void D3D10Context::Apply(const int techniqueIndex, const int passIndex)
+void D3D11Context::Apply(const int techniqueIndex, const int passIndex)
 {
 	ID3DX11EffectTechnique *tech = m_currentEffect->GetTechniqueByIndex(techniqueIndex);
 	CHECK_VAR(tech, "Technique %d", techniqueIndex);
@@ -1605,7 +1605,7 @@ void D3D10Context::Apply(const int techniqueIndex, const int passIndex)
 	p->Apply(0, m_device_context);
 }
 
-void D3D10Context::Clear(const float *clearColor, const UINT dsClearFlags, const float depth, const UINT8 stencil)
+void D3D11Context::Clear(const float *clearColor, const UINT dsClearFlags, const float depth, const UINT8 stencil)
 {
 	// Grab the list of render target targets and the depth buffer
 	ID3D11RenderTargetView *rtViews[8] = { NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL };
@@ -1630,7 +1630,7 @@ void D3D10Context::Clear(const float *clearColor, const UINT dsClearFlags, const
 	}
 }
 
-void D3D10Context::Present()
+void D3D11Context::Present()
 {
 	// Make a clean exit if the device gets removed for some reason
 	if (FAILED(m_device->GetDeviceRemovedReason()))
@@ -1650,7 +1650,7 @@ void D3D10Context::Present()
 	Sleep(sleepTime);
 }
 
-void D3D10Context::SetRenderTarget(const int width, const int height, ID3D11RenderTargetView **renderTargets, const int renderTargetCount, ID3D11DepthStencilView *depthTarget)
+void D3D11Context::SetRenderTarget(const int width, const int height, ID3D11RenderTargetView **renderTargets, const int renderTargetCount, ID3D11DepthStencilView *depthTarget)
 {
 	m_device_context->OMSetRenderTargets(renderTargetCount, renderTargets, depthTarget);
 
@@ -1664,7 +1664,7 @@ void D3D10Context::SetRenderTarget(const int width, const int height, ID3D11Rend
 	m_device_context->RSSetViewports(1, &viewport);
 }
 
-void D3D10Context::SetRTToBackBuffer()
+void D3D11Context::SetRTToBackBuffer()
 {
 	m_device_context->OMSetRenderTargets(1, &m_backBufferView, m_depthBufferView);
 
@@ -1678,7 +1678,7 @@ void D3D10Context::SetRTToBackBuffer()
 	m_device_context->RSSetViewports(1, &viewport);
 }
 
-bool D3D10Context::InitializeBuffers()
+bool D3D11Context::InitializeBuffers()
 {
 	if (FAILED(m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID *) &m_backBuffer))) return false;
 
@@ -1740,7 +1740,7 @@ bool D3D10Context::InitializeBuffers()
 	return true;
 }
 
-bool D3D10Context::ReleaseBuffers()
+bool D3D11Context::ReleaseBuffers()
 {
 	if (m_device_context) m_device_context->OMSetRenderTargets(0, NULL, NULL);
 
@@ -1755,7 +1755,7 @@ bool D3D10Context::ReleaseBuffers()
 #include <io.h>
 #include <errno.h>
 
-bool D3D10Context::SaveScreenshot(const TCHAR *name, const D3DX11_IMAGE_FILE_FORMAT format)
+bool D3D11Context::SaveScreenshot(const TCHAR *name, const D3DX11_IMAGE_FILE_FORMAT format)
 {
 	TCHAR fileName[256];
 	TCHAR *ext = NULL;

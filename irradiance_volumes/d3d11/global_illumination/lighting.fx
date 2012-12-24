@@ -346,7 +346,7 @@ float3 psProbe(PsInProbe In, bool frontFace: SV_IsFrontFace, uniform bool textur
 
 	float direct = Attenuation(lightVec) * Shadow(lightVec, In.normal.xyz) * Diffuse(normalize(lightVec), In.normal.xyz);
 	float3 indirect = Indirect(shCoord, In.normal.xyz);
-	float3 color = (0.9 * direct + 1.1 * indirect) * base;
+	float3 color = (1.0 * direct + 1.0 * indirect) * base;
 
 	if (lightMapped)
 	{
@@ -403,7 +403,7 @@ float3 psFinal(PsInFinal In, bool frontFace: SV_IsFrontFace, uniform bool textur
 	float direct = shadow * Diffuse(lightVec, normal);
 	float3 indirect = Indirect(In.shCoord, In.normal);
 
-	float3 color = (0.9 * direct + 1.1 * indirect) * base;
+	float3 color = (1.0 * direct + 1.0 * indirect) * base;
 
 	color += specular.rgb * (shadow * pow(saturate(dot(reflect(-viewVec, normal), lightVec)), specular.a));
 

@@ -7,14 +7,14 @@
 
 
 
-#include "../D3D10/D3D10App.h"
+#include "../D3D11/D3D11App.h"
 #include "Resource.h"
 
 #ifdef _DEBUG
 #include <crtdbg.h>
 #endif
 
-extern D3D10App *app;
+extern D3D11App *app;
 
 LRESULT CALLBACK WinProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
@@ -52,7 +52,7 @@ int WINAPI WinMain(HINSTANCE hThisInstance, HINSTANCE hLastInstance, LPSTR lpszC
 
 	WNDCLASS wincl;
 	wincl.hInstance = hThisInstance;
-	wincl.lpszClassName = _T("D3D10App");
+	wincl.lpszClassName = _T("D3D11App");
 	wincl.lpfnWndProc = WinProc;
 	wincl.style = 0;
 	wincl.hIcon = LoadIcon(hThisInstance, MAKEINTRESOURCE(IDI_MAINICON));

@@ -13,7 +13,7 @@
 #define FRAMEWORK_VERSION 1
 #include "../Framework/Version.h"
 
-#include "../Framework/D3D10/D3D10App.h"
+#include "../Framework/D3D11/D3D11App.h"
 #include "../Framework/Model/Model.h"
 
 // Pass indices
@@ -109,7 +109,7 @@ public:
 	void RenderMaterial(ID3D11DeviceContext *dev, const int material, const int count = 1);
 	void RenderAll(ID3D11DeviceContext *dev);
 
-	virtual bool Load(D3D10Context *context, const TCHAR *name, const TCHAR *texturePath);
+	virtual bool Load(D3D11Context *context, const TCHAR *name, const TCHAR *texturePath);
 
 private:
 	void AddToMaterialRange(uint32 *indices, int &index, const int mat, const uint startMesh, const uint meshCount);
@@ -126,7 +126,7 @@ private:
 };
 
 // Main application class
-class App : public D3D10App
+class App : public D3D11App
 {
 public:
 	const TCHAR *GetHomeDirectory(){ return _T("."); }

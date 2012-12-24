@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// File: Framework\D3D10\D3D10App.cpp
+// File: Framework\D3D10\D3D11App.cpp
 // Copyright (c) 2007 Advanced Micro Devices Inc. All rights reserved.
 //-----------------------------------------------------------------------------
 
@@ -7,7 +7,7 @@
 
 
 
-#include "D3D10App.h"
+#include "D3D11App.h"
 #include <stdio.h>
 
 #pragma comment (lib, "d3d11.lib")
@@ -23,7 +23,7 @@ struct Pos2Tex3
 	float3 tex;
 };
 
-D3D10App::D3D10App()
+D3D11App::D3D11App()
 {
 	// Initialize all variables to defaults
 	m_context = NULL;
@@ -50,17 +50,17 @@ D3D10App::D3D10App()
 	m_benchMarkTime = 0;
 }
 
-D3D10App::~D3D10App()
+D3D11App::~D3D11App()
 {
 }
 
-bool D3D10App::Create()
+bool D3D11App::Create()
 {
 	// If the sample didn't create a context already, the framework creates a default one
 	if (m_context == NULL)
 	{
-		m_context = new D3D10Context();
-		if (!m_context->Create(_T("Sample"), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D16_UNORM, 800, 600, 1, false)) return false;
+		m_context = new D3D11Context();
+		if (!m_context->Create(_T("Sample"), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D16_UNORM, 1280, 720, 1, false)) return false;
 	}
 
 	// Load the font
@@ -89,7 +89,7 @@ bool D3D10App::Create()
 	return true;
 }
 
-void D3D10App::Destroy()
+void D3D11App::Destroy()
 {
 	// Release our resources
 	if (m_context)
@@ -108,7 +108,7 @@ void D3D10App::Destroy()
 	}
 }
 
-void D3D10App::CaptureMouse(const bool value)
+void D3D11App::CaptureMouse(const bool value)
 {
 	if (m_mouseCapture != value)
 	{
@@ -135,7 +135,7 @@ void D3D10App::CaptureMouse(const bool value)
 	}
 }
 
-void D3D10App::UpdateCameraPosition(const float speed)
+void D3D11App::UpdateCameraPosition(const float speed)
 {
 	if (m_benchMark)
 	{
@@ -180,14 +180,14 @@ void D3D10App::UpdateCameraPosition(const float speed)
 	}
 }
 
-void D3D10App::ResetCamera()
+void D3D11App::ResetCamera()
 {
 	// Camera defaults. May be overriden by the sample.
 	m_camera.SetPosition(float3(0, 0, 0));
 	m_camera.SetRotation(0, 0, 0);
 }
 
-bool D3D10App::OnMouseClick(HWND hwnd, const int x, const int y, const MouseButton button, const bool pressed)
+bool D3D11App::OnMouseClick(HWND hwnd, const int x, const int y, const MouseButton button, const bool pressed)
 {
 	// Left clicking in the window captures the mouse for free flying
 	if (button == MOUSE_LEFT)
@@ -199,7 +199,7 @@ bool D3D10App::OnMouseClick(HWND hwnd, const int x, const int y, const MouseButt
 	return false;
 }
 
-bool D3D10App::OnMouseMove(HWND hwnd, const int x, const int y, const bool lButton, const bool mButton, const bool rButton)
+bool D3D11App::OnMouseMove(HWND hwnd, const int x, const int y, const bool lButton, const bool mButton, const bool rButton)
 {
 	if (m_mouseCapture)
 	{
@@ -226,13 +226,13 @@ bool D3D10App::OnMouseMove(HWND hwnd, const int x, const int y, const bool lButt
 	return false;
 }
 
-bool D3D10App::OnMouseWheel(HWND hwnd, const int x, const int y, const int scroll)
+bool D3D11App::OnMouseWheel(HWND hwnd, const int x, const int y, const int scroll)
 {
 
 	return false;
 }
 
-bool D3D10App::OnKeyPress(HWND hwnd, const unsigned int key, const bool pressed)
+bool D3D11App::OnKeyPress(HWND hwnd, const unsigned int key, const bool pressed)
 {
 	if (key < 256) // Sanity check
 	{
@@ -318,19 +318,19 @@ bool D3D10App::OnKeyPress(HWND hwnd, const unsigned int key, const bool pressed)
 	return false;
 }
 
-void D3D10App::OnSize(HWND hwnd, const int w, const int h)
+void D3D11App::OnSize(HWND hwnd, const int w, const int h)
 {
 	m_context->Resize(w, h);
 
 	m_camera.SetViewport(w, h);
 }
 
-void D3D10App::OnPosition(HWND hwnd, const int x, const int y)
+void D3D11App::OnPosition(HWND hwnd, const int x, const int y)
 {
 	m_context->SetPosition(x, y);
 }
 
-void D3D10App::RenderGUI()
+void D3D11App::RenderGUI()
 {
 	if (m_showFPS)
 	{
@@ -367,7 +367,7 @@ void D3D10App::RenderGUI()
 	}
 }
 
-void D3D10App::RenderBillboards(const float3 *position, const int count, const float size, const float4 &color)
+void D3D11App::RenderBillboards(const float3 *position, const int count, const float size, const float4 &color)
 {
 	// Make sure we have enough room in the tool vertex buffer
 	SetToolsVBSize(count * 6 * sizeof(float3));
@@ -428,7 +428,7 @@ void D3D10App::RenderBillboards(const float3 *position, const int count, const f
 	dev->Draw(6 * count, 0);
 }
 
-void D3D10App::RenderCameraPath()
+void D3D11App::RenderCameraPath()
 {
 	if (!m_displayPath) return;
 
@@ -499,7 +499,7 @@ void D3D10App::RenderCameraPath()
 	}
 }
 
-void D3D10App::DebugViewTexture2D(ID3D11ShaderResourceView *srv, const float x, const float y, const float width, const float height, const int slice)
+void D3D11App::DebugViewTexture2D(ID3D11ShaderResourceView *srv, const float x, const float y, const float width, const float height, const int slice)
 {
 	// Make sure we have enough space in the vertex buffer
 	SetToolsVBSize(4 * sizeof(Pos2Tex3));
@@ -547,7 +547,7 @@ void D3D10App::DebugViewTexture2D(ID3D11ShaderResourceView *srv, const float x, 
 	dev->Draw(4, 0);
 }
 
-void D3D10App::DebugViewTexture3D(ID3D11ShaderResourceView *srv, const float x, const float y, const float width, const float height, const float z)
+void D3D11App::DebugViewTexture3D(ID3D11ShaderResourceView *srv, const float x, const float y, const float width, const float height, const float z)
 {
 	// Make sure we have enough space in the vertex buffer
 	SetToolsVBSize(4 * sizeof(Pos2Tex3));
@@ -588,7 +588,7 @@ void D3D10App::DebugViewTexture3D(ID3D11ShaderResourceView *srv, const float x, 
 	dev->Draw(4, 0);
 }
 
-bool D3D10App::SetToolsVBSize(const uint size)
+bool D3D11App::SetToolsVBSize(const uint size)
 {
 	// Check if we need to resize the buffer
 	if (size > m_toolsVBSize)
@@ -615,7 +615,7 @@ bool D3D10App::SetToolsVBSize(const uint size)
 	return true;
 }
 
-int D3D10App::Run()
+int D3D11App::Run()
 {
 	MSG msg;
 	msg.wParam = 0;
@@ -673,7 +673,7 @@ int D3D10App::Run()
 #define GETX(lParam) ((int) (short) LOWORD(lParam))
 #define GETY(lParam) ((int) (short) HIWORD(lParam))
 
-LRESULT D3D10App::ProcessMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
+LRESULT D3D11App::ProcessMessage(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
     PAINTSTRUCT ps;
     HDC hdc;

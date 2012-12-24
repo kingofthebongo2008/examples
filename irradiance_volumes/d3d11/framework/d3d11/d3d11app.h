@@ -1,5 +1,5 @@
 //-----------------------------------------------------------------------------
-// File: Framework\D3D10\D3D10App.h
+// File: Framework\D3D10\D3D11App.h
 // Copyright (c) 2007 Advanced Micro Devices Inc. All rights reserved.
 //-----------------------------------------------------------------------------
 
@@ -10,7 +10,7 @@
 #ifndef _D3D10APP_H_
 #define _D3D10APP_H_
 
-#include "D3D10Context.h"
+#include "D3D11Context.h"
 #include "../GUI.h"
 #include "../Math/Camera.h"
 
@@ -29,11 +29,11 @@ enum MouseButton
 
 
 /** Base application class */
-class D3D10App
+class D3D11App
 {
 public:
-	D3D10App();
-	virtual ~D3D10App();
+	D3D11App();
+	virtual ~D3D11App();
 
     /** This pure virutal function must be implemented by each sample application.
         \return The relative path home directory of the sample application as a char pointer
@@ -89,7 +89,7 @@ protected:
 	bool SetToolsVBSize(const uint size);
 
 	// Main rendering context
-	D3D10Context *m_context;
+	D3D11Context *m_context;
 	// Main font
 	TexFont m_mainFont;
 	// Main camera
