@@ -423,12 +423,12 @@ float3 psFinal(PsInFinal In, bool frontFace: SV_IsFrontFace, uniform bool textur
 	return color;
 }
 
-VertexShader vsshadow = CompileShader(vs_4_0, vsShadow());
+VertexShader vsshadow = CompileShader(vs_5_0, vsShadow());
 
-VertexShader vsprobe = CompileShader(vs_4_0, vsProbe());
-GeometryShader gsprobe = CompileShader(gs_4_0, gsProbe());
+VertexShader vsprobe = CompileShader(vs_5_0, vsProbe());
+GeometryShader gsprobe = CompileShader(gs_5_0, gsProbe());
 
-VertexShader vsfinal = CompileShader(vs_4_0, vsFinal());
+VertexShader vsfinal = CompileShader(vs_5_0, vsFinal());
 
 
 technique10 Render
@@ -439,8 +439,8 @@ technique10 Render
 		SetDepthStencilState(dsState, 0);
 
 		SetVertexShader(vsshadow);
-		SetGeometryShader(CompileShader(gs_4_0, gsShadow(false)));
-		SetPixelShader(CompileShader(ps_4_0, psShadow(false)));
+		SetGeometryShader(CompileShader(gs_5_0, gsShadow(false)));
+		SetPixelShader(CompileShader(ps_5_0, psShadow(false)));
 	}
 
 	pass ShadowMasked
@@ -449,8 +449,8 @@ technique10 Render
 		SetDepthStencilState(dsState, 0);
 
 		SetVertexShader(vsshadow);
-		SetGeometryShader(CompileShader(gs_4_0, gsShadow(true)));
-		SetPixelShader(CompileShader(ps_4_0, psShadow(true)));
+		SetGeometryShader(CompileShader(gs_5_0, gsShadow(true)));
+		SetPixelShader(CompileShader(ps_5_0, psShadow(true)));
 	}
 
 	pass Probe0
@@ -460,7 +460,7 @@ technique10 Render
 
 		SetVertexShader(vsprobe);
 		SetGeometryShader(gsprobe);
-		SetPixelShader(CompileShader(ps_4_0, psProbe(false, false, false)));
+		SetPixelShader(CompileShader(ps_5_0, psProbe(false, false, false)));
 	}
 
 	pass Probe1
@@ -470,7 +470,7 @@ technique10 Render
 
 		SetVertexShader(vsprobe);
 		SetGeometryShader(gsprobe);
-		SetPixelShader(CompileShader(ps_4_0, psProbe(true, false, true)));
+		SetPixelShader(CompileShader(ps_5_0, psProbe(true, false, true)));
 	}
 
 	pass Probe2
@@ -480,7 +480,7 @@ technique10 Render
 
 		SetVertexShader(vsprobe);
 		SetGeometryShader(gsprobe);
-		SetPixelShader(CompileShader(ps_4_0, psProbe(true, false, false)));
+		SetPixelShader(CompileShader(ps_5_0, psProbe(true, false, false)));
 	}
 
 	pass Probe3
@@ -490,7 +490,7 @@ technique10 Render
 
 		SetVertexShader(vsprobe);
 		SetGeometryShader(gsprobe);
-		SetPixelShader(CompileShader(ps_4_0, psProbe(false, true, false, 0)));
+		SetPixelShader(CompileShader(ps_5_0, psProbe(false, true, false, 0)));
 	}
 
 	pass Probe4
@@ -500,7 +500,7 @@ technique10 Render
 
 		SetVertexShader(vsprobe);
 		SetGeometryShader(gsprobe);
-		SetPixelShader(CompileShader(ps_4_0, psProbe(false, true, false, 1)));
+		SetPixelShader(CompileShader(ps_5_0, psProbe(false, true, false, 1)));
 	}
 
 	pass Final0
@@ -510,7 +510,7 @@ technique10 Render
 
 		SetVertexShader(vsfinal);
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_4_0, psFinal(false, false, false)));
+		SetPixelShader(CompileShader(ps_5_0, psFinal(false, false, false)));
 	}
 
 	pass Final1
@@ -520,7 +520,7 @@ technique10 Render
 
 		SetVertexShader(vsfinal);
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_4_0, psFinal(true, false, true)));
+		SetPixelShader(CompileShader(ps_5_0, psFinal(true, false, true)));
 	}
 
 	pass Final2
@@ -530,7 +530,7 @@ technique10 Render
 
 		SetVertexShader(vsfinal);
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_4_0, psFinal(true, false, false)));
+		SetPixelShader(CompileShader(ps_5_0, psFinal(true, false, false)));
 	}
 
 	pass Final3
@@ -540,7 +540,7 @@ technique10 Render
 
 		SetVertexShader(vsfinal);
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_4_0, psFinal(false, true, false, 0)));
+		SetPixelShader(CompileShader(ps_5_0, psFinal(false, true, false, 0)));
 	}
 
 	pass Final4
@@ -550,6 +550,6 @@ technique10 Render
 
 		SetVertexShader(vsfinal);
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_4_0, psFinal(false, true, false, 1)));
+		SetPixelShader(CompileShader(ps_5_0, psFinal(false, true, false, 1)));
 	}
 }

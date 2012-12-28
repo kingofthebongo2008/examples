@@ -59,8 +59,8 @@ technique10 t0
 		SetDepthStencilState(dsState, 0x0);
 		SetRasterizerState(rsState);
 
-		SetVertexShader(CompileShader(vs_4_0, vsMain()));
+		SetVertexShader(CompileShader(vs_5_0, vsMain()));
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_4_0, psMain()));
+		SetPixelShader(CompileShader(ps_5_0, psMain()));
 	}
 }

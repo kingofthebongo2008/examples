@@ -339,7 +339,10 @@ bool App::Create()
 
 	// Create our rendering context. It'll take care of our D3D10 device and simplify some tasks.
 	m_context = new D3D11Context();
-	if (!m_context->Create(_T("Global Illumination"), DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_D24_UNORM_S8_UINT, 1280, 720, 4, false)) return false;
+	//if (!m_context->Create(_T("Global Illumination"), DXGI_FORMAT_R10G10B10A2_UNORM, DXGI_FORMAT_D24_UNORM_S8_UINT, 1280, 720, 4, false)) return false;
+    //if (!m_context->Create(_T("Global Illumination"), DXGI_FORMAT_R8G8B8A8_UNORM_SRGB, DXGI_FORMAT_D24_UNORM_S8_UINT, 1280, 720, 4, false)) return false;
+    if (!m_context->Create(_T("Global Illumination"), DXGI_FORMAT_R8G8B8A8_UNORM, DXGI_FORMAT_D24_UNORM_S8_UINT, 1280, 720, 4, false)) return false;
+
 
 	// Let base-class initialize itself as well
 	if (!D3D11App::Create()) return false;

@@ -183,9 +183,9 @@ technique10 Debug
 		SetDepthStencilState(dsNoTest, 0x0);
 		SetRasterizerState(rsState);
 
-		SetVertexShader(CompileShader(vs_4_0, vsTex()));
+		SetVertexShader(CompileShader(vs_5_0, vsTex()));
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_4_0, psTex2D()));
+		SetPixelShader(CompileShader(ps_5_0, psTex2D()));
 	}
 
 	pass Tex2DArray
@@ -194,9 +194,9 @@ technique10 Debug
 		SetDepthStencilState(dsNoTest, 0x0);
 		SetRasterizerState(rsState);
 
-		SetVertexShader(CompileShader(vs_4_0, vsTex()));
+		SetVertexShader(CompileShader(vs_5_0, vsTex()));
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_4_0, psTex2DArray()));
+		SetPixelShader(CompileShader(ps_5_0, psTex2DArray()));
 	}
 
 	pass Tex3D
@@ -205,8 +205,8 @@ technique10 Debug
 		SetDepthStencilState(dsNoTest, 0x0);
 		SetRasterizerState(rsState);
 
-		SetVertexShader(CompileShader(vs_4_0, vsTex()));
+		SetVertexShader(CompileShader(vs_5_0, vsTex()));
 		SetGeometryShader(NULL);
-		SetPixelShader(CompileShader(ps_4_0, psTex3D()));
+		SetPixelShader(CompileShader(ps_5_0, psTex3D()));
 	}
 }
