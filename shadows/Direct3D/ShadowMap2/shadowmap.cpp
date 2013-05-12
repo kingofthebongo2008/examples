@@ -268,16 +268,6 @@ void RenderScene(	IDirect3DDevice9* pd3dDevice,
 					const CFirstPersonCamera*	  pLightCamera
 				  );
 
-void RenderScene(	IDirect3DDevice9* pd3dDevice, 
-					bool bRenderShadow, 
-					float fElapsedTime, 
-					const D3DXMATRIX* pmView,
-					const D3DXMATRIX* pmProj,
-					const CFirstPersonCamera*	  pLightCamera,
-					uint32_t frame_step
-				  );
-
-
 class ScopedAnimations
 {
 	public:
@@ -788,22 +778,7 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
     D3DXVECTOR3 vR( 0.1f, 1.0f, -0.2f );
     D3DXMatrixRotationAxis( &m, &vR, -D3DX_PI * fElapsedTime / 6.0f );
     D3DXMatrixMultiply( GetAnimation_3(g_FrameStep), &m, GetAnimation_3(g_FrameStep) );
-
 }
-
-void RenderScene(	IDirect3DDevice9* pd3dDevice, 
-					bool bRenderShadow, 
-					float fElapsedTime, 
-					const D3DXMATRIX* pmView,
-					const D3DXMATRIX* pmProj,
-					const CFirstPersonCamera*	  pLightCamera,
-					uint32_t frame_step
-				  )
-{
-	ScopedAnimations f(frame_step);
-	RenderScene( pd3dDevice, bRenderShadow, fElapsedTime, pmView, pmProj, pLightCamera);
-}
-
 
 //--------------------------------------------------------------------------------------
 // Renders the scene onto the current render target using the current
@@ -943,25 +918,10 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
 }
 
 
-//--------------------------------------------------------------------------------------
-// This callback function will be called at the end of every frame to perform all the 
-// rendering calls for the scene, and it will also be called if the window needs to be 
-// repainted. After this function has returned, DXUT will call 
-// IDirect3DDevice9::Present to display the contents of the next buffer in the swap chain
-//--------------------------------------------------------------------------------------
-void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext )
+void RenderBFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step )
 {
 	//simulate lower fps
-	::Sleep(22);
-
-
-    // If the settings dialog is being shown, then
-    // render it instead of rendering the app's scene
-    if( g_SettingsDlg.IsActive() )
-    {
-        g_SettingsDlg.OnRender( fElapsedTime );
-        return;
-    }
+	::Sleep(10);
 
 	//Step 1
 	HRESULT hr;
@@ -970,11 +930,10 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
     // This changes depending on the light mode
     // (free movement or attached)
     //
-
-	uint32_t frame_step = 5;
-
+	
 	//put animations for rendering
 	ScopedAnimations f(frame_step);
+
 	D3DXMATRIXA16 mLightView;
 
     if( g_bFreeLight )
@@ -1026,6 +985,46 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
     }
     pd3dDevice->SetRenderTarget( 0, pOldRT );
     SAFE_RELEASE( pOldRT );
+}
+
+void RenderBFrameStep2(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step)
+{
+	//simulate lower fps
+	::Sleep(10);
+
+	//Step 1
+	HRESULT hr;
+    //
+    // Compute the view matrix for the light
+    // This changes depending on the light mode
+    // (free movement or attached)
+    //
+
+	//put animations for rendering
+	ScopedAnimations f(frame_step);
+	D3DXMATRIXA16 mLightView;
+
+    if( g_bFreeLight )
+        mLightView = *GetLightCamera(frame_step)->GetViewMatrix();
+    else
+    {
+        // Light attached to car.
+        mLightView = *g_Obj[2].m_pWorld;
+        D3DXVECTOR3 vPos( mLightView._41, mLightView._42, mLightView._43 );  // Offset z by -2 so that it's closer to headlight
+        D3DXVECTOR4 vDir = D3DXVECTOR4( 0.0f, 0.0f, -1.0f, 1.0f );  // In object space, car is facing -Z
+        mLightView._41 = mLightView._42 = mLightView._43 = 0.0f;  // Remove the translation
+        D3DXVec4Transform( &vDir, &vDir, &mLightView );  // Obtain direction in world space
+        vDir.w = 0.0f;  // Set w 0 so that the translation part below doesn't come to play
+        D3DXVec4Normalize( &vDir, &vDir );
+        vPos.x += vDir.x * 4.0f;  // Offset the center by 4 so that it's closer to the headlight
+        vPos.y += vDir.y * 4.0f;
+        vPos.z += vDir.z * 4.0f;
+        vDir.x += vPos.x;  // vDir denotes the look-at point
+        vDir.y += vPos.y;
+        vDir.z += vPos.z;
+        D3DXVECTOR3 vUp( 0.0f, 1.0f, 0.0f );
+        D3DXMatrixLookAtLH( &mLightView, &vPos, ( D3DXVECTOR3* )&vDir, &vUp );
+    }
 
 
 	//Step 2
@@ -1034,7 +1033,6 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
     //
 
 	CFirstPersonCamera* view_camera = GetViewCamera(frame_step);
-
     const D3DXMATRIX* pmView = g_bCameraPerspective ? view_camera->GetViewMatrix() :
         &mLightView;
 
@@ -1055,6 +1053,35 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
         RenderScene( pd3dDevice, false, fElapsedTime, pmView, view_camera->GetProjMatrix(), GetLightCamera(frame_step) );
     }
     g_pEffect->SetTexture( "g_txShadow", NULL );
+}
+
+void RenderBFrameStep3(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step)
+{
+	//simulate lower fps
+	::Sleep(10);
+}
+
+
+//--------------------------------------------------------------------------------------
+// This callback function will be called at the end of every frame to perform all the 
+// rendering calls for the scene, and it will also be called if the window needs to be 
+// repainted. After this function has returned, DXUT will call 
+// IDirect3DDevice9::Present to display the contents of the next buffer in the swap chain
+//--------------------------------------------------------------------------------------
+void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext )
+{
+
+    // If the settings dialog is being shown, then
+    // render it instead of rendering the app's scene
+    if( g_SettingsDlg.IsActive() )
+    {
+        g_SettingsDlg.OnRender( fElapsedTime );
+        return;
+    }
+
+	RenderBFrameStep1( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);
+	RenderBFrameStep2( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);
+	RenderBFrameStep3( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);
 }
 
 
