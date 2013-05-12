@@ -6,12 +6,27 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //--------------------------------------------------------------------------------------
 #include "DXUT.h"
+#include <exception>
+#include <atlbase.h>
 #include <cstdint>
 #include "DXUTcamera.h"
 #include "DXUTsettingsdlg.h"
 #include "SDKmisc.h"
 #include "SDKmesh.h"
 #include "resource.h"
+
+class exception : public std::exception
+{
+
+};
+
+void v(HRESULT hr)
+{
+    if (hr != S_OK)
+    {
+        throw exception();
+    }
+}
 
 //#define DEBUG_VS   // Uncomment this line to debug vertex shaders 
 //#define DEBUG_PS   // Uncomment this line to debug pixel shaders 
@@ -189,6 +204,7 @@ protected:
 };
 
 
+
 //--------------------------------------------------------------------------------------
 // Global variables
 //--------------------------------------------------------------------------------------
@@ -212,10 +228,9 @@ LPDIRECT3DSURFACE9              g_pDSShadow = NULL;     // Depth-stencil buffer 
 float                           g_fLightFov;            // FOV of the spot light (in radian)
 D3DXMATRIXA16                   g_mShadowProj;          // Projection matrix for shadow map
 
-bool                            g_bRightMouseDown = false;// Indicates whether right mouse button is held
-bool                            g_bCameraPerspective    // Indicates whether we should render view from
-    = true;               // the camera's or the light's perspective
-bool                            g_bFreeLight = true;    // Whether the light is freely moveable.
+bool                            g_bRightMouseDown = false;		// Indicates whether right mouse button is held
+bool                            g_bCameraPerspective = true;	// Indicates whether we should render view from the camera's or the light's perspective
+bool                            g_bFreeLight = true;			// Whether the light is freely moveable.
 
 uint32_t						g_FrameStep = 0;
 
@@ -223,6 +238,20 @@ uint32_t						g_FrameStep = 0;
 D3DXMATRIXA16					g_Animation_Obj_1[6];
 D3DXMATRIXA16					g_Animation_Obj_2[6];
 D3DXMATRIXA16					g_Animation_Obj_3[6];
+
+//Animation History for 3 animated objects
+D3DXMATRIXA16					g_Animation_Time_Obj_1[6];
+D3DXMATRIXA16					g_Animation_Time_Obj_2[6];
+D3DXMATRIXA16					g_Animation_Time_Obj_3[6];
+
+CFirstPersonCamera              g_Time_VCamera[6];	// View camera
+CFirstPersonCamera              g_Time_LCamera[6];  // Camera obj to help adjust light
+
+IDirect3DTexture9 *				g_iframe_back_buffer[2];
+IDirect3DTexture9 *				g_iframe_depth_buffer[2];
+
+IDirect3DSurface9 *				g_iframe_back_buffer_surface[2];
+IDirect3DSurface9 *				g_iframe_depthbuffer_surface[2];
 
 
 //--------------------------------------------------------------------------------------
@@ -292,6 +321,35 @@ class ScopedAnimations
 	}
 
 	private:
+
+	D3DXMATRIXA16* old_matrix[3];
+};
+
+class ScopedAnimationsTime
+{
+	public:
+
+	explicit ScopedAnimationsTime(uint32_t frame_step)
+	{
+		old_matrix[0] = g_Obj[1].m_pWorld;
+		old_matrix[1] = g_Obj[2].m_pWorld;
+		old_matrix[2] = g_Obj[3].m_pWorld;
+
+		g_Obj[1].m_pWorld =  &g_Animation_Time_Obj_1[frame_step];
+		g_Obj[2].m_pWorld =  &g_Animation_Time_Obj_2[frame_step];
+		g_Obj[3].m_pWorld =  &g_Animation_Time_Obj_3[frame_step];
+
+	}
+
+	~ScopedAnimationsTime()
+	{
+		g_Obj[1].m_pWorld = old_matrix[0];
+		g_Obj[2].m_pWorld = old_matrix[1];
+		g_Obj[3].m_pWorld = old_matrix[2];
+	}
+
+	private:
+
 	D3DXMATRIXA16* old_matrix[3];
 };
 
@@ -315,14 +373,22 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, int )
 		g_VCamera[i].SetRotateButtons( true, false, false );
 		g_LCamera[i].SetRotateButtons( false, false, true );
 
+		g_Time_VCamera[i].SetScalers( 0.01f, 15.0f );
+		g_Time_LCamera[i].SetScalers( 0.01f, 8.0f );
+		g_Time_VCamera[i].SetRotateButtons( true, false, false );
+		g_Time_LCamera[i].SetRotateButtons( false, false, true );
+
 		// Set up the view parameters for the camera
 		D3DXVECTOR3 vFromPt = D3DXVECTOR3( 0.0f, 5.0f, -18.0f );
 		D3DXVECTOR3 vLookatPt = D3DXVECTOR3( 0.0f, -1.0f, 0.0f );
 		g_VCamera[i].SetViewParams( &vFromPt, &vLookatPt );
+		g_Time_VCamera[i].SetViewParams( &vFromPt, &vLookatPt );
 
 		vFromPt = D3DXVECTOR3( 0.0f, 0.0f, -12.0f );
 		vLookatPt = D3DXVECTOR3( 0.0f, -2.0f, 1.0f );
+
 		g_LCamera[i].SetViewParams( &vFromPt, &vLookatPt );
+		g_Time_LCamera[i].SetViewParams( &vFromPt, &vLookatPt );
 	}
 
     // Initialize the spot light
@@ -448,11 +514,10 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* p
 {
     assert( DXUT_D3D9_DEVICE == pDeviceSettings->ver );
 
-    HRESULT hr;
     IDirect3D9* pD3D = DXUTGetD3D9Object();
     D3DCAPS9 caps;
 
-    V( pD3D->GetDeviceCaps( pDeviceSettings->d3d9.AdapterOrdinal,
+    v( pD3D->GetDeviceCaps( pDeviceSettings->d3d9.AdapterOrdinal,
                             pDeviceSettings->d3d9.DeviceType,
                             &caps ) );
 
@@ -572,16 +637,19 @@ HRESULT CALLBACK OnCreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURFACE_
 	for (uint32_t i = 0; i < 6; ++i)
 	{
 		g_Animation_Obj_1[i] = g_Obj[1].m_mWorld;
+		g_Animation_Time_Obj_1[i] = g_Obj[1].m_mWorld;
 	}
 
 	for (uint32_t i = 0; i < 6; ++i)
 	{
 		g_Animation_Obj_2[i] = g_Obj[2].m_mWorld;
+		g_Animation_Time_Obj_2[i] = g_Obj[2].m_mWorld;
 	}
 
 	for (uint32_t i = 0; i < 6; ++i)
 	{
 		g_Animation_Obj_1[3] = g_Obj[3].m_mWorld;
+		g_Animation_Time_Obj_1[3] = g_Obj[3].m_mWorld;
 	}
 
 	// Initialize the light mesh
@@ -631,6 +699,9 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
 	{
 	    g_VCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 100.0f );
 	    g_LCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, g_Light_Space_Near_Z, g_Light_Space_Far_Z );
+
+		g_Time_VCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 100.0f );
+	    g_Time_LCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, g_Light_Space_Near_Z, g_Light_Space_Far_Z );
 	}
 
     // Create the default texture (used when a triangle does not use a texture)
@@ -696,9 +767,19 @@ CFirstPersonCamera* GetLightCamera( uint32_t frame_step )
 	return &g_LCamera[ frame_step ];
 }
 
+CFirstPersonCamera* GetTimeLightCamera( uint32_t frame_step )
+{
+	return &g_Time_LCamera[ frame_step ];
+}
+
 CFirstPersonCamera* GetViewCamera( uint32_t frame_step )
 {
 	return &g_VCamera[ frame_step ];
+}
+
+CFirstPersonCamera* GetTimeViewCamera( uint32_t frame_step )
+{
+	return &g_Time_VCamera[ frame_step ];
 }
 
 void CopyViewCameras( )
@@ -735,21 +816,54 @@ void CopyAnimations()
 	}
 }
 
-D3DXMATRIXA16* GetAnimation_1( uint32_t frame_step)
+D3DXMATRIXA16* GetAnimation_1( )
 {
 	return &g_Animation_Obj_1[5];
 }
 
-D3DXMATRIXA16* GetAnimation_2( uint32_t frame_step)
+D3DXMATRIXA16* GetAnimation_2( )
 {
 	return &g_Animation_Obj_2[5];
 }
 
-D3DXMATRIXA16* GetAnimation_3( uint32_t frame_step)
+D3DXMATRIXA16* GetAnimation_3(  )
 {
 	return &g_Animation_Obj_3[5];
 }
 
+void CopyTimeViewCameras()
+{
+	for ( uint32_t i = 0; i<5; ++i)
+	{
+		g_Time_VCamera[i] = g_Time_VCamera[i+1];
+	}
+}
+
+void CopyTimeLightCameras()
+{
+	for ( uint32_t i = 0; i<5; ++i)
+	{
+		g_Time_LCamera[i] = g_Time_LCamera[i+1];
+	}
+}
+
+void CopyTimeAnimations()
+{
+	for ( uint32_t i = 0; i<5; ++i)
+	{
+		g_Animation_Time_Obj_1[i] = g_Animation_Time_Obj_1[i+1];
+	}
+
+	for ( uint32_t i = 0; i<5; ++i)
+	{
+		g_Animation_Time_Obj_2[i] = g_Animation_Time_Obj_2[i+1];
+	}
+
+	for ( uint32_t i = 0; i<5; ++i)
+	{
+		g_Animation_Time_Obj_3[i] = g_Animation_Time_Obj_3[i+1];
+	}
+}
 
 //--------------------------------------------------------------------------------------
 // This callback function will be called once at the beginning of every frame. This is the
@@ -770,14 +884,29 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
 	// Animate the plane, car and sphere meshes
     D3DXMATRIXA16 m;
     D3DXMatrixRotationY( &m, D3DX_PI * fElapsedTime / 4.0f );
-    D3DXMatrixMultiply( GetAnimation_1(g_FrameStep), GetAnimation_1(g_FrameStep), &m );
+    D3DXMatrixMultiply( GetAnimation_1(), GetAnimation_1(), &m );
 
     D3DXMatrixRotationY( &m, -D3DX_PI * fElapsedTime / 4.0f );
-    D3DXMatrixMultiply( GetAnimation_2(g_FrameStep), GetAnimation_2(g_FrameStep), &m );
+    D3DXMatrixMultiply( GetAnimation_2(), GetAnimation_2(), &m );
 
     D3DXVECTOR3 vR( 0.1f, 1.0f, -0.2f );
     D3DXMatrixRotationAxis( &m, &vR, -D3DX_PI * fElapsedTime / 6.0f );
-    D3DXMatrixMultiply( GetAnimation_3(g_FrameStep), &m, GetAnimation_3(g_FrameStep) );
+    D3DXMatrixMultiply( GetAnimation_3(), &m, GetAnimation_3() );
+
+	if (g_FrameStep % 4 == 0 )
+	{
+		g_Time_VCamera[5] = g_VCamera[5];
+		g_Time_LCamera[5] = g_LCamera[5];
+
+		g_Animation_Time_Obj_1[5] = g_Animation_Obj_1[5];
+		g_Animation_Time_Obj_2[5] = g_Animation_Obj_2[5];
+		g_Animation_Time_Obj_3[5] = g_Animation_Obj_2[5];
+
+		CopyTimeViewCameras();
+		CopyTimeLightCameras();
+		CopyTimeAnimations();
+	}
+
 }
 
 //--------------------------------------------------------------------------------------
@@ -790,53 +919,53 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
     HRESULT hr;
 
     // Set the projection matrix
-    V( g_pEffect->SetMatrix( "g_mProj", pmProj ) );
+    v( g_pEffect->SetMatrix( "g_mProj", pmProj ) );
 
     // Update the light parameters in the effect
     if( g_bFreeLight )
     {
         // Freely moveable light. Get light parameter
         // from the light camera.
-        D3DXVECTOR3 v = *pLightCamera->GetEyePt();
+        D3DXVECTOR3 v1 = *pLightCamera->GetEyePt();
         D3DXVECTOR4 v4;
-        D3DXVec3Transform( &v4, &v, pmView );
-        V( g_pEffect->SetVector( "g_vLightPos", &v4 ) );
+        D3DXVec3Transform( &v4, &v1, pmView );
+        v( g_pEffect->SetVector( "g_vLightPos", &v4 ) );
         *( D3DXVECTOR3* )&v4 = *pLightCamera->GetWorldAhead();
         v4.w = 0.0f;  // Set w 0 so that the translation part doesn't come to play
         D3DXVec4Transform( &v4, &v4, pmView );  // Direction in view space
         D3DXVec3Normalize( ( D3DXVECTOR3* )&v4, ( D3DXVECTOR3* )&v4 );
-        V( g_pEffect->SetVector( "g_vLightDir", &v4 ) );
+        v( g_pEffect->SetVector( "g_vLightDir", &v4 ) );
     }
     else
     {
         // Light attached to car.  Get the car's world position and direction.
         D3DXMATRIXA16 m = *g_Obj[2].m_pWorld;
-        D3DXVECTOR3 v( m._41, m._42, m._43 );
+        D3DXVECTOR3 v1( m._41, m._42, m._43 );
         D3DXVECTOR4 vPos;
-        D3DXVec3Transform( &vPos, &v, pmView );
+        D3DXVec3Transform( &vPos, &v1, pmView );
         D3DXVECTOR4 v4( 0.0f, 0.0f, -1.0f, 1.0f );  // In object space, car is facing -Z
         m._41 = m._42 = m._43 = 0.0f;  // Remove the translation
         D3DXVec4Transform( &v4, &v4, &m );  // Obtain direction in world space
         v4.w = 0.0f;  // Set w 0 so that the translation part doesn't come to play
         D3DXVec4Transform( &v4, &v4, pmView );  // Direction in view space
         D3DXVec3Normalize( ( D3DXVECTOR3* )&v4, ( D3DXVECTOR3* )&v4 );
-        V( g_pEffect->SetVector( "g_vLightDir", &v4 ) );
+        v( g_pEffect->SetVector( "g_vLightDir", &v4 ) );
         vPos += v4 * 4.0f;  // Offset the center by 3 so that it's closer to the headlight.
-        V( g_pEffect->SetVector( "g_vLightPos", &vPos ) );
+        v( g_pEffect->SetVector( "g_vLightPos", &vPos ) );
     }
 
     // Clear the render buffers
-    V( pd3dDevice->Clear( 0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
+    v( pd3dDevice->Clear( 0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
                           0x000000ff, 1.0f, 0L ) );
 
     if( bRenderShadow )
-        V( g_pEffect->SetTechnique( "RenderShadow" ) );
+        v( g_pEffect->SetTechnique( "RenderShadow" ) );
 
     // Begin the scene
     if( SUCCEEDED( pd3dDevice->BeginScene() ) )
     {
         if( !bRenderShadow )
-            V( g_pEffect->SetTechnique( "RenderScene" ) );
+            v( g_pEffect->SetTechnique( "RenderScene" ) );
 
 		g_pEffect->SetFloat("g_Light_Space_Far_Z", g_Light_Space_Far_Z);
 		g_pEffect->SetFloat("g_Light_Space_Near_Z", g_Light_Space_Near_Z);
@@ -847,14 +976,14 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
         {
             D3DXMATRIXA16 mWorldView = *g_Obj[obj].m_pWorld;
             D3DXMatrixMultiply( &mWorldView, &mWorldView, pmView );
-            V( g_pEffect->SetMatrix( "g_mWorldView", &mWorldView ) );
+            v( g_pEffect->SetMatrix( "g_mWorldView", &mWorldView ) );
 
             LPD3DXMESH pMesh = g_Obj[obj].m_Mesh.GetMesh();
             UINT cPass;
-            V( g_pEffect->Begin( &cPass, 0 ) );
+            v( g_pEffect->Begin( &cPass, 0 ) );
             for( UINT p = 0; p < cPass; ++p )
             {
-                V( g_pEffect->BeginPass( p ) );
+                v( g_pEffect->BeginPass( p ) );
 
                 for( DWORD i = 0; i < g_Obj[obj].m_Mesh.m_dwNumMaterials; ++i )
                 {
@@ -862,33 +991,37 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
                                       g_Obj[obj].m_Mesh.m_pMaterials[i].Diffuse.g,
                                       g_Obj[obj].m_Mesh.m_pMaterials[i].Diffuse.b,
                                       g_Obj[obj].m_Mesh.m_pMaterials[i].Diffuse.a );
-                    V( g_pEffect->SetVector( "g_vMaterial", &vDif ) );
+                    v( g_pEffect->SetVector( "g_vMaterial", &vDif ) );
                     if( g_Obj[obj].m_Mesh.m_pTextures[i] )
-                        V( g_pEffect->SetTexture( "g_txScene", g_Obj[obj].m_Mesh.m_pTextures[i] ) )
+					{
+                        v( g_pEffect->SetTexture( "g_txScene", g_Obj[obj].m_Mesh.m_pTextures[i] ) );
+					}
                     else
-                        V( g_pEffect->SetTexture( "g_txScene", g_pTexDef ) )
-                    V( g_pEffect->CommitChanges() );
-                    V( pMesh->DrawSubset( i ) );
+					{
+                        v( g_pEffect->SetTexture( "g_txScene", g_pTexDef ) );
+					}
+                    v( g_pEffect->CommitChanges() );
+                    v( pMesh->DrawSubset( i ) );
                 }
-                V( g_pEffect->EndPass() );
+                v( g_pEffect->EndPass() );
             }
-            V( g_pEffect->End() );
+            v( g_pEffect->End() );
         }
 
         // Render light
         if( !bRenderShadow )
-            V( g_pEffect->SetTechnique( "RenderLight" ) );
+            v( g_pEffect->SetTechnique( "RenderLight" ) );
 
         D3DXMATRIXA16 mWorldView = *pLightCamera->GetWorldMatrix();
         D3DXMatrixMultiply( &mWorldView, &mWorldView, pmView );
-        V( g_pEffect->SetMatrix( "g_mWorldView", &mWorldView ) );
+        v( g_pEffect->SetMatrix( "g_mWorldView", &mWorldView ) );
 
         UINT cPass;
         LPD3DXMESH pMesh = g_LightMesh.GetMesh();
-        V( g_pEffect->Begin( &cPass, 0 ) );
+        v( g_pEffect->Begin( &cPass, 0 ) );
         for( UINT p = 0; p < cPass; ++p )
         {
-            V( g_pEffect->BeginPass( p ) );
+            v( g_pEffect->BeginPass( p ) );
 
             for( DWORD i = 0; i < g_LightMesh.m_dwNumMaterials; ++i )
             {
@@ -896,14 +1029,14 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
                                   g_LightMesh.m_pMaterials[i].Diffuse.g,
                                   g_LightMesh.m_pMaterials[i].Diffuse.b,
                                   g_LightMesh.m_pMaterials[i].Diffuse.a );
-                V( g_pEffect->SetVector( "g_vMaterial", &vDif ) );
-                V( g_pEffect->SetTexture( "g_txScene", g_LightMesh.m_pTextures[i] ) );
-                V( g_pEffect->CommitChanges() );
-                V( pMesh->DrawSubset( i ) );
+                v( g_pEffect->SetVector( "g_vMaterial", &vDif ) );
+                v( g_pEffect->SetTexture( "g_txScene", g_LightMesh.m_pTextures[i] ) );
+                v( g_pEffect->CommitChanges() );
+                v( pMesh->DrawSubset( i ) );
             }
-            V( g_pEffect->EndPass() );
+            v( g_pEffect->EndPass() );
         }
-        V( g_pEffect->End() );
+        v( g_pEffect->End() );
 
         if( !bRenderShadow )
             // Render stats and help text
@@ -918,13 +1051,12 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
 }
 
 
-void RenderBFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step )
+void RenderIFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step )
 {
 	//simulate lower fps
-	::Sleep(10);
+	::Sleep(6);
 
 	//Step 1
-	HRESULT hr;
     //
     // Compute the view matrix for the light
     // This changes depending on the light mode
@@ -932,12 +1064,12 @@ void RenderBFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
     //
 	
 	//put animations for rendering
-	ScopedAnimations f(frame_step);
+	ScopedAnimationsTime f(frame_step);
 
 	D3DXMATRIXA16 mLightView;
 
     if( g_bFreeLight )
-        mLightView = *GetLightCamera(frame_step)->GetViewMatrix();
+        mLightView = *GetTimeLightCamera(frame_step)->GetViewMatrix();
     else
     {
         // Light attached to car.
@@ -958,54 +1090,47 @@ void RenderBFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
         D3DXMatrixLookAtLH( &mLightView, &vPos, ( D3DXVECTOR3* )&vDir, &vUp );
     }
 
-    //
+	//
     // Render the shadow map
     //
-    LPDIRECT3DSURFACE9 pOldRT = NULL;
-    V( pd3dDevice->GetRenderTarget( 0, &pOldRT ) );
-    LPDIRECT3DSURFACE9 pShadowSurf;
-    if( SUCCEEDED( g_pShadowMap->GetSurfaceLevel( 0, &pShadowSurf ) ) )
-    {
-        pd3dDevice->SetRenderTarget( 0, pShadowSurf );
-        SAFE_RELEASE( pShadowSurf );
-    }
-    LPDIRECT3DSURFACE9 pOldDS = NULL;
-    if( SUCCEEDED( pd3dDevice->GetDepthStencilSurface( &pOldDS ) ) )
-        pd3dDevice->SetDepthStencilSurface( g_pDSShadow );
+    CComPtr<IDirect3DSurface9> pOldRT;
+    v( pd3dDevice->GetRenderTarget( 0, &pOldRT ) );
+
+    CComPtr<IDirect3DSurface9> pShadowSurf;
+    v ( g_pShadowMap->GetSurfaceLevel( 0, &pShadowSurf ) ) ;
+    v ( pd3dDevice->SetRenderTarget( 0, pShadowSurf ) );
+
+	CComPtr<IDirect3DSurface9> pOldDS;
+	v( pd3dDevice->GetDepthStencilSurface( &pOldDS ) ) ;
+	v( pd3dDevice->SetDepthStencilSurface( g_pDSShadow ) );
 
     {
         CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"Shadow Map" );
         RenderScene( pd3dDevice, true, fElapsedTime, &mLightView, &g_mShadowProj, GetLightCamera(frame_step) );
     }
 
-    if( pOldDS )
-    {
-        pd3dDevice->SetDepthStencilSurface( pOldDS );
-        pOldDS->Release();
-    }
-    pd3dDevice->SetRenderTarget( 0, pOldRT );
-    SAFE_RELEASE( pOldRT );
+	v(pd3dDevice->SetDepthStencilSurface( pOldDS ));
+    v(pd3dDevice->SetRenderTarget( 0, pOldRT ) );
 }
 
-void RenderBFrameStep2(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step)
+void RenderIFrameStep2(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step)
 {
 	//simulate lower fps
-	::Sleep(10);
+	::Sleep(6);
 
 	//Step 1
-	HRESULT hr;
-    //
+	//
     // Compute the view matrix for the light
     // This changes depending on the light mode
     // (free movement or attached)
     //
 
 	//put animations for rendering
-	ScopedAnimations f(frame_step);
+	ScopedAnimationsTime f(frame_step);
 	D3DXMATRIXA16 mLightView;
 
     if( g_bFreeLight )
-        mLightView = *GetLightCamera(frame_step)->GetViewMatrix();
+        mLightView = *GetTimeLightCamera(frame_step)->GetViewMatrix();
     else
     {
         // Light attached to car.
@@ -1032,12 +1157,12 @@ void RenderBFrameStep2(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
     // Now that we have the shadow map, render the scene.
     //
 
-	CFirstPersonCamera* view_camera = GetViewCamera(frame_step);
+	CFirstPersonCamera* view_camera = GetTimeViewCamera(frame_step);
     const D3DXMATRIX* pmView = g_bCameraPerspective ? view_camera->GetViewMatrix() :
         &mLightView;
 
     // Initialize required parameter
-    V( g_pEffect->SetTexture( "g_txShadow", g_pShadowMap ) );
+    v( g_pEffect->SetTexture( "g_txShadow", g_pShadowMap ) );
     // Compute the matrix to transform from view space to
     // light projection space.  This consists of
     // the inverse of view matrix * view matrix of light * light projection matrix
@@ -1046,7 +1171,7 @@ void RenderBFrameStep2(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
     D3DXMatrixInverse( &mViewToLightProj, NULL, &mViewToLightProj );
     D3DXMatrixMultiply( &mViewToLightProj, &mViewToLightProj, &mLightView );
     //D3DXMatrixMultiply( &mViewToLightProj, &mViewToLightProj, &g_mShadowProj );
-    V( g_pEffect->SetMatrix( "g_mViewToLight", &mViewToLightProj ) );
+    v( g_pEffect->SetMatrix( "g_mViewToLight", &mViewToLightProj ) );
 
     {
         CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"Scene" );
@@ -1055,12 +1180,27 @@ void RenderBFrameStep2(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
     g_pEffect->SetTexture( "g_txShadow", NULL );
 }
 
-void RenderBFrameStep3(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step)
+void RenderIFrameStep3(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step)
 {
 	//simulate lower fps
-	::Sleep(10);
+	::Sleep(6);
 }
 
+void RenderIFrameStep4(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step)
+{
+	//simulate lower fps
+	::Sleep(6);
+}
+
+void RenderBFrame(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step, uint32_t time_step_1, uint32_t time_step_2 )
+{
+
+}
+
+void DisplayIFrame(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step )
+{
+
+}
 
 //--------------------------------------------------------------------------------------
 // This callback function will be called at the end of every frame to perform all the 
@@ -1070,7 +1210,6 @@ void RenderBFrameStep3(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
 //--------------------------------------------------------------------------------------
 void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext )
 {
-
     // If the settings dialog is being shown, then
     // render it instead of rendering the app's scene
     if( g_SettingsDlg.IsActive() )
@@ -1079,9 +1218,31 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
         return;
     }
 
-	RenderBFrameStep1( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);
-	RenderBFrameStep2( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);
-	RenderBFrameStep3( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);
+	if ( g_FrameStep % 4 == 0 )
+	{
+		RenderIFrameStep1( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
+		RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 3, 4 );	// ( t-2, t-1, 1 / n )
+	}
+
+	if ( g_FrameStep % 4 == 1 )
+	{
+		RenderIFrameStep2( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
+		RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 3, 4 );	// ( t-2, t-1, 2 / n )
+	}
+
+	if ( g_FrameStep % 4 == 2 )
+	{
+		RenderIFrameStep3( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
+		DisplayIFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 4);		// ( t-1 )
+	}
+
+	if ( g_FrameStep % 4 == 3 )
+	{
+		RenderIFrameStep4( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
+		RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 4, 5 );	// ( t-1, t, 1 / n)
+	}
+
+	g_FrameStep++;
 }
 
 
