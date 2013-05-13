@@ -15,6 +15,9 @@
 #include "SDKmesh.h"
 #include "resource.h"
 
+#define FOURCC_NULL ((D3DFORMAT)(MAKEFOURCC('N','U','L','L')))
+#define FOURCC_INTZ ((D3DFORMAT)(MAKEFOURCC('I','N','T','Z')))
+
 class exception : public std::exception
 {
 
@@ -252,6 +255,8 @@ IDirect3DTexture9 *				g_iframe_depth_buffer[2];
 
 IDirect3DSurface9 *				g_iframe_back_buffer_surface[2];
 IDirect3DSurface9 *				g_iframe_depthbuffer_surface[2];
+
+IDirect3DSurface9 *				g_null_render_target;
 
 
 //--------------------------------------------------------------------------------------
@@ -663,6 +668,7 @@ HRESULT CALLBACK OnCreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURFACE_
     D3DXMatrixIdentity( &mIdent );
     V_RETURN( pd3dDevice->SetTransform( D3DTS_WORLD, &mIdent ) );
 
+
     return S_OK;
 }
 
@@ -759,7 +765,26 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
     pControl = g_HUD.GetControl( IDC_ATTACHLIGHTTOCAR );
     if( pControl )
         pControl->SetLocation( 0, pBackBufferSurfaceDesc->Height - 25 );
-    return S_OK;
+
+	//Create two temporary buffers
+	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &g_iframe_back_buffer[0], NULL ) );
+	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &g_iframe_back_buffer[1], NULL ) );
+
+	v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.BackBufferFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &g_iframe_back_buffer_surface[0], NULL ) );
+	v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.BackBufferFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &g_iframe_back_buffer_surface[1], NULL ) );
+
+
+	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_iframe_depth_buffer[0], NULL ) );
+	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_iframe_depth_buffer[1], NULL ) );
+
+	v( g_iframe_depth_buffer[0]->GetSurfaceLevel(0, &g_iframe_depthbuffer_surface[0]));
+	v( g_iframe_depth_buffer[1]->GetSurfaceLevel(0, &g_iframe_depthbuffer_surface[1]));
+	
+
+	//Create two temporary buffers
+	v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, FOURCC_NULL, D3DMULTISAMPLE_4_SAMPLES, 0, FALSE, &g_null_render_target, NULL ) );
+
+	return S_OK;
 }
 
 CFirstPersonCamera* GetLightCamera( uint32_t frame_step )
@@ -1053,6 +1078,7 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
 
 void RenderIFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step )
 {
+	CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep1" );
 	//simulate lower fps
 	::Sleep(6);
 
@@ -1115,6 +1141,7 @@ void RenderIFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
 
 void RenderIFrameStep2(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step)
 {
+	CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep2" );
 	//simulate lower fps
 	::Sleep(6);
 
@@ -1188,18 +1215,20 @@ void RenderIFrameStep3(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
 
 void RenderIFrameStep4(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step)
 {
+	CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep4" );
 	//simulate lower fps
 	::Sleep(6);
 }
 
 void RenderBFrame(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step, uint32_t time_step_1, uint32_t time_step_2 )
 {
+	CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderBFrame" );
 
 }
 
 void DisplayIFrame(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step )
 {
-
+	CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"DisplayIFrame" );
 }
 
 //--------------------------------------------------------------------------------------
@@ -1431,6 +1460,21 @@ void CALLBACK OnLostDevice( void* pUserContext )
     for( int i = 0; i < NUM_OBJ; ++i )
         g_Obj[i].m_Mesh.InvalidateDeviceObjects();
     g_LightMesh.InvalidateDeviceObjects();
+
+	SAFE_RELEASE( g_iframe_back_buffer[0] );
+	SAFE_RELEASE( g_iframe_back_buffer[1] );
+
+	SAFE_RELEASE( g_iframe_back_buffer_surface[0] );
+	SAFE_RELEASE( g_iframe_back_buffer_surface[1] );
+
+
+	SAFE_RELEASE( g_iframe_depth_buffer[0] ); 
+	SAFE_RELEASE( g_iframe_depth_buffer[1] ); 
+
+	SAFE_RELEASE( g_iframe_depthbuffer_surface[0] ); 
+	SAFE_RELEASE( g_iframe_depthbuffer_surface[1] ); 
+
+	SAFE_RELEASE(g_null_render_target);
 }
 
 
