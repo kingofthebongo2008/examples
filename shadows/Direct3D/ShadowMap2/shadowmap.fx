@@ -28,6 +28,9 @@ float	 g_Light_Space_Far_Z = 100.0f;
 float	 g_Light_Space_Near_Z = 1.0f;
 float4x4 g_mShadowProj;
 
+float4x4  g_mWorldViewLeft;
+float4x4  g_mWorldViewRight;
+
 sampler2D g_samScene =
 sampler_state
 {
@@ -44,6 +47,56 @@ sampler2D g_samShadow =
 sampler_state
 {
     Texture = <g_txShadow>;
+    MinFilter = Point;
+    MagFilter = Point;
+    MipFilter = Point;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
+
+texture  g_frame_buffer_left;
+texture  g_frame_buffer_right;
+
+texture  g_depth_buffer_left;
+texture  g_depth_buffer_right;
+
+sampler2D g_sam_frame_buffer_left =
+sampler_state
+{
+    Texture = <g_frame_buffer_left>;
+    MinFilter = Point;
+    MagFilter = Point;
+    MipFilter = Point;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
+
+sampler2D g_sam_frame_buffer_right =
+sampler_state
+{
+    Texture = <g_frame_buffer_right>;
+    MinFilter = Point;
+    MagFilter = Point;
+    MipFilter = Point;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
+
+sampler2D g_sam_depth_buffer_left =
+sampler_state
+{
+    Texture = <g_depth_buffer_left>;
+    MinFilter = Point;
+    MagFilter = Point;
+    MipFilter = Point;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
+
+sampler2D g_sam_depth_buffer_right =
+sampler_state
+{
+    Texture = <g_depth_buffer_right>;
     MinFilter = Point;
     MagFilter = Point;
     MipFilter = Point;
@@ -246,6 +299,87 @@ void PixShadow( float2 Depth : TEXCOORD0,
     Color = Depth.x / Depth.y;
 }
 
+//-----------------------------------------------------------------------------
+// Vertex Shader: VertDepth
+// Desc: Process vertex for scene
+//-----------------------------------------------------------------------------
+void VertDepthScene
+( 
+				float4 iPos : POSITION,
+                out float4 oPos : POSITION,
+				out float4 left_frame : TEXCOORD0,
+				out float4 right_frame: TEXCOORD1,
+				out float4 middle_frame: TEXCOORD2
+)
+{
+	float4 pos;
+	float4 pos_left;
+	float4 pos_right;
+    //
+    // Transform position to view space
+    //
+    pos = mul( iPos, g_mWorldView );
+
+	pos_left = mul( iPos, g_mWorldViewLeft );
+	pos_right = mul( iPos, g_mWorldViewRight );
+
+    //
+    // Transform to screen coord
+    //
+    oPos = mul( pos, g_mProj );
+
+	left_frame = mul( pos_left, g_mProj );
+	right_frame = mul( pos_right, g_mProj );
+}
+
+//-----------------------------------------------------------------------------
+// Pixel Shader: PixShadow
+// Desc: Process pixel for the shadow map
+//-----------------------------------------------------------------------------
+void PixDepthScene( out float4 Color : COLOR, float4 left_frame : TEXCOORD0, float4 right_frame: TEXCOORD1, float4 middle_frame: TEXCOORD2 )
+{
+	Color = float4( 1, 0, 0, 0);
+
+	left_frame /= left_frame.w;
+	right_frame /= right_frame.w;
+	middle_frame /= middle_frame.w;
+
+	float left_frame_depth = tex2D( g_sam_depth_buffer_left, left_frame.xy * 0.5 + 0.5).r;
+	float right_frame_depth = tex2D( g_sam_depth_buffer_right, right_frame.xy * 0.5 + 0.5).r;
+
+	float4 left_frame_image = tex2D( g_sam_frame_buffer_right, left_frame.xy * 0.5 + 0.5).r;
+	float4 right_frame_image = tex2D( g_sam_frame_buffer_right, right_frame.xy * 0.5 + 0.5).r;
+
+	float l = abs ( left_frame_depth - left_frame.z );
+	float r = abs ( right_frame_depth - right_frame.z );
+
+	if ( l < 0.0001)
+	{
+		//both are visibile
+		if ( r < 0.0001)
+		{
+			Color = ( left_frame_image + right_frame_image ) / 2;
+		}
+		else
+		{
+			//only left is visibile
+			Color = left_frame_image;
+		}
+	}
+	else
+	{
+		//only right is visible
+		if ( r )
+		{
+			Color = right_frame_image;
+		}
+		else
+		{
+			//nothing is visible.
+			Color =  l < r ? left_frame_image : right_frame_image;
+		}
+	}
+}
 
 
 
@@ -258,8 +392,8 @@ technique RenderScene
     pass p0
     {
 		CullMode = CCW;
-        VertexShader = compile vs_2_0 VertScene();
-        PixelShader = compile ps_2_0 PixScene();
+        VertexShader = compile vs_3_0 VertScene();
+        PixelShader = compile ps_3_0 PixScene();
     }
 }
 
@@ -275,8 +409,8 @@ technique RenderLight
     pass p0
     {
 		CullMode = CCW;
-        VertexShader = compile vs_2_0 VertLight();
-        PixelShader = compile ps_2_0 PixLight();
+        VertexShader = compile vs_3_0 VertLight();
+        PixelShader = compile ps_3_0 PixLight();
     }
 }
 
@@ -292,8 +426,22 @@ technique RenderShadow
     pass p0
     {
 		CullMode = CCW;
-        VertexShader = compile vs_2_0 VertShadow();
-        PixelShader = compile ps_2_0 PixShadow();
+        VertexShader = compile vs_3_0 VertShadow();
+        PixelShader = compile ps_3_0 PixShadow();
+    }
+}
+
+
+//-----------------------------------------------------------------------------
+// Technique: RenderScene
+// Desc: Renders scene objects
+//-----------------------------------------------------------------------------
+technique RenderSceneDepth
+{
+    pass p0
+    {
+        VertexShader = compile vs_3_0 VertDepthScene();
+		PixelShader = compile ps_3_0 PixDepthScene();
     }
 }
 

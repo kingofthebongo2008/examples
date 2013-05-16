@@ -114,6 +114,10 @@ struct CObj
     CDXUTXFileMesh m_Mesh;
     D3DXMATRIXA16 m_mWorld;
 	D3DXMATRIXA16* m_pWorld;
+
+	//reprojection matrices
+	D3DXMATRIXA16* m_pWorldLeftFrame;
+	D3DXMATRIXA16* m_pWorldRightFrame;
 };
 
 
@@ -257,6 +261,7 @@ IDirect3DSurface9 *				g_iframe_back_buffer_surface[2];
 IDirect3DSurface9 *				g_iframe_depthbuffer_surface[2];
 
 IDirect3DSurface9 *				g_null_render_target;
+IDirect3DSurface9 *				g_null_depth_surface;
 
 
 //--------------------------------------------------------------------------------------
@@ -356,6 +361,29 @@ class ScopedAnimationsTime
 	private:
 
 	D3DXMATRIXA16* old_matrix[3];
+};
+
+class ScopedRenderTargetDepthSurface
+{
+	public:
+
+	ScopedRenderTargetDepthSurface( IDirect3DDevice9* device) : m_device(device)
+	{
+		v( device->GetRenderTarget( 0, &old_render_target ) );
+		v( device->GetDepthStencilSurface( &old_depth ) ) ;
+	}
+
+	~ScopedRenderTargetDepthSurface( )
+	{
+		v( m_device->SetRenderTarget( 0, old_render_target ) );
+		v( m_device->SetDepthStencilSurface( old_depth ) ) ;
+	}
+
+	private:
+
+	IDirect3DDevice9*		   m_device;
+	CComPtr<IDirect3DSurface9> old_render_target;
+	CComPtr<IDirect3DSurface9> old_depth;
 };
 
 
@@ -703,10 +731,10 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
 
 	for (uint32_t i = 0; i<6;++i)
 	{
-	    g_VCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 100.0f );
+	    g_VCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 50.0f );
 	    g_LCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, g_Light_Space_Near_Z, g_Light_Space_Far_Z );
 
-		g_Time_VCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 100.0f );
+		g_Time_VCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 50.0f );
 	    g_Time_LCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, g_Light_Space_Near_Z, g_Light_Space_Far_Z );
 	}
 
@@ -767,22 +795,22 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
         pControl->SetLocation( 0, pBackBufferSurfaceDesc->Height - 25 );
 
 	//Create two temporary buffers
-	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &g_iframe_back_buffer[0], NULL ) );
-	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &g_iframe_back_buffer[1], NULL ) );
+	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_iframe_back_buffer[0], NULL ) );
+	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_iframe_back_buffer[1], NULL ) );
 
-	v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.BackBufferFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &g_iframe_back_buffer_surface[0], NULL ) );
-	v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.BackBufferFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &g_iframe_back_buffer_surface[1], NULL ) );
-
+	v( g_iframe_back_buffer[0]->GetSurfaceLevel(0, &g_iframe_back_buffer_surface[0]));
+	v( g_iframe_back_buffer[1]->GetSurfaceLevel(0, &g_iframe_back_buffer_surface[1]));
 
 	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_iframe_depth_buffer[0], NULL ) );
 	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_iframe_depth_buffer[1], NULL ) );
 
 	v( g_iframe_depth_buffer[0]->GetSurfaceLevel(0, &g_iframe_depthbuffer_surface[0]));
 	v( g_iframe_depth_buffer[1]->GetSurfaceLevel(0, &g_iframe_depthbuffer_surface[1]));
-	
 
 	//Create two temporary buffers
-	v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, FOURCC_NULL, D3DMULTISAMPLE_4_SAMPLES, 0, FALSE, &g_null_render_target, NULL ) );
+	//v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, FOURCC_NULL, D3DMULTISAMPLE_4_SAMPLES, 0, FALSE, &g_null_render_target, NULL ) );
+	v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.BackBufferFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &g_null_render_target, NULL ) );
+	v( pd3dDevice->CreateDepthStencilSurface( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.AutoDepthStencilFormat, D3DMULTISAMPLE_NONE, 0, FALSE, &g_null_depth_surface, NULL ) );
 
 	return S_OK;
 }
@@ -1075,6 +1103,65 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
     }
 }
 
+void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const D3DXMATRIX* pmView, const D3DXMATRIX* pmProj, const D3DXMATRIX* view_left, const D3DXMATRIX* view_right )
+{
+    HRESULT hr;
+
+    // Clear the render buffers
+    v( pd3dDevice->Clear( 0L, NULL, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER,
+                          0x000000ff, 1.0f, 0L ) );
+
+    v( g_pEffect->SetTechnique( "RenderSceneDepth" ) );
+
+    // Begin the scene
+    if( SUCCEEDED( pd3dDevice->BeginScene() ) )
+    {
+		// Set the projection matrix
+		v( g_pEffect->SetMatrix( "g_mProj", pmProj ) );
+
+		v( g_pEffect->SetTexture( "g_frame_buffer_left", g_iframe_back_buffer[0] ) );
+		v( g_pEffect->SetTexture( "g_frame_buffer_right", g_iframe_back_buffer[1] ) );
+
+		v( g_pEffect->SetTexture( "g_depth_buffer_left", g_iframe_depth_buffer[0] ) );
+		v( g_pEffect->SetTexture( "g_depth_buffer_right", g_iframe_depth_buffer[1] ) );
+
+        // Render the objects
+        for( int obj = 0; obj < NUM_OBJ; ++obj )
+        {
+            D3DXMATRIXA16 mWorldView = *g_Obj[obj].m_pWorld;
+            D3DXMatrixMultiply( &mWorldView, &mWorldView, pmView );
+            v( g_pEffect->SetMatrix( "g_mWorldView", &mWorldView ) );
+
+			D3DXMATRIXA16 mWorldViewLeft = *g_Obj[obj].m_pWorldLeftFrame;
+			D3DXMATRIXA16 mWorldViewRight = *g_Obj[obj].m_pWorldRightFrame;
+
+			D3DXMatrixMultiply( &mWorldViewLeft, &mWorldViewLeft, view_left );
+			D3DXMatrixMultiply( &mWorldViewRight, &mWorldViewRight, view_right );
+
+			v( g_pEffect->SetMatrix( "g_mWorldViewLeft", &mWorldViewLeft ) );
+			v( g_pEffect->SetMatrix( "g_mWorldViewRight", &mWorldViewRight ) );
+
+            LPD3DXMESH pMesh = g_Obj[obj].m_Mesh.GetMesh();
+            UINT cPass;
+            v( g_pEffect->Begin( &cPass, 0 ) );
+            for( UINT p = 0; p < cPass; ++p )
+            {
+                v( g_pEffect->BeginPass( p ) );
+
+                for( DWORD i = 0; i < g_Obj[obj].m_Mesh.m_dwNumMaterials; ++i )
+                {
+					v( g_pEffect->CommitChanges() );
+                    v( pMesh->DrawSubset( i ) );
+                }
+                v( g_pEffect->EndPass() );
+            }
+            v( g_pEffect->End() );
+        }
+
+        V( pd3dDevice->EndScene() );
+    }
+}
+
 
 void RenderIFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step )
 {
@@ -1220,10 +1307,43 @@ void RenderIFrameStep4(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
 	::Sleep(6);
 }
 
-void RenderBFrame(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step, uint32_t time_step_1, uint32_t time_step_2 )
+void RenderBFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step, uint32_t time_step_1, uint32_t time_step_2 )
 {
 	CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderBFrame" );
+	ScopedRenderTargetDepthSurface surfaces(device);
 
+	{
+		CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"Depth" );
+		ScopedAnimations animations(frame_step);
+
+		CFirstPersonCamera* view_camera = GetViewCamera(frame_step);
+		const D3DXMATRIX*  view = view_camera->GetViewMatrix();
+		const D3DXMATRIX*  proj = view_camera->GetProjMatrix();
+
+		device->SetRenderTarget(0, g_null_render_target);
+		device->SetDepthStencilSurface(g_null_depth_surface);
+
+		//mark the static objects
+		for( int i = 0; i < NUM_OBJ; ++i )
+		{
+			g_Obj[i].m_pWorldLeftFrame = g_Obj[i].m_pWorld;
+			g_Obj[i].m_pWorldRightFrame = g_Obj[i].m_pWorld;
+		}
+    
+		//make the moveable objects
+		g_Obj[1].m_pWorldLeftFrame =  &g_Animation_Obj_1[time_step_1];
+		g_Obj[2].m_pWorldLeftFrame =  &g_Animation_Obj_2[time_step_1];
+		g_Obj[3].m_pWorldLeftFrame =  &g_Animation_Obj_3[time_step_1];
+
+		g_Obj[1].m_pWorldRightFrame =  &g_Animation_Obj_1[time_step_2];
+		g_Obj[2].m_pWorldRightFrame =  &g_Animation_Obj_2[time_step_2];
+		g_Obj[3].m_pWorldRightFrame =  &g_Animation_Obj_3[time_step_2];
+
+		const D3DXMATRIX*  view_left = GetTimeViewCamera(time_step_1)->GetViewMatrix();
+		const D3DXMATRIX*  view_right = GetTimeViewCamera(time_step_2)->GetViewMatrix();
+
+		RenderSceneDepth(device, view, proj, view_left, view_right );
+	}
 }
 
 void DisplayIFrame(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step )
@@ -1475,6 +1595,7 @@ void CALLBACK OnLostDevice( void* pUserContext )
 	SAFE_RELEASE( g_iframe_depthbuffer_surface[1] ); 
 
 	SAFE_RELEASE(g_null_render_target);
+	SAFE_RELEASE(g_null_depth_surface);
 }
 
 
