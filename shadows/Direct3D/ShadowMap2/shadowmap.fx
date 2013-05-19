@@ -12,8 +12,6 @@
 
 #define SHADOW_EPSILON 0.00005f
 
-
-float4x4 g_mWorldView;
 float4x4 g_mProj;
 float4x4 g_mViewToLight;  // Transform from view space to light projection space
 float4   g_vMaterial;
@@ -28,8 +26,9 @@ float	 g_Light_Space_Far_Z = 100.0f;
 float	 g_Light_Space_Near_Z = 1.0f;
 float4x4 g_mShadowProj;
 
-float4x4  g_mWorldViewLeft;
-float4x4  g_mWorldViewRight;
+float4x4 g_mWorldView;
+float4x4 g_mWorldViewLeft;
+float4x4 g_mWorldViewRight;
 
 sampler2D g_samScene =
 sampler_state
@@ -39,9 +38,6 @@ sampler_state
     MagFilter = Linear;
     MipFilter = Linear;
 };
-
-
-
 
 sampler2D g_samShadow =
 sampler_state
@@ -103,7 +99,6 @@ sampler_state
     AddressU = Clamp;
     AddressV = Clamp;
 };
-
 
 float linear_z(float z_ps, float z_vs, float w, float near, float far )
 {
@@ -284,8 +279,6 @@ void VertShadow( float4 Pos : POSITION,
 }
 
 
-
-
 //-----------------------------------------------------------------------------
 // Pixel Shader: PixShadow
 // Desc: Process pixel for the shadow map
@@ -408,7 +401,6 @@ technique RenderLight
 {
     pass p0
     {
-		CullMode = CCW;
         VertexShader = compile vs_3_0 VertLight();
         PixelShader = compile ps_3_0 PixLight();
     }

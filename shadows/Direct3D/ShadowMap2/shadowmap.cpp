@@ -113,15 +113,12 @@ struct CObj
 {
     CDXUTXFileMesh m_Mesh;
     D3DXMATRIXA16 m_mWorld;
-	D3DXMATRIXA16* m_pWorld;
+    D3DXMATRIXA16* m_pWorld;
 
-	//reprojection matrices
-	D3DXMATRIXA16* m_pWorldLeftFrame;
-	D3DXMATRIXA16* m_pWorldRightFrame;
+    //reprojection matrices
+    D3DXMATRIXA16* m_pWorldLeftFrame;
+    D3DXMATRIXA16* m_pWorldRightFrame;
 };
-
-
-
 
 //-----------------------------------------------------------------------------
 // Name: class CViewCamera
@@ -223,15 +220,11 @@ bool                            g_bShowHelp = true;     // If true, it renders t
 CDXUTDialogResourceManager      g_DialogResourceManager; // manager for shared resources of dialogs
 CD3DSettingsDlg                 g_SettingsDlg;          // Device settings dialog
 CDXUTDialog                     g_HUD;                  // dialog for standard controls
-CFirstPersonCamera              g_VCamera[6];           // View camera
-CFirstPersonCamera              g_LCamera[6];           // Camera obj to help adjust light
 CObj g_Obj[NUM_OBJ];         // Scene object meshes
 LPDIRECT3DVERTEXDECLARATION9    g_pVertDecl = NULL;// Vertex decl for the sample
 LPDIRECT3DTEXTURE9              g_pTexDef = NULL;       // Default texture for objects
 D3DLIGHT9                       g_Light;                // The spot light in the scene
 CDXUTXFileMesh                  g_LightMesh;
-LPDIRECT3DTEXTURE9              g_pShadowMap = NULL;    // Texture to which the shadow map is rendered
-LPDIRECT3DSURFACE9              g_pDSShadow = NULL;     // Depth-stencil buffer for rendering to shadow map
 float                           g_fLightFov;            // FOV of the spot light (in radian)
 D3DXMATRIXA16                   g_mShadowProj;          // Projection matrix for shadow map
 
@@ -254,6 +247,9 @@ D3DXMATRIXA16					g_Animation_Time_Obj_3[6];
 CFirstPersonCamera              g_Time_VCamera[6];	// View camera
 CFirstPersonCamera              g_Time_LCamera[6];  // Camera obj to help adjust light
 
+CFirstPersonCamera              g_VCamera[6];           // View camera
+CFirstPersonCamera              g_LCamera[6];           // Camera obj to help adjust light
+
 IDirect3DTexture9 *				g_iframe_back_buffer[2];
 IDirect3DTexture9 *				g_iframe_depth_buffer[2];
 
@@ -262,6 +258,14 @@ IDirect3DSurface9 *				g_iframe_depthbuffer_surface[2];
 
 IDirect3DSurface9 *				g_null_render_target;
 IDirect3DSurface9 *				g_null_depth_surface;
+
+IDirect3DTexture9 *             g_shadow_map;			 // Texture to which the shadow map is rendered
+IDirect3DSurface9 *             g_shadow_map_surface;     // Depth-stencil buffer for rendering to shadow map
+
+IDirect3DTexture9 *             g_light_buffer;				// Texture to which the shadow map is rendered
+IDirect3DSurface9 *             g_light_buffer_surface;     // Depth-stencil buffer for rendering to shadow map
+
+IDirect3DSurface9 *				g_light_depth_surface;
 
 
 //--------------------------------------------------------------------------------------
@@ -300,90 +304,90 @@ void CALLBACK OnLostDevice( void* pUserContext );
 void CALLBACK OnDestroyDevice( void* pUserContext );
 
 void RenderScene(	IDirect3DDevice9* pd3dDevice, 
-					bool bRenderShadow, 
-					float fElapsedTime, 
-					const D3DXMATRIX* pmView,
-					const D3DXMATRIX* pmProj,
-					const CFirstPersonCamera*	  pLightCamera
-				  );
+                    bool bRenderShadow, 
+                    float fElapsedTime, 
+                    const D3DXMATRIX* pmView,
+                    const D3DXMATRIX* pmProj,
+                    const CFirstPersonCamera*	  pLightCamera
+                  );
 
 class ScopedAnimations
 {
-	public:
+    public:
 
-	explicit ScopedAnimations(uint32_t frame_step)
-	{
-		old_matrix[0] = g_Obj[1].m_pWorld;
-		old_matrix[1] = g_Obj[2].m_pWorld;
-		old_matrix[2] = g_Obj[3].m_pWorld;
+    explicit ScopedAnimations(uint32_t frame_step)
+    {
+        old_matrix[0] = g_Obj[1].m_pWorld;
+        old_matrix[1] = g_Obj[2].m_pWorld;
+        old_matrix[2] = g_Obj[3].m_pWorld;
 
-		g_Obj[1].m_pWorld =  &g_Animation_Obj_1[frame_step];
-		g_Obj[2].m_pWorld =  &g_Animation_Obj_2[frame_step];
-		g_Obj[3].m_pWorld =  &g_Animation_Obj_3[frame_step];
+        g_Obj[1].m_pWorld =  &g_Animation_Obj_1[frame_step];
+        g_Obj[2].m_pWorld =  &g_Animation_Obj_2[frame_step];
+        g_Obj[3].m_pWorld =  &g_Animation_Obj_3[frame_step];
 
-	}
+    }
 
-	~ScopedAnimations()
-	{
-		g_Obj[1].m_pWorld = old_matrix[0];
-		g_Obj[2].m_pWorld = old_matrix[1];
-		g_Obj[3].m_pWorld = old_matrix[2];
-	}
+    ~ScopedAnimations()
+    {
+        g_Obj[1].m_pWorld = old_matrix[0];
+        g_Obj[2].m_pWorld = old_matrix[1];
+        g_Obj[3].m_pWorld = old_matrix[2];
+    }
 
-	private:
+    private:
 
-	D3DXMATRIXA16* old_matrix[3];
+    D3DXMATRIXA16* old_matrix[3];
 };
 
 class ScopedAnimationsTime
 {
-	public:
+    public:
 
-	explicit ScopedAnimationsTime(uint32_t frame_step)
-	{
-		old_matrix[0] = g_Obj[1].m_pWorld;
-		old_matrix[1] = g_Obj[2].m_pWorld;
-		old_matrix[2] = g_Obj[3].m_pWorld;
+    explicit ScopedAnimationsTime(uint32_t frame_step)
+    {
+        old_matrix[0] = g_Obj[1].m_pWorld;
+        old_matrix[1] = g_Obj[2].m_pWorld;
+        old_matrix[2] = g_Obj[3].m_pWorld;
 
-		g_Obj[1].m_pWorld =  &g_Animation_Time_Obj_1[frame_step];
-		g_Obj[2].m_pWorld =  &g_Animation_Time_Obj_2[frame_step];
-		g_Obj[3].m_pWorld =  &g_Animation_Time_Obj_3[frame_step];
+        g_Obj[1].m_pWorld =  &g_Animation_Time_Obj_1[frame_step];
+        g_Obj[2].m_pWorld =  &g_Animation_Time_Obj_2[frame_step];
+        g_Obj[3].m_pWorld =  &g_Animation_Time_Obj_3[frame_step];
 
-	}
+    }
 
-	~ScopedAnimationsTime()
-	{
-		g_Obj[1].m_pWorld = old_matrix[0];
-		g_Obj[2].m_pWorld = old_matrix[1];
-		g_Obj[3].m_pWorld = old_matrix[2];
-	}
+    ~ScopedAnimationsTime()
+    {
+        g_Obj[1].m_pWorld = old_matrix[0];
+        g_Obj[2].m_pWorld = old_matrix[1];
+        g_Obj[3].m_pWorld = old_matrix[2];
+    }
 
-	private:
+    private:
 
-	D3DXMATRIXA16* old_matrix[3];
+    D3DXMATRIXA16* old_matrix[3];
 };
 
 class ScopedRenderTargetDepthSurface
 {
-	public:
+    public:
 
-	ScopedRenderTargetDepthSurface( IDirect3DDevice9* device) : m_device(device)
-	{
-		v( device->GetRenderTarget( 0, &old_render_target ) );
-		v( device->GetDepthStencilSurface( &old_depth ) ) ;
-	}
+    ScopedRenderTargetDepthSurface( IDirect3DDevice9* device) : m_device(device)
+    {
+        v( device->GetRenderTarget( 0, &old_render_target ) );
+        v( device->GetDepthStencilSurface( &old_depth ) ) ;
+    }
 
-	~ScopedRenderTargetDepthSurface( )
-	{
-		v( m_device->SetRenderTarget( 0, old_render_target ) );
-		v( m_device->SetDepthStencilSurface( old_depth ) ) ;
-	}
+    ~ScopedRenderTargetDepthSurface( )
+    {
+        v( m_device->SetRenderTarget( 0, old_render_target ) );
+        v( m_device->SetDepthStencilSurface( old_depth ) ) ;
+    }
 
-	private:
+    private:
 
-	IDirect3DDevice9*		   m_device;
-	CComPtr<IDirect3DSurface9> old_render_target;
-	CComPtr<IDirect3DSurface9> old_depth;
+    IDirect3DDevice9*		   m_device;
+    CComPtr<IDirect3DSurface9> old_render_target;
+    CComPtr<IDirect3DSurface9> old_depth;
 };
 
 
@@ -398,31 +402,31 @@ INT WINAPI wWinMain( HINSTANCE, HINSTANCE, LPWSTR, int )
     _CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 #endif
 
-	for (uint32_t i = 0; i < 6; ++i)
-	{
-		// Initialize the camera
-		g_VCamera[i].SetScalers( 0.01f, 15.0f );
-		g_LCamera[i].SetScalers( 0.01f, 8.0f );
-		g_VCamera[i].SetRotateButtons( true, false, false );
-		g_LCamera[i].SetRotateButtons( false, false, true );
+    for (uint32_t i = 0; i < 6; ++i)
+    {
+        // Initialize the camera
+        g_VCamera[i].SetScalers( 0.01f, 15.0f );
+        g_LCamera[i].SetScalers( 0.01f, 8.0f );
+        g_VCamera[i].SetRotateButtons( true, false, false );
+        g_LCamera[i].SetRotateButtons( false, false, true );
 
-		g_Time_VCamera[i].SetScalers( 0.01f, 15.0f );
-		g_Time_LCamera[i].SetScalers( 0.01f, 8.0f );
-		g_Time_VCamera[i].SetRotateButtons( true, false, false );
-		g_Time_LCamera[i].SetRotateButtons( false, false, true );
+        g_Time_VCamera[i].SetScalers( 0.01f, 15.0f );
+        g_Time_LCamera[i].SetScalers( 0.01f, 8.0f );
+        g_Time_VCamera[i].SetRotateButtons( true, false, false );
+        g_Time_LCamera[i].SetRotateButtons( false, false, true );
 
-		// Set up the view parameters for the camera
-		D3DXVECTOR3 vFromPt = D3DXVECTOR3( 0.0f, 5.0f, -18.0f );
-		D3DXVECTOR3 vLookatPt = D3DXVECTOR3( 0.0f, -1.0f, 0.0f );
-		g_VCamera[i].SetViewParams( &vFromPt, &vLookatPt );
-		g_Time_VCamera[i].SetViewParams( &vFromPt, &vLookatPt );
+        // Set up the view parameters for the camera
+        D3DXVECTOR3 vFromPt = D3DXVECTOR3( 0.0f, 5.0f, -18.0f );
+        D3DXVECTOR3 vLookatPt = D3DXVECTOR3( 0.0f, -1.0f, 0.0f );
+        g_VCamera[i].SetViewParams( &vFromPt, &vLookatPt );
+        g_Time_VCamera[i].SetViewParams( &vFromPt, &vLookatPt );
 
-		vFromPt = D3DXVECTOR3( 0.0f, 0.0f, -12.0f );
-		vLookatPt = D3DXVECTOR3( 0.0f, -2.0f, 1.0f );
+        vFromPt = D3DXVECTOR3( 0.0f, 0.0f, -12.0f );
+        vLookatPt = D3DXVECTOR3( 0.0f, -2.0f, 1.0f );
 
-		g_LCamera[i].SetViewParams( &vFromPt, &vLookatPt );
-		g_Time_LCamera[i].SetViewParams( &vFromPt, &vLookatPt );
-	}
+        g_LCamera[i].SetViewParams( &vFromPt, &vLookatPt );
+        g_Time_LCamera[i].SetViewParams( &vFromPt, &vLookatPt );
+    }
 
     // Initialize the spot light
     g_fLightFov = D3DX_PI / 2.0f;
@@ -558,14 +562,6 @@ bool CALLBACK ModifyDeviceSettings( DXUTDeviceSettings* pDeviceSettings, void* p
     pDeviceSettings->d3d9.pp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE;
     g_SettingsDlg.GetDialogControl()->GetComboBox( DXUTSETTINGSDLG_PRESENT_INTERVAL )->SetEnabled( false );
 
-    // If device doesn't support HW T&L or doesn't support 1.1 vertex shaders in HW 
-    // then switch to SWVP.
-    if( ( caps.DevCaps & D3DDEVCAPS_HWTRANSFORMANDLIGHT ) == 0 ||
-        caps.VertexShaderVersion < D3DVS_VERSION( 1, 1 ) )
-    {
-        pDeviceSettings->d3d9.BehaviorFlags = D3DCREATE_SOFTWARE_VERTEXPROCESSING;
-    }
-
     // Debugging vertex shaders requires either REF or software vertex processing 
     // and debugging pixel shaders requires REF.  
 #ifdef DEBUG_VS
@@ -663,29 +659,29 @@ HRESULT CALLBACK OnCreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURFACE_
             return DXUTERR_MEDIANOTFOUND;
         V_RETURN( g_Obj[i].m_Mesh.SetVertexDecl( pd3dDevice, g_aVertDecl ) );
         g_Obj[i].m_mWorld = g_amInitObjWorld[i];
-		g_Obj[i].m_pWorld = &g_Obj[i].m_mWorld;
+        g_Obj[i].m_pWorld = &g_Obj[i].m_mWorld;
     }
 
-	//initialize animation matrices
-	for (uint32_t i = 0; i < 6; ++i)
-	{
-		g_Animation_Obj_1[i] = g_Obj[1].m_mWorld;
-		g_Animation_Time_Obj_1[i] = g_Obj[1].m_mWorld;
-	}
+    //initialize animation matrices
+    for (uint32_t i = 0; i < 6; ++i)
+    {
+        g_Animation_Obj_1[i] = g_Obj[1].m_mWorld;
+        g_Animation_Time_Obj_1[i] = g_Obj[1].m_mWorld;
+    }
 
-	for (uint32_t i = 0; i < 6; ++i)
-	{
-		g_Animation_Obj_2[i] = g_Obj[2].m_mWorld;
-		g_Animation_Time_Obj_2[i] = g_Obj[2].m_mWorld;
-	}
+    for (uint32_t i = 0; i < 6; ++i)
+    {
+        g_Animation_Obj_2[i] = g_Obj[2].m_mWorld;
+        g_Animation_Time_Obj_2[i] = g_Obj[2].m_mWorld;
+    }
 
-	for (uint32_t i = 0; i < 6; ++i)
-	{
-		g_Animation_Obj_1[3] = g_Obj[3].m_mWorld;
-		g_Animation_Time_Obj_1[3] = g_Obj[3].m_mWorld;
-	}
+    for (uint32_t i = 0; i < 6; ++i)
+    {
+        g_Animation_Obj_1[3] = g_Obj[3].m_mWorld;
+        g_Animation_Time_Obj_1[3] = g_Obj[3].m_mWorld;
+    }
 
-	// Initialize the light mesh
+    // Initialize the light mesh
     V_RETURN( DXUTFindDXSDKMediaFileCch( str, MAX_PATH, L"spotlight.x" ) );
     if( FAILED( g_LightMesh.Create( pd3dDevice, str ) ) )
         return DXUTERR_MEDIANOTFOUND;
@@ -729,14 +725,14 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
     // Setup the camera's projection parameters
     float fAspectRatio = pBackBufferSurfaceDesc->Width / ( FLOAT )pBackBufferSurfaceDesc->Height;
 
-	for (uint32_t i = 0; i<6;++i)
-	{
-	    g_VCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 50.0f );
-	    g_LCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, g_Light_Space_Near_Z, g_Light_Space_Far_Z );
+    for (uint32_t i = 0; i<6;++i)
+    {
+        g_VCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 50.0f );
+        g_LCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, g_Light_Space_Near_Z, g_Light_Space_Far_Z );
 
-		g_Time_VCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 50.0f );
-	    g_Time_LCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, g_Light_Space_Near_Z, g_Light_Space_Far_Z );
-	}
+        g_Time_VCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, 0.1f, 50.0f );
+        g_Time_LCamera[i].SetProjParams( D3DX_PI / 4, fAspectRatio, g_Light_Space_Near_Z, g_Light_Space_Far_Z );
+    }
 
     // Create the default texture (used when a triangle does not use a texture)
     V_RETURN( pd3dDevice->CreateTexture( 1, 1, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &g_pTexDef,
@@ -760,7 +756,7 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
                                          1, D3DUSAGE_RENDERTARGET,
                                          D3DFMT_R32F,
                                          D3DPOOL_DEFAULT,
-                                         &g_pShadowMap,
+                                         &g_shadow_map,
                                          NULL ) );
 
     // Create the depth-stencil buffer to be used with the shadow map
@@ -779,7 +775,7 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
                                                      D3DMULTISAMPLE_NONE,
                                                      0,
                                                      TRUE,
-                                                     &g_pDSShadow,
+                                                     &g_shadow_map_surface,
                                                      NULL ) );
 
     // Initialize the shadow projection matrix
@@ -794,128 +790,135 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
     if( pControl )
         pControl->SetLocation( 0, pBackBufferSurfaceDesc->Height - 25 );
 
-	//Create two temporary buffers
-	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_iframe_back_buffer[0], NULL ) );
-	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_iframe_back_buffer[1], NULL ) );
+    //Create two temporary buffers
+    v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_iframe_back_buffer[0], NULL ) );
+    v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_iframe_back_buffer[1], NULL ) );
 
-	v( g_iframe_back_buffer[0]->GetSurfaceLevel(0, &g_iframe_back_buffer_surface[0]));
-	v( g_iframe_back_buffer[1]->GetSurfaceLevel(0, &g_iframe_back_buffer_surface[1]));
+    v( g_iframe_back_buffer[0]->GetSurfaceLevel(0, &g_iframe_back_buffer_surface[0]));
+    v( g_iframe_back_buffer[1]->GetSurfaceLevel(0, &g_iframe_back_buffer_surface[1]));
 
-	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_iframe_depth_buffer[0], NULL ) );
-	v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_iframe_depth_buffer[1], NULL ) );
+    v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_iframe_depth_buffer[0], NULL ) );
+    v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_iframe_depth_buffer[1], NULL ) );
 
-	v( g_iframe_depth_buffer[0]->GetSurfaceLevel(0, &g_iframe_depthbuffer_surface[0]));
-	v( g_iframe_depth_buffer[1]->GetSurfaceLevel(0, &g_iframe_depthbuffer_surface[1]));
+    v( g_iframe_depth_buffer[0]->GetSurfaceLevel(0, &g_iframe_depthbuffer_surface[0]));
+    v( g_iframe_depth_buffer[1]->GetSurfaceLevel(0, &g_iframe_depthbuffer_surface[1]));
 
-	//Create two temporary buffers
-	//v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, FOURCC_NULL, D3DMULTISAMPLE_4_SAMPLES, 0, FALSE, &g_null_render_target, NULL ) );
-	v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.BackBufferFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &g_null_render_target, NULL ) );
-	v( pd3dDevice->CreateDepthStencilSurface( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.AutoDepthStencilFormat, D3DMULTISAMPLE_NONE, 0, FALSE, &g_null_depth_surface, NULL ) );
+    //Create two temporary buffers
+    //v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, FOURCC_NULL, D3DMULTISAMPLE_4_SAMPLES, 0, FALSE, &g_null_render_target, NULL ) );
+    v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.BackBufferFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &g_null_render_target, NULL ) );
+    v( pd3dDevice->CreateDepthStencilSurface( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.AutoDepthStencilFormat, D3DMULTISAMPLE_NONE, 0, FALSE, &g_null_depth_surface, NULL ) );
 
-	return S_OK;
+
+    v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_light_buffer, NULL ) );
+    v( g_light_buffer->GetSurfaceLevel(0, &g_light_buffer_surface));
+    
+    v( pd3dDevice->CreateDepthStencilSurface( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.AutoDepthStencilFormat, D3DMULTISAMPLE_NONE, 0, FALSE, &g_light_depth_surface, NULL ) );
+    
+    
+    return S_OK;
 }
 
 CFirstPersonCamera* GetLightCamera( uint32_t frame_step )
 {
-	return &g_LCamera[ frame_step ];
+    return &g_LCamera[ frame_step ];
 }
 
 CFirstPersonCamera* GetTimeLightCamera( uint32_t frame_step )
 {
-	return &g_Time_LCamera[ frame_step ];
+    return &g_Time_LCamera[ frame_step ];
 }
 
 CFirstPersonCamera* GetViewCamera( uint32_t frame_step )
 {
-	return &g_VCamera[ frame_step ];
+    return &g_VCamera[ frame_step ];
 }
 
 CFirstPersonCamera* GetTimeViewCamera( uint32_t frame_step )
 {
-	return &g_Time_VCamera[ frame_step ];
+    return &g_Time_VCamera[ frame_step ];
 }
 
 void CopyViewCameras( )
 {
-	for ( uint32_t i = 0; i<5; ++i)
-	{
-		g_VCamera[i] = g_VCamera[i+1];
-	}
+    for ( uint32_t i = 0; i<5; ++i)
+    {
+        g_VCamera[i] = g_VCamera[i+1];
+    }
 }
 
 void CopyLightCameras( )
 {
-	for ( uint32_t i = 0; i<5; ++i)
-	{
-		g_LCamera[i] = g_LCamera[i+1];
-	}
+    for ( uint32_t i = 0; i<5; ++i)
+    {
+        g_LCamera[i] = g_LCamera[i+1];
+    }
 }
 
 void CopyAnimations()
 {
-	for ( uint32_t i = 0; i<5; ++i)
-	{
-		g_Animation_Obj_1[i] = g_Animation_Obj_1[i+1];
-	}
+    for ( uint32_t i = 0; i<5; ++i)
+    {
+        g_Animation_Obj_1[i] = g_Animation_Obj_1[i+1];
+    }
 
-	for ( uint32_t i = 0; i<5; ++i)
-	{
-		g_Animation_Obj_2[i] = g_Animation_Obj_2[i+1];
-	}
+    for ( uint32_t i = 0; i<5; ++i)
+    {
+        g_Animation_Obj_2[i] = g_Animation_Obj_2[i+1];
+    }
 
-	for ( uint32_t i = 0; i<5; ++i)
-	{
-		g_Animation_Obj_3[i] = g_Animation_Obj_3[i+1];
-	}
+    for ( uint32_t i = 0; i<5; ++i)
+    {
+        g_Animation_Obj_3[i] = g_Animation_Obj_3[i+1];
+    }
 }
 
 D3DXMATRIXA16* GetAnimation_1( )
 {
-	return &g_Animation_Obj_1[5];
+    return &g_Animation_Obj_1[5];
 }
 
 D3DXMATRIXA16* GetAnimation_2( )
 {
-	return &g_Animation_Obj_2[5];
+    return &g_Animation_Obj_2[5];
 }
 
 D3DXMATRIXA16* GetAnimation_3(  )
 {
-	return &g_Animation_Obj_3[5];
+    return &g_Animation_Obj_3[5];
 }
 
 void CopyTimeViewCameras()
 {
-	for ( uint32_t i = 0; i<5; ++i)
-	{
-		g_Time_VCamera[i] = g_Time_VCamera[i+1];
-	}
+    for ( uint32_t i = 0; i<5; ++i)
+    {
+        g_Time_VCamera[i] = g_Time_VCamera[i+1];
+    }
 }
 
 void CopyTimeLightCameras()
 {
-	for ( uint32_t i = 0; i<5; ++i)
-	{
-		g_Time_LCamera[i] = g_Time_LCamera[i+1];
-	}
+    for ( uint32_t i = 0; i<5; ++i)
+    {
+        g_Time_LCamera[i] = g_Time_LCamera[i+1];
+    }
 }
 
 void CopyTimeAnimations()
 {
-	for ( uint32_t i = 0; i<5; ++i)
-	{
-		g_Animation_Time_Obj_1[i] = g_Animation_Time_Obj_1[i+1];
-	}
+    for ( uint32_t i = 0; i<5; ++i)
+    {
+        g_Animation_Time_Obj_1[i] = g_Animation_Time_Obj_1[i+1];
+    }
 
-	for ( uint32_t i = 0; i<5; ++i)
-	{
-		g_Animation_Time_Obj_2[i] = g_Animation_Time_Obj_2[i+1];
-	}
+    for ( uint32_t i = 0; i<5; ++i)
+    {
+        g_Animation_Time_Obj_2[i] = g_Animation_Time_Obj_2[i+1];
+    }
 
-	for ( uint32_t i = 0; i<5; ++i)
-	{
-		g_Animation_Time_Obj_3[i] = g_Animation_Time_Obj_3[i+1];
-	}
+    for ( uint32_t i = 0; i<5; ++i)
+    {
+        g_Animation_Time_Obj_3[i] = g_Animation_Time_Obj_3[i+1];
+    }
 }
 
 //--------------------------------------------------------------------------------------
@@ -926,15 +929,15 @@ void CopyTimeAnimations()
 //--------------------------------------------------------------------------------------
 void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext )
 {
-	CopyViewCameras();
-	CopyLightCameras();
-	CopyAnimations();
+    CopyViewCameras();
+    CopyLightCameras();
+    CopyAnimations();
 
-	// Update the camera's position based on user input 
+    // Update the camera's position based on user input 
     GetViewCamera( 5 )->FrameMove( fElapsedTime );
     GetLightCamera( 5 )->FrameMove( fElapsedTime );
-	
-	// Animate the plane, car and sphere meshes
+    
+    // Animate the plane, car and sphere meshes
     D3DXMATRIXA16 m;
     D3DXMatrixRotationY( &m, D3DX_PI * fElapsedTime / 4.0f );
     D3DXMatrixMultiply( GetAnimation_1(), GetAnimation_1(), &m );
@@ -946,20 +949,20 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
     D3DXMatrixRotationAxis( &m, &vR, -D3DX_PI * fElapsedTime / 6.0f );
     D3DXMatrixMultiply( GetAnimation_3(), &m, GetAnimation_3() );
 
-	if (g_FrameStep % 4 == 0 )
-	{
-		g_Time_VCamera[5] = g_VCamera[5];
-		g_Time_LCamera[5] = g_LCamera[5];
+    
+    if (g_FrameStep % 4 == 0 )
+    {
+        CopyTimeViewCameras();
+        CopyTimeLightCameras();
+        CopyTimeAnimations();
 
-		g_Animation_Time_Obj_1[5] = g_Animation_Obj_1[5];
-		g_Animation_Time_Obj_2[5] = g_Animation_Obj_2[5];
-		g_Animation_Time_Obj_3[5] = g_Animation_Obj_2[5];
+        g_Time_VCamera[5] = g_VCamera[5];
+        g_Time_LCamera[5] = g_LCamera[5];
 
-		CopyTimeViewCameras();
-		CopyTimeLightCameras();
-		CopyTimeAnimations();
-	}
-
+        g_Animation_Time_Obj_1[5] = g_Animation_Obj_1[5];
+        g_Animation_Time_Obj_2[5] = g_Animation_Obj_2[5];
+        g_Animation_Time_Obj_3[5] = g_Animation_Obj_3[5];
+    }
 }
 
 //--------------------------------------------------------------------------------------
@@ -1020,10 +1023,11 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
         if( !bRenderShadow )
             v( g_pEffect->SetTechnique( "RenderScene" ) );
 
-		g_pEffect->SetFloat("g_Light_Space_Far_Z", g_Light_Space_Far_Z);
-		g_pEffect->SetFloat("g_Light_Space_Near_Z", g_Light_Space_Near_Z);
-		g_pEffect->SetMatrix("g_mShadowProj",&g_mShadowProj);
+        g_pEffect->SetFloat("g_Light_Space_Far_Z", g_Light_Space_Far_Z);
+        g_pEffect->SetFloat("g_Light_Space_Near_Z", g_Light_Space_Near_Z);
+        g_pEffect->SetMatrix("g_mShadowProj",&g_mShadowProj);
 
+        
         // Render the objects
         for( int obj = 0; obj < NUM_OBJ; ++obj )
         {
@@ -1046,13 +1050,13 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
                                       g_Obj[obj].m_Mesh.m_pMaterials[i].Diffuse.a );
                     v( g_pEffect->SetVector( "g_vMaterial", &vDif ) );
                     if( g_Obj[obj].m_Mesh.m_pTextures[i] )
-					{
+                    {
                         v( g_pEffect->SetTexture( "g_txScene", g_Obj[obj].m_Mesh.m_pTextures[i] ) );
-					}
+                    }
                     else
-					{
+                    {
                         v( g_pEffect->SetTexture( "g_txScene", g_pTexDef ) );
-					}
+                    }
                     v( g_pEffect->CommitChanges() );
                     v( pMesh->DrawSubset( i ) );
                 }
@@ -1060,44 +1064,48 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
             }
             v( g_pEffect->End() );
         }
+        
 
         // Render light
         if( !bRenderShadow )
+        {
             v( g_pEffect->SetTechnique( "RenderLight" ) );
 
-        D3DXMATRIXA16 mWorldView = *pLightCamera->GetWorldMatrix();
-        D3DXMatrixMultiply( &mWorldView, &mWorldView, pmView );
-        v( g_pEffect->SetMatrix( "g_mWorldView", &mWorldView ) );
+            D3DXMATRIXA16 mWorldView = *pLightCamera->GetWorldMatrix();
+            D3DXMatrixMultiply( &mWorldView, &mWorldView, pmView );
 
-        UINT cPass;
-        LPD3DXMESH pMesh = g_LightMesh.GetMesh();
-        v( g_pEffect->Begin( &cPass, 0 ) );
-        for( UINT p = 0; p < cPass; ++p )
-        {
-            v( g_pEffect->BeginPass( p ) );
+        
+            v( g_pEffect->SetMatrix( "g_mWorldView", &mWorldView ) );
 
-            for( DWORD i = 0; i < g_LightMesh.m_dwNumMaterials; ++i )
+            UINT cPass;
+            LPD3DXMESH pMesh = g_LightMesh.GetMesh();
+            
+            v( g_pEffect->Begin( &cPass, 0 ) );
+            for( UINT p = 0; p < cPass; ++p )
             {
-                D3DXVECTOR4 vDif( g_LightMesh.m_pMaterials[i].Diffuse.r,
-                                  g_LightMesh.m_pMaterials[i].Diffuse.g,
-                                  g_LightMesh.m_pMaterials[i].Diffuse.b,
-                                  g_LightMesh.m_pMaterials[i].Diffuse.a );
-                v( g_pEffect->SetVector( "g_vMaterial", &vDif ) );
-                v( g_pEffect->SetTexture( "g_txScene", g_LightMesh.m_pTextures[i] ) );
-                v( g_pEffect->CommitChanges() );
-                v( pMesh->DrawSubset( i ) );
-            }
-            v( g_pEffect->EndPass() );
-        }
-        v( g_pEffect->End() );
+                v( g_pEffect->BeginPass( p ) );
 
-        if( !bRenderShadow )
+                for( DWORD i = 0; i < g_LightMesh.m_dwNumMaterials; ++i )
+                {
+                    D3DXVECTOR4 vDif( g_LightMesh.m_pMaterials[i].Diffuse.r,
+                                      g_LightMesh.m_pMaterials[i].Diffuse.g,
+                                      g_LightMesh.m_pMaterials[i].Diffuse.b,
+                                      g_LightMesh.m_pMaterials[i].Diffuse.a );
+                    v( g_pEffect->SetVector( "g_vMaterial", &vDif ) );
+                    v( g_pEffect->SetTexture( "g_txScene", g_LightMesh.m_pTextures[i] ) );
+                    v( g_pEffect->CommitChanges() );
+                    v( pMesh->DrawSubset( i ) );
+                }
+                v( g_pEffect->EndPass() );
+            }
+            v( g_pEffect->End() );
+
             // Render stats and help text
             RenderText();
 
-        // Render the UI elements
-        if( !bRenderShadow )
+            // Render the UI elements
             g_HUD.OnRender( fElapsedTime );
+        }
 
         V( pd3dDevice->EndScene() );
     }
@@ -1105,6 +1113,7 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
 
 void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const D3DXMATRIX* pmView, const D3DXMATRIX* pmProj, const D3DXMATRIX* view_left, const D3DXMATRIX* view_right )
 {
+    return;
     HRESULT hr;
 
     // Clear the render buffers
@@ -1116,14 +1125,14 @@ void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const D3DXMATRIX* pmView, c
     // Begin the scene
     if( SUCCEEDED( pd3dDevice->BeginScene() ) )
     {
-		// Set the projection matrix
-		v( g_pEffect->SetMatrix( "g_mProj", pmProj ) );
+        // Set the projection matrix
+        v( g_pEffect->SetMatrix( "g_mProj", pmProj ) );
 
-		v( g_pEffect->SetTexture( "g_frame_buffer_left", g_iframe_back_buffer[0] ) );
-		v( g_pEffect->SetTexture( "g_frame_buffer_right", g_iframe_back_buffer[1] ) );
+        v( g_pEffect->SetTexture( "g_frame_buffer_left", g_iframe_back_buffer[0] ) );
+        v( g_pEffect->SetTexture( "g_frame_buffer_right", g_iframe_back_buffer[1] ) );
 
-		v( g_pEffect->SetTexture( "g_depth_buffer_left", g_iframe_depth_buffer[0] ) );
-		v( g_pEffect->SetTexture( "g_depth_buffer_right", g_iframe_depth_buffer[1] ) );
+        v( g_pEffect->SetTexture( "g_depth_buffer_left", g_iframe_depth_buffer[0] ) );
+        v( g_pEffect->SetTexture( "g_depth_buffer_right", g_iframe_depth_buffer[1] ) );
 
         // Render the objects
         for( int obj = 0; obj < NUM_OBJ; ++obj )
@@ -1132,14 +1141,14 @@ void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const D3DXMATRIX* pmView, c
             D3DXMatrixMultiply( &mWorldView, &mWorldView, pmView );
             v( g_pEffect->SetMatrix( "g_mWorldView", &mWorldView ) );
 
-			D3DXMATRIXA16 mWorldViewLeft = *g_Obj[obj].m_pWorldLeftFrame;
-			D3DXMATRIXA16 mWorldViewRight = *g_Obj[obj].m_pWorldRightFrame;
+            D3DXMATRIXA16 mWorldViewLeft = *g_Obj[obj].m_pWorldLeftFrame;
+            D3DXMATRIXA16 mWorldViewRight = *g_Obj[obj].m_pWorldRightFrame;
 
-			D3DXMatrixMultiply( &mWorldViewLeft, &mWorldViewLeft, view_left );
-			D3DXMatrixMultiply( &mWorldViewRight, &mWorldViewRight, view_right );
+            D3DXMatrixMultiply( &mWorldViewLeft, &mWorldViewLeft, view_left );
+            D3DXMatrixMultiply( &mWorldViewRight, &mWorldViewRight, view_right );
 
-			v( g_pEffect->SetMatrix( "g_mWorldViewLeft", &mWorldViewLeft ) );
-			v( g_pEffect->SetMatrix( "g_mWorldViewRight", &mWorldViewRight ) );
+            v( g_pEffect->SetMatrix( "g_mWorldViewLeft", &mWorldViewLeft ) );
+            v( g_pEffect->SetMatrix( "g_mWorldViewRight", &mWorldViewRight ) );
 
             LPD3DXMESH pMesh = g_Obj[obj].m_Mesh.GetMesh();
             UINT cPass;
@@ -1150,7 +1159,7 @@ void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const D3DXMATRIX* pmView, c
 
                 for( DWORD i = 0; i < g_Obj[obj].m_Mesh.m_dwNumMaterials; ++i )
                 {
-					v( g_pEffect->CommitChanges() );
+                    v( g_pEffect->CommitChanges() );
                     v( pMesh->DrawSubset( i ) );
                 }
                 v( g_pEffect->EndPass() );
@@ -1165,21 +1174,21 @@ void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const D3DXMATRIX* pmView, c
 
 void RenderIFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step )
 {
-	CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep1" );
-	//simulate lower fps
-	::Sleep(6);
+    CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep1" );
+    //simulate lower fps
+    ::Sleep(6);
 
-	//Step 1
+    //Step 1
     //
     // Compute the view matrix for the light
     // This changes depending on the light mode
     // (free movement or attached)
     //
-	
-	//put animations for rendering
-	ScopedAnimationsTime f(frame_step);
+    
+    //put animations for rendering
+    ScopedAnimationsTime f(frame_step);
 
-	D3DXMATRIXA16 mLightView;
+    D3DXMATRIXA16 mLightView;
 
     if( g_bFreeLight )
         mLightView = *GetTimeLightCamera(frame_step)->GetViewMatrix();
@@ -1203,45 +1212,45 @@ void RenderIFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
         D3DXMatrixLookAtLH( &mLightView, &vPos, ( D3DXVECTOR3* )&vDir, &vUp );
     }
 
-	//
+    //
     // Render the shadow map
     //
     CComPtr<IDirect3DSurface9> pOldRT;
     v( pd3dDevice->GetRenderTarget( 0, &pOldRT ) );
 
     CComPtr<IDirect3DSurface9> pShadowSurf;
-    v ( g_pShadowMap->GetSurfaceLevel( 0, &pShadowSurf ) ) ;
+    v ( g_shadow_map->GetSurfaceLevel( 0, &pShadowSurf ) ) ;
     v ( pd3dDevice->SetRenderTarget( 0, pShadowSurf ) );
 
-	CComPtr<IDirect3DSurface9> pOldDS;
-	v( pd3dDevice->GetDepthStencilSurface( &pOldDS ) ) ;
-	v( pd3dDevice->SetDepthStencilSurface( g_pDSShadow ) );
+    CComPtr<IDirect3DSurface9> pOldDS;
+    v( pd3dDevice->GetDepthStencilSurface( &pOldDS ) ) ;
+    v( pd3dDevice->SetDepthStencilSurface( g_shadow_map_surface ) );
 
     {
         CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"Shadow Map" );
-        RenderScene( pd3dDevice, true, fElapsedTime, &mLightView, &g_mShadowProj, GetLightCamera(frame_step) );
+        RenderScene( pd3dDevice, true, fElapsedTime, &mLightView, &g_mShadowProj, GetTimeLightCamera(frame_step) );
     }
 
-	v(pd3dDevice->SetDepthStencilSurface( pOldDS ));
+    v(pd3dDevice->SetDepthStencilSurface( pOldDS ));
     v(pd3dDevice->SetRenderTarget( 0, pOldRT ) );
 }
 
 void RenderIFrameStep2(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step)
 {
-	CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep2" );
-	//simulate lower fps
-	::Sleep(6);
+    CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep2" );
+    //simulate lower fps
+    ::Sleep(6);
 
-	//Step 1
-	//
+    //Step 1
+    //
     // Compute the view matrix for the light
     // This changes depending on the light mode
     // (free movement or attached)
     //
 
-	//put animations for rendering
-	ScopedAnimationsTime f(frame_step);
-	D3DXMATRIXA16 mLightView;
+    //put animations for rendering
+    ScopedAnimationsTime f(frame_step);
+    D3DXMATRIXA16 mLightView;
 
     if( g_bFreeLight )
         mLightView = *GetTimeLightCamera(frame_step)->GetViewMatrix();
@@ -1266,89 +1275,91 @@ void RenderIFrameStep2(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
     }
 
 
-	//Step 2
+    //Step 2
     //
     // Now that we have the shadow map, render the scene.
     //
 
-	CFirstPersonCamera* view_camera = GetTimeViewCamera(frame_step);
+    CFirstPersonCamera* view_camera = GetTimeViewCamera(frame_step);
     const D3DXMATRIX* pmView = g_bCameraPerspective ? view_camera->GetViewMatrix() :
         &mLightView;
 
     // Initialize required parameter
-    v( g_pEffect->SetTexture( "g_txShadow", g_pShadowMap ) );
+    v( g_pEffect->SetTexture( "g_txShadow", g_shadow_map ) );
     // Compute the matrix to transform from view space to
     // light projection space.  This consists of
     // the inverse of view matrix * view matrix of light * light projection matrix
-    D3DXMATRIXA16 mViewToLightProj;
-    mViewToLightProj = *pmView;
+    D3DXMATRIXA16 mViewToLightProj = *pmView;
+
     D3DXMatrixInverse( &mViewToLightProj, NULL, &mViewToLightProj );
     D3DXMatrixMultiply( &mViewToLightProj, &mViewToLightProj, &mLightView );
-    //D3DXMatrixMultiply( &mViewToLightProj, &mViewToLightProj, &g_mShadowProj );
+
+    CFirstPersonCamera* light_camera = GetTimeLightCamera(frame_step);
+
     v( g_pEffect->SetMatrix( "g_mViewToLight", &mViewToLightProj ) );
 
     {
         CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"Scene" );
-        RenderScene( pd3dDevice, false, fElapsedTime, pmView, view_camera->GetProjMatrix(), GetLightCamera(frame_step) );
+        RenderScene( pd3dDevice, false, fElapsedTime, pmView, view_camera->GetProjMatrix(), light_camera );
     }
     g_pEffect->SetTexture( "g_txShadow", NULL );
 }
 
 void RenderIFrameStep3(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step)
 {
-	//simulate lower fps
-	::Sleep(6);
+    //simulate lower fps
+    ::Sleep(6);
 }
 
 void RenderIFrameStep4(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step)
 {
-	CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep4" );
-	//simulate lower fps
-	::Sleep(6);
+    CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep4" );
+    //simulate lower fps
+    ::Sleep(6);
 }
 
 void RenderBFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step, uint32_t time_step_1, uint32_t time_step_2 )
 {
-	CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderBFrame" );
-	ScopedRenderTargetDepthSurface surfaces(device);
+    CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderBFrame" );
+    ScopedRenderTargetDepthSurface surfaces(device);
 
-	{
-		CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"Depth" );
-		ScopedAnimations animations(frame_step);
+    {
+        CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"Depth" );
+        ScopedAnimations animations(frame_step);
 
-		CFirstPersonCamera* view_camera = GetViewCamera(frame_step);
-		const D3DXMATRIX*  view = view_camera->GetViewMatrix();
-		const D3DXMATRIX*  proj = view_camera->GetProjMatrix();
+        CFirstPersonCamera* view_camera = GetViewCamera(frame_step);
+        const D3DXMATRIX*  view = view_camera->GetViewMatrix();
+        const D3DXMATRIX*  proj = view_camera->GetProjMatrix();
 
-		device->SetRenderTarget(0, g_null_render_target);
-		device->SetDepthStencilSurface(g_null_depth_surface);
+        device->SetRenderTarget(0, g_null_render_target);
+        device->SetDepthStencilSurface(g_null_depth_surface);
 
-		//mark the static objects
-		for( int i = 0; i < NUM_OBJ; ++i )
-		{
-			g_Obj[i].m_pWorldLeftFrame = g_Obj[i].m_pWorld;
-			g_Obj[i].m_pWorldRightFrame = g_Obj[i].m_pWorld;
-		}
+        //mark the static objects
+        for( int i = 0; i < NUM_OBJ; ++i )
+        {
+            g_Obj[i].m_pWorldLeftFrame = g_Obj[i].m_pWorld;
+            g_Obj[i].m_pWorldRightFrame = g_Obj[i].m_pWorld;
+        }
     
-		//make the moveable objects
-		g_Obj[1].m_pWorldLeftFrame =  &g_Animation_Obj_1[time_step_1];
-		g_Obj[2].m_pWorldLeftFrame =  &g_Animation_Obj_2[time_step_1];
-		g_Obj[3].m_pWorldLeftFrame =  &g_Animation_Obj_3[time_step_1];
+        //make the moveable objects
+        g_Obj[1].m_pWorldLeftFrame =  &g_Animation_Obj_1[time_step_1];
+        g_Obj[2].m_pWorldLeftFrame =  &g_Animation_Obj_2[time_step_1];
+        g_Obj[3].m_pWorldLeftFrame =  &g_Animation_Obj_3[time_step_1];
 
-		g_Obj[1].m_pWorldRightFrame =  &g_Animation_Obj_1[time_step_2];
-		g_Obj[2].m_pWorldRightFrame =  &g_Animation_Obj_2[time_step_2];
-		g_Obj[3].m_pWorldRightFrame =  &g_Animation_Obj_3[time_step_2];
+        g_Obj[1].m_pWorldRightFrame =  &g_Animation_Obj_1[time_step_2];
+        g_Obj[2].m_pWorldRightFrame =  &g_Animation_Obj_2[time_step_2];
+        g_Obj[3].m_pWorldRightFrame =  &g_Animation_Obj_3[time_step_2];
 
-		const D3DXMATRIX*  view_left = GetTimeViewCamera(time_step_1)->GetViewMatrix();
-		const D3DXMATRIX*  view_right = GetTimeViewCamera(time_step_2)->GetViewMatrix();
+        const D3DXMATRIX*  view_left = GetTimeViewCamera(time_step_1)->GetViewMatrix();
+        const D3DXMATRIX*  view_right = GetTimeViewCamera(time_step_2)->GetViewMatrix();
 
-		RenderSceneDepth(device, view, proj, view_left, view_right );
-	}
+        RenderSceneDepth(device, view, proj, view_left, view_right );
+    }
 }
 
 void DisplayIFrame(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step )
 {
-	CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"DisplayIFrame" );
+    CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"DisplayIFrame" );
 }
 
 //--------------------------------------------------------------------------------------
@@ -1367,31 +1378,31 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
         return;
     }
 
-	if ( g_FrameStep % 4 == 0 )
-	{
-		RenderIFrameStep1( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
-		RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 3, 4 );	// ( t-2, t-1, 1 / n )
-	}
+    if ( g_FrameStep % 4 == 0 )
+    {
+        RenderIFrameStep1( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
+        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 3, 4 );	// ( t-2, t-1, 1 / n )
+    }
 
-	if ( g_FrameStep % 4 == 1 )
-	{
-		RenderIFrameStep2( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
-		RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 3, 4 );	// ( t-2, t-1, 2 / n )
-	}
+    if ( g_FrameStep % 4 == 1 )
+    {
+        RenderIFrameStep2( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
+        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 3, 4 );	// ( t-2, t-1, 2 / n )
+    }
 
-	if ( g_FrameStep % 4 == 2 )
-	{
-		RenderIFrameStep3( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
-		DisplayIFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 4);		// ( t-1 )
-	}
+    if ( g_FrameStep % 4 == 2 )
+    {
+        RenderIFrameStep3( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
+        DisplayIFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 4);		// ( t-1 )
+    }
 
-	if ( g_FrameStep % 4 == 3 )
-	{
-		RenderIFrameStep4( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
-		RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 4, 5 );	// ( t-1, t, 1 / n)
-	}
+    if ( g_FrameStep % 4 == 3 )
+    {
+        RenderIFrameStep4( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
+        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 4, 5 );	// ( t-1, t, 1 / n)
+    }
 
-	g_FrameStep++;
+    g_FrameStep++;
 }
 
 
@@ -1573,29 +1584,33 @@ void CALLBACK OnLostDevice( void* pUserContext )
         g_pEffect->OnLostDevice();
     SAFE_RELEASE( g_pTextSprite );
 
-    SAFE_RELEASE( g_pDSShadow );
-    SAFE_RELEASE( g_pShadowMap );
+    SAFE_RELEASE( g_shadow_map_surface );
+    SAFE_RELEASE( g_shadow_map );
     SAFE_RELEASE( g_pTexDef );
 
     for( int i = 0; i < NUM_OBJ; ++i )
         g_Obj[i].m_Mesh.InvalidateDeviceObjects();
     g_LightMesh.InvalidateDeviceObjects();
 
-	SAFE_RELEASE( g_iframe_back_buffer[0] );
-	SAFE_RELEASE( g_iframe_back_buffer[1] );
+    SAFE_RELEASE( g_iframe_back_buffer[0] );
+    SAFE_RELEASE( g_iframe_back_buffer[1] );
 
-	SAFE_RELEASE( g_iframe_back_buffer_surface[0] );
-	SAFE_RELEASE( g_iframe_back_buffer_surface[1] );
+    SAFE_RELEASE( g_iframe_back_buffer_surface[0] );
+    SAFE_RELEASE( g_iframe_back_buffer_surface[1] );
 
 
-	SAFE_RELEASE( g_iframe_depth_buffer[0] ); 
-	SAFE_RELEASE( g_iframe_depth_buffer[1] ); 
+    SAFE_RELEASE( g_iframe_depth_buffer[0] ); 
+    SAFE_RELEASE( g_iframe_depth_buffer[1] ); 
 
-	SAFE_RELEASE( g_iframe_depthbuffer_surface[0] ); 
-	SAFE_RELEASE( g_iframe_depthbuffer_surface[1] ); 
+    SAFE_RELEASE( g_iframe_depthbuffer_surface[0] ); 
+    SAFE_RELEASE( g_iframe_depthbuffer_surface[1] ); 
 
-	SAFE_RELEASE(g_null_render_target);
-	SAFE_RELEASE(g_null_depth_surface);
+    SAFE_RELEASE(g_null_render_target);
+    SAFE_RELEASE(g_null_depth_surface);
+
+    SAFE_RELEASE(g_light_buffer);
+    SAFE_RELEASE(g_light_buffer_surface);
+    SAFE_RELEASE(g_light_depth_surface);
 }
 
 
