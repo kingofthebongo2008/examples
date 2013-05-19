@@ -102,7 +102,7 @@ sampler_state
 
 float linear_z(float z_ps, float z_vs, float w, float near, float far )
 {
-	return  ( ( z_vs - near ) / ( far - near ) ) * w ;
+    return  ( ( z_vs - near ) / ( far - near ) ) * w ;
 }
 
 //-----------------------------------------------------------------------------
@@ -145,11 +145,11 @@ void VertScene( float4 iPos : POSITION,
     //
     vPosLight = mul( vPos, g_mViewToLight );
 
-	float z_vs = vPosLight.z;
+    float z_vs = vPosLight.z;
 
-	vPosLight = mul( vPosLight, g_mShadowProj );
+    vPosLight = mul( vPosLight, g_mShadowProj );
 
-	vPosLight.z = linear_z (vPosLight.z, z_vs, vPosLight.w, g_Light_Space_Near_Z, g_Light_Space_Far_Z);
+    vPosLight.z = linear_z (vPosLight.z, z_vs, vPosLight.w, g_Light_Space_Near_Z, g_Light_Space_Far_Z);
 }
 
 
@@ -266,11 +266,11 @@ void VertShadow( float4 Pos : POSITION,
     //
     oPos = mul( Pos, g_mWorldView );
     
-	float z_vs = oPos.z;
+    float z_vs = oPos.z;
 
-	oPos = mul( oPos, g_mProj );
+    oPos = mul( oPos, g_mProj );
 
-	oPos.z = linear_z ( oPos.z, z_vs, oPos.w, g_Light_Space_Near_Z, g_Light_Space_Far_Z);
+    oPos.z = linear_z ( oPos.z, z_vs, oPos.w, g_Light_Space_Near_Z, g_Light_Space_Far_Z);
 
     //
     // Store z and w in our spare texcoord
@@ -298,31 +298,31 @@ void PixShadow( float2 Depth : TEXCOORD0,
 //-----------------------------------------------------------------------------
 void VertDepthScene
 ( 
-				float4 iPos : POSITION,
+                float4 iPos : POSITION,
                 out float4 oPos : POSITION,
-				out float4 left_frame : TEXCOORD0,
-				out float4 right_frame: TEXCOORD1,
-				out float4 middle_frame: TEXCOORD2
+                out float4 left_frame : TEXCOORD0,
+                out float4 right_frame: TEXCOORD1,
+                out float4 middle_frame: TEXCOORD2
 )
 {
-	float4 pos;
-	float4 pos_left;
-	float4 pos_right;
+    float4 pos;
+    float4 pos_left;
+    float4 pos_right;
     //
     // Transform position to view space
     //
     pos = mul( iPos, g_mWorldView );
 
-	pos_left = mul( iPos, g_mWorldViewLeft );
-	pos_right = mul( iPos, g_mWorldViewRight );
+    pos_left = mul( iPos, g_mWorldViewLeft );
+    pos_right = mul( iPos, g_mWorldViewRight );
 
     //
     // Transform to screen coord
     //
     oPos = mul( pos, g_mProj );
 
-	left_frame = mul( pos_left, g_mProj );
-	right_frame = mul( pos_right, g_mProj );
+    left_frame = mul( pos_left, g_mProj );
+    right_frame = mul( pos_right, g_mProj );
 }
 
 //-----------------------------------------------------------------------------
@@ -331,47 +331,47 @@ void VertDepthScene
 //-----------------------------------------------------------------------------
 void PixDepthScene( out float4 Color : COLOR, float4 left_frame : TEXCOORD0, float4 right_frame: TEXCOORD1, float4 middle_frame: TEXCOORD2 )
 {
-	Color = float4( 1, 0, 0, 0);
+    Color = float4( 1, 0, 0, 0);
 
-	left_frame /= left_frame.w;
-	right_frame /= right_frame.w;
-	middle_frame /= middle_frame.w;
+    left_frame /= left_frame.w;
+    right_frame /= right_frame.w;
+    middle_frame /= middle_frame.w;
 
-	float left_frame_depth = tex2D( g_sam_depth_buffer_left, left_frame.xy * 0.5 + 0.5).r;
-	float right_frame_depth = tex2D( g_sam_depth_buffer_right, right_frame.xy * 0.5 + 0.5).r;
+    float left_frame_depth = tex2D( g_sam_depth_buffer_left, left_frame.xy * 0.5 + 0.5).r;
+    float right_frame_depth = tex2D( g_sam_depth_buffer_right, right_frame.xy * 0.5 + 0.5).r;
 
-	float4 left_frame_image = tex2D( g_sam_frame_buffer_right, left_frame.xy * 0.5 + 0.5).r;
-	float4 right_frame_image = tex2D( g_sam_frame_buffer_right, right_frame.xy * 0.5 + 0.5).r;
+    float4 left_frame_image = tex2D( g_sam_frame_buffer_right, left_frame.xy * 0.5 + 0.5).r;
+    float4 right_frame_image = tex2D( g_sam_frame_buffer_right, right_frame.xy * 0.5 + 0.5).r;
 
-	float l = abs ( left_frame_depth - left_frame.z );
-	float r = abs ( right_frame_depth - right_frame.z );
+    float l = abs ( left_frame_depth - left_frame.z );
+    float r = abs ( right_frame_depth - right_frame.z );
 
-	if ( l < 0.0001)
-	{
-		//both are visibile
-		if ( r < 0.0001)
-		{
-			Color = ( left_frame_image + right_frame_image ) / 2;
-		}
-		else
-		{
-			//only left is visibile
-			Color = left_frame_image;
-		}
-	}
-	else
-	{
-		//only right is visible
-		if ( r )
-		{
-			Color = right_frame_image;
-		}
-		else
-		{
-			//nothing is visible.
-			Color =  l < r ? left_frame_image : right_frame_image;
-		}
-	}
+    if ( l < 0.0001)
+    {
+        //both are visibile
+        if ( r < 0.0001)
+        {
+            Color = ( left_frame_image + right_frame_image ) / 2;
+        }
+        else
+        {
+            //only left is visibile
+            Color = left_frame_image;
+        }
+    }
+    else
+    {
+        //only right is visible
+        if ( r )
+        {
+            Color = right_frame_image;
+        }
+        else
+        {
+            //nothing is visible.
+            Color =  l < r ? left_frame_image : right_frame_image;
+        }
+    }
 }
 
 
@@ -384,7 +384,7 @@ technique RenderScene
 {
     pass p0
     {
-		CullMode = CCW;
+        CullMode = CCW;
         VertexShader = compile vs_3_0 VertScene();
         PixelShader = compile ps_3_0 PixScene();
     }
@@ -417,7 +417,7 @@ technique RenderShadow
 {
     pass p0
     {
-		CullMode = CCW;
+        CullMode = CCW;
         VertexShader = compile vs_3_0 VertShadow();
         PixelShader = compile ps_3_0 PixShadow();
     }
@@ -433,7 +433,7 @@ technique RenderSceneDepth
     pass p0
     {
         VertexShader = compile vs_3_0 VertDepthScene();
-		PixelShader = compile ps_3_0 PixDepthScene();
+        PixelShader = compile ps_3_0 PixDepthScene();
     }
 }
 
