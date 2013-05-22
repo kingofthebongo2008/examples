@@ -437,3 +437,61 @@ technique RenderSceneDepth
     }
 }
 
+
+//-----------------------------------------------------------------------------
+// Vertex Shader: VertLight
+// Desc: Process vertex for the light object
+//-----------------------------------------------------------------------------
+void VertQuad( float4 iPos : POSITION,
+                float2 iTex : TEXCOORD0,
+                out float4 oPos : POSITION,
+                out float2 Tex : TEXCOORD0 )
+{
+    //
+    // Transform position to view space
+    //
+    oPos = iPos;
+
+    //
+    // Propagate texture coord
+    //
+    Tex = iTex;
+}
+
+texture  g_txTexture;
+sampler2D g_sampler_0 =
+sampler_state
+{
+    Texture = <g_txTexture>;
+    MinFilter = Point;
+    MagFilter = Point;
+    MipFilter = Point;
+    AddressU = Clamp;
+    AddressV = Clamp;
+};
+
+
+//-----------------------------------------------------------------------------
+// Pixel Shader: PixLight
+// Desc: Process pixel for the light object
+//-----------------------------------------------------------------------------
+float4 PixQuad(  float2 Tex : TEXCOORD0 ) : COLOR
+{
+    return tex2D( g_sampler_0, Tex );
+}
+
+
+//-----------------------------------------------------------------------------
+// Technique: RenderShadow
+// Desc: Renders the shadow map
+//-----------------------------------------------------------------------------
+technique DrawFullScreenQuad
+{
+    pass p0
+    {
+        VertexShader = compile vs_3_0 VertQuad();
+        PixelShader = compile ps_3_0 PixQuad();
+    }
+}
+
+

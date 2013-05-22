@@ -6,6 +6,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //--------------------------------------------------------------------------------------
 #include "DXUT.h"
+#include <algorithm>
 #include <exception>
 #include <atlbase.h>
 #include <cstdint>
@@ -51,6 +52,12 @@ void v(HRESULT hr)
         throw exception();
     }
 }
+
+static IDirect3DVertexDeclaration9 * GetQuadVertexDeclaration ( );
+static IDirect3DVertexDeclaration9 * CreateQuadVertexDeclaration (  IDirect3DDevice9* device ) ;
+static void ReleaseQuadVertexDeclaration ();
+static void DrawFullScreenQuad ( IDirect3DDevice9* device );
+static void DrawFullScreenQuad ( IDirect3DDevice9* device, IDirect3DTexture9*  texure  );
 
 //#define DEBUG_VS   // Uncomment this line to debug vertex shaders 
 //#define DEBUG_PS   // Uncomment this line to debug pixel shaders 
@@ -242,8 +249,8 @@ CDXUTDialogResourceManager      g_DialogResourceManager; // manager for shared r
 CD3DSettingsDlg                 g_SettingsDlg;          // Device settings dialog
 CDXUTDialog                     g_HUD;                  // dialog for standard controls
 CObj g_Obj[NUM_OBJ];         // Scene object meshes
-LPDIRECT3DVERTEXDECLARATION9    g_pVertDecl = NULL;// Vertex decl for the sample
-LPDIRECT3DTEXTURE9              g_pTexDef = NULL;       // Default texture for objects
+IDirect3DVertexDeclaration9*    g_pVertDecl = NULL;// Vertex decl for the sample
+IDirect3DTexture9*              g_pTexDef = NULL;       // Default texture for objects
 D3DLIGHT9                       g_Light;                // The spot light in the scene
 CDXUTXFileMesh                  g_LightMesh;
 float                           g_fLightFov;            // FOV of the spot light (in radian)
@@ -287,6 +294,10 @@ IDirect3DTexture9 *             g_light_buffer;				// Texture to which the shado
 IDirect3DSurface9 *             g_light_buffer_surface;     // Depth-stencil buffer for rendering to shadow map
 
 IDirect3DSurface9 *				g_light_depth_surface;
+
+std::uint32_t					g_BackBufferWidth;
+std::uint32_t					g_BackBufferHeight;
+
 
 
 //--------------------------------------------------------------------------------------
@@ -713,6 +724,11 @@ HRESULT CALLBACK OnCreateDevice( IDirect3DDevice9* pd3dDevice, const D3DSURFACE_
     D3DXMatrixIdentity( &mIdent );
     V_RETURN( pd3dDevice->SetTransform( D3DTS_WORLD, &mIdent ) );
 
+    CreateQuadVertexDeclaration( pd3dDevice );
+
+    g_BackBufferWidth = pBackBufferSurfaceDesc->Width;
+	g_BackBufferHeight = pBackBufferSurfaceDesc->Height;
+
 
     return S_OK;
 }
@@ -835,7 +851,9 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
     
     v( pd3dDevice->CreateDepthStencilSurface( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.AutoDepthStencilFormat, D3DMULTISAMPLE_NONE, 0, FALSE, &g_light_depth_surface, NULL ) );
     
-    
+    g_BackBufferWidth = pBackBufferSurfaceDesc->Width;
+	g_BackBufferHeight = pBackBufferSurfaceDesc->Height;
+
     return S_OK;
 }
 
@@ -1023,11 +1041,8 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
     v( g_pEffect->SetVector( "g_vLightPos", (const D3DXVECTOR4*) &v4 ) );
 
     v4 = toVector( pLightCamera->GetWorldAhead() );
-    XMVECTOR v5 = XMVector3Transform ( v4, *pmView); // Direction in view space
     v4 = XMVector4Transform ( v4, *pmView); // Direction in view space
     v4 = XMVector3Normalize( v4 );
-
-    
 
     v( g_pEffect->SetVector( "g_vLightDir",  (const D3DXVECTOR4*) &v4 ) );
 
@@ -1048,7 +1063,6 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
         g_pEffect->SetFloat("g_Light_Space_Near_Z", g_Light_Space_Near_Z);
         g_pEffect->SetMatrix("g_mShadowProj", (const D3DXMATRIX*) &g_mShadowProj);
 
-        
         // Render the objects
         for( int obj = 0; obj < NUM_OBJ; ++obj )
         {
@@ -1087,7 +1101,6 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
             v( g_pEffect->End() );
         }
         
-
         // Render light
         if( !bRenderShadow )
         {
@@ -1134,7 +1147,6 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
 
 void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const XMMATRIX* pmView, const XMMATRIX* pmProj, const XMMATRIX* view_left, const XMMATRIX* view_right )
 {
-    return;
     HRESULT hr;
 
     // Clear the render buffers
@@ -1194,9 +1206,11 @@ void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const XMMATRIX* pmView, con
 }
 
 
-void RenderIFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step )
+void RenderIFrameStep1(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step )
 {
     CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep1" );
+    ScopedRenderTargetDepthSurface surfaces(device);
+
     //simulate lower fps
     ::Sleep(6);
 
@@ -1214,42 +1228,35 @@ void RenderIFrameStep1(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
     //
     // Render the shadow map
     //
-    CComPtr<IDirect3DSurface9> pOldRT;
-    v( pd3dDevice->GetRenderTarget( 0, &pOldRT ) );
+
 
     CComPtr<IDirect3DSurface9> pShadowSurf;
     v ( g_shadow_map->GetSurfaceLevel( 0, &pShadowSurf ) ) ;
-    v ( pd3dDevice->SetRenderTarget( 0, pShadowSurf ) );
+    v ( device->SetRenderTarget( 0, pShadowSurf ) );
 
     CComPtr<IDirect3DSurface9> pOldDS;
-    v( pd3dDevice->GetDepthStencilSurface( &pOldDS ) ) ;
-    v( pd3dDevice->SetDepthStencilSurface( g_shadow_map_surface ) );
+    v( device->GetDepthStencilSurface( &pOldDS ) ) ;
+    v( device->SetDepthStencilSurface( g_shadow_map_surface ) );
 
     {
         CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"Shadow Map" );
-        RenderScene( pd3dDevice, true, fElapsedTime, &mLightView, &g_mShadowProj, GetTimeLightCamera(frame_step) );
+        RenderScene( device, true, fElapsedTime, &mLightView, &g_mShadowProj, GetTimeLightCamera(frame_step) );
     }
-
-    v(pd3dDevice->SetDepthStencilSurface( pOldDS ));
-    v(pd3dDevice->SetRenderTarget( 0, pOldRT ) );
 }
 
-void RenderIFrameStep2(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step)
+void RenderIFrameStep2(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step)
 {
     CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep2" );
+
+
     //simulate lower fps
     ::Sleep(6);
 
-    //Step 1
-    //
-    // Compute the view matrix for the light
-    // This changes depending on the light mode
-    // (free movement or attached)
-    //
 
     //put animations for rendering
     ScopedAnimationsTime f(frame_step);
     XMMATRIX mLightView = toMatrix( GetTimeLightCamera(frame_step)->GetViewMatrix() );
+
 
     //Step 2
     //
@@ -1272,9 +1279,17 @@ void RenderIFrameStep2(IDirect3DDevice9* pd3dDevice, double fTime, float fElapse
     v( g_pEffect->SetMatrix( "g_mViewToLight", (const D3DXMATRIX* ) &mViewToLightProj ) );
 
     {
+        ScopedRenderTargetDepthSurface surfaces(device);
+
         CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"Scene" );
+
+        v( device->SetDepthStencilSurface( g_light_depth_surface ) );
+        v( device->SetRenderTarget( 0, g_light_buffer_surface ) );
+
         XMMATRIX view = toMatrix( view_camera->GetProjMatrix() );
-        RenderScene( pd3dDevice, false, fElapsedTime, &mView, &view , light_camera );
+
+
+        RenderScene( device, false, fElapsedTime, &mView, &view , light_camera );
     }
     g_pEffect->SetTexture( "g_txShadow", NULL );
 }
@@ -1331,9 +1346,11 @@ void RenderBFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, vo
     }
 }
 
-void DisplayIFrame(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step )
+void DisplayIFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step )
 {
     CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"DisplayIFrame" );
+
+    DrawFullScreenQuad(device, g_light_buffer);
 }
 
 //--------------------------------------------------------------------------------------
@@ -1608,4 +1625,124 @@ void CALLBACK OnDestroyDevice( void* pUserContext )
     for( int i = 0; i < NUM_OBJ; ++i )
         g_Obj[i].m_Mesh.Destroy();
     g_LightMesh.Destroy();
+
+    ReleaseQuadVertexDeclaration();
+}
+
+
+// Create vertex declaration
+static IDirect3DVertexDeclaration9 * g_QuadDeclaration = 0;
+static IDirect3DVertexDeclaration9 * GetQuadVertexDeclaration (   )
+{ 
+	return g_QuadDeclaration;
+}
+
+static IDirect3DVertexDeclaration9 * CreateQuadVertexDeclaration (  IDirect3DDevice9* device )
+{
+	D3DVERTEXELEMENT9 quad_vertex_decl[] =
+	{
+		{ 0, 0,  D3DDECLTYPE_FLOAT4, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_POSITION, 0 },
+		{ 0, 16, D3DDECLTYPE_FLOAT2, D3DDECLMETHOD_DEFAULT, D3DDECLUSAGE_TEXCOORD, 0 },
+		D3DDECL_END()
+	};
+
+	HRESULT hr;
+
+	if (g_QuadDeclaration == 0)
+	{
+		hr = device->CreateVertexDeclaration( quad_vertex_decl, &g_QuadDeclaration );
+	}
+
+	return g_QuadDeclaration;
+}
+
+static void ReleaseQuadVertexDeclaration (  )
+{
+	g_QuadDeclaration->Release();
+	g_QuadDeclaration = 0;
+}
+
+static void DrawFullScreenQuad ( IDirect3DDevice9* device, std::uint32_t screen_width, std::uint32_t screen_height )
+{
+	struct __declspec(align(16)) vertex
+	{
+		float position[4];
+		float uv[2];
+	};
+
+	static const vertex quad_c [] =
+	{
+		{
+			-1.0f, -1.0f, 0.0f, 1.0f,
+			0.0f, 1.0f,
+		},
+
+		{
+			-1.0f, 1.0f, 0.0f, 1.0f,
+			0.0f, 0.0f,
+		},
+
+		{
+			1.0f, -1.0f, 0.0f, 1.0f,
+			1.0f, 1.0f,
+		},
+
+		{
+			1.0f, 1.0f, 0.0f, 1.0f,
+			1.0f, 0.0f
+		}
+	};
+
+	static const std::uint16_t indices[] =
+	{
+		0, 1, 2, 3 , 2 , 1 
+	};
+
+	vertex* quads = new vertex[4];
+
+	std::copy( &quad_c[0], &quad_c[0] + 4, &quads[0] );
+
+	XMVECTOR va = XMVectorSet( -1.0f / screen_width, -1.0f / screen_height, 0.0f, 0.0f );
+
+	for ( std::uint32_t i = 0 ; i < 4; ++i )
+	{
+		const XMFLOAT4* load = reinterpret_cast<const XMFLOAT4*> (quads[i].position);
+		XMFLOAT4*		store = reinterpret_cast<XMFLOAT4*> (quads[i].position);
+
+		XMVECTOR vb = XMLoadFloat4( load );
+		XMStoreFloat4 ( store, XMVectorAdd( va, vb) );
+	}
+	
+	device->SetVertexDeclaration( GetQuadVertexDeclaration() );
+	device->DrawIndexedPrimitiveUP(D3DPT_TRIANGLESTRIP, 0, 4, 2, &indices[0], D3DFMT_INDEX16, &quads[0], 32 );
+
+	delete [] quads;
+}
+
+static void DrawFullScreenQuad ( IDirect3DDevice9* device )
+{
+	DrawFullScreenQuad ( device, g_BackBufferWidth, g_BackBufferHeight );
+}
+
+static void DrawFullScreenQuad ( IDirect3DDevice9* device, IDirect3DTexture9*  texure  )
+{
+        v( g_pEffect->SetTechnique( "DrawFullScreenQuad" ) );
+
+		UINT cPass;
+		v( g_pEffect->Begin( &cPass, 0 ) );
+
+		for( UINT p = 0; p < cPass; ++p )
+		{
+
+				v( g_pEffect->BeginPass( p ) );
+				v( g_pEffect->SetTexture( "g_txTexture", texure ) );
+				v( g_pEffect->CommitChanges() );
+
+				DrawFullScreenQuad( device );
+
+				v( g_pEffect->EndPass(  ) );
+
+		}
+
+		v( g_pEffect->End(  ) );
 }
