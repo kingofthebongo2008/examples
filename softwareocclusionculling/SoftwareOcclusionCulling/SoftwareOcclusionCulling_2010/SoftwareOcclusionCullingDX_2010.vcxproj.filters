@@ -25,6 +25,39 @@
     <Filter Include="Media\AssetSets">
       <UniqueIdentifier>{4e6d9113-313e-4bca-abe0-c48858172fcf}</UniqueIdentifier>
     </Filter>
+    <Filter Include="extern">
+      <UniqueIdentifier>{446e5754-cbec-4f86-818f-347f57e73d63}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="extern\SSEPlus">
+      <UniqueIdentifier>{2e16d788-9c21-4f04-945a-13d658591929}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="extern\SSEPlus\include">
+      <UniqueIdentifier>{5292ff91-2143-4519-b870-f2628fb0e6f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="extern\SSEPlus\include\convert">
+      <UniqueIdentifier>{8eddf616-ebd5-4ff8-a3ab-07a76213111f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="extern\SSEPlus\include\arithmetic">
+      <UniqueIdentifier>{8cb0f55c-aa99-4b15-8e5d-13124ab42d29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="extern\SSEPlus\include\emulation">
+      <UniqueIdentifier>{3899e293-527b-4ecc-a47c-c8633a6da90e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="extern\SSEPlus\include\logical">
+      <UniqueIdentifier>{91b340d3-de29-4e56-8b76-a87699c4b72c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="extern\SSEPlus\include\map">
+      <UniqueIdentifier>{24be870b-46d5-41d6-831b-81f4388fc574}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="extern\SSEPlus\include\memory">
+      <UniqueIdentifier>{081741b5-b48e-4399-863a-11560603975b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="extern\SSEPlus\include\native">
+      <UniqueIdentifier>{9190525f-d640-4162-a29a-8ecf897ad3eb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="extern\SSEPlus\include\number">
+      <UniqueIdentifier>{148cb0a8-e152-47cd-93a8-214693f223d8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\Media\Castle\Asset\castleLargeOccluders.set">
@@ -169,6 +202,126 @@
     </ClInclude>
     <ClInclude Include="..\TransformedModelSSE.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_base.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_CPUID.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_platform.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_REF.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE2.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE3.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE4.1.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE4.2.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE4a.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE5.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSSE3.h">
+      <Filter>extern\SSEPlus\include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\convert\SSEPlus_convert_REF.h">
+      <Filter>extern\SSEPlus\include\convert</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\convert\SSEPlus_convert_SSE2.h">
+      <Filter>extern\SSEPlus\include\convert</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\arithmetic\SSEPlus_arithmetic_SSE3.h">
+      <Filter>extern\SSEPlus\include\arithmetic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\arithmetic\SSEPlus_arithmetic_REF.h">
+      <Filter>extern\SSEPlus\include\arithmetic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\arithmetic\SSEPlus_arithmetic_SSE2.h">
+      <Filter>extern\SSEPlus\include\arithmetic</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_comps_REF.h">
+      <Filter>extern\SSEPlus\include\emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_comps_SSE2.h">
+      <Filter>extern\SSEPlus\include\emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_comps_SSE3.h">
+      <Filter>extern\SSEPlus\include\emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_REF.h">
+      <Filter>extern\SSEPlus\include\emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_SSE2.h">
+      <Filter>extern\SSEPlus\include\emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_SSE3.h">
+      <Filter>extern\SSEPlus\include\emulation</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\logical\SSEPlus_logical_REF.h">
+      <Filter>extern\SSEPlus\include\logical</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\logical\SSEPlus_logical_SSE2.h">
+      <Filter>extern\SSEPlus\include\logical</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\map\SSEPlus_MAP_SSE3.h">
+      <Filter>extern\SSEPlus\include\map</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\map\SSEPlus_UNMAP_ALL.h">
+      <Filter>extern\SSEPlus\include\map</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\map\SSEPlus_MAP_SSE2.h">
+      <Filter>extern\SSEPlus\include\map</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\memory\SSEPlus_memory_REF.h">
+      <Filter>extern\SSEPlus\include\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\memory\SSEPlus_memory_SSE2.h">
+      <Filter>extern\SSEPlus\include\memory</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE.h">
+      <Filter>extern\SSEPlus\include\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE2.h">
+      <Filter>extern\SSEPlus\include\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE3.h">
+      <Filter>extern\SSEPlus\include\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE4.1.h">
+      <Filter>extern\SSEPlus\include\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE4.2.h">
+      <Filter>extern\SSEPlus\include\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE4a.h">
+      <Filter>extern\SSEPlus\include\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\native\sseplus_native_SSE5.h">
+      <Filter>extern\SSEPlus\include\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSSE3.h">
+      <Filter>extern\SSEPlus\include\native</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\SSEPlus\include\number\SSEPlus_number_REF.h">
+      <Filter>extern\SSEPlus\include\number</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

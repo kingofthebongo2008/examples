@@ -157,15 +157,15 @@ void AABBoxRasterizerSSE::CreateTransformedAABBoxes(CPUTAssetSet **pAssetSet, UI
 
 void AABBoxRasterizerSSE::SetViewProjMatrix(float4x4 *viewMatrix, float4x4 *projMatrix, UINT idx)
 {
-	mViewMatrix[idx][0] = _mm_loadu_ps((float*)&viewMatrix->r0);
-	mViewMatrix[idx][1] = _mm_loadu_ps((float*)&viewMatrix->r1);
-	mViewMatrix[idx][2] = _mm_loadu_ps((float*)&viewMatrix->r2);
-	mViewMatrix[idx][3] = _mm_loadu_ps((float*)&viewMatrix->r3);
+	mViewMatrix[idx][0] = ssp_loadu_ps((float*)&viewMatrix->r0);
+	mViewMatrix[idx][1] = ssp_loadu_ps((float*)&viewMatrix->r1);
+	mViewMatrix[idx][2] = ssp_loadu_ps((float*)&viewMatrix->r2);
+	mViewMatrix[idx][3] = ssp_loadu_ps((float*)&viewMatrix->r3);
 
-	mProjMatrix[idx][0] = _mm_loadu_ps((float*)&projMatrix->r0);
-	mProjMatrix[idx][1] = _mm_loadu_ps((float*)&projMatrix->r1);
-	mProjMatrix[idx][2] = _mm_loadu_ps((float*)&projMatrix->r2);
-	mProjMatrix[idx][3] = _mm_loadu_ps((float*)&projMatrix->r3);
+	mProjMatrix[idx][0] = ssp_loadu_ps((float*)&projMatrix->r0);
+	mProjMatrix[idx][1] = ssp_loadu_ps((float*)&projMatrix->r1);
+	mProjMatrix[idx][2] = ssp_loadu_ps((float*)&projMatrix->r2);
+	mProjMatrix[idx][3] = ssp_loadu_ps((float*)&projMatrix->r3);
 }
 
 //------------------------------------------------------------------------
@@ -252,16 +252,16 @@ void AABBoxRasterizerSSE::CalcInsideFrustum(CPUTFrustum *pFrustum, UINT start, U
 	__m128 planeNormal[6][3];
 	__m128 planeNormalSign[6][3];
 	__m128 planeDist[6];
-	__m128 signMask = _mm_castsi128_ps(_mm_set1_epi32(0x80000000));
+	__m128 signMask = ssp_castsi128_ps(ssp_set1_epi32(0x80000000));
 	for(UINT i = 0; i < 6; i++)
 	{
 		for (UINT j = 0; j < 3; j++)
 		{
-			planeNormal[i][j] = _mm_set1_ps(pFrustum->mpNormal[i].f[j]);
-			planeNormalSign[i][j] = _mm_and_ps(planeNormal[i][j], signMask);
+			planeNormal[i][j] = ssp_set1_ps(pFrustum->mpNormal[i].f[j]);
+			planeNormalSign[i][j] = ssp_and_ps(planeNormal[i][j], signMask);
 		}
 
-		planeDist[i] = _mm_set1_ps(pFrustum->mPlanes[3*8 + i]);
+		planeDist[i] = ssp_set1_ps(pFrustum->mPlanes[3*8 + i]);
 	}
 
 	// Loop over packets
@@ -269,34 +269,34 @@ void AABBoxRasterizerSSE::CalcInsideFrustum(CPUTFrustum *pFrustum, UINT start, U
 	for(UINT i = packetStart; i < packetEnd; i++)
 	{
 		// Start assuming all 4 boxes are inside
-		__m128 inMask = _mm_castsi128_ps(_mm_set1_epi32(~0));
+		__m128 inMask = ssp_castsi128_ps(ssp_set1_epi32(~0));
 
 		// Loop over planes
 		for (UINT j = 0; j < 6; j++)
 		{
 			// Sign for half[XYZ] so that dot product with plane normal would be maximal
-			__m128 halfSignX = _mm_xor_ps(mpWorldBoxes[i].mHalf[0], planeNormalSign[j][0]);
-			__m128 halfSignY = _mm_xor_ps(mpWorldBoxes[i].mHalf[1], planeNormalSign[j][1]);
-			__m128 halfSignZ = _mm_xor_ps(mpWorldBoxes[i].mHalf[2], planeNormalSign[j][2]);
+			__m128 halfSignX = ssp_xor_ps(mpWorldBoxes[i].mHalf[0], planeNormalSign[j][0]);
+			__m128 halfSignY = ssp_xor_ps(mpWorldBoxes[i].mHalf[1], planeNormalSign[j][1]);
+			__m128 halfSignZ = ssp_xor_ps(mpWorldBoxes[i].mHalf[2], planeNormalSign[j][2]);
 
 			// Bounding box corner to test (min corner)
-			__m128 cornerX = _mm_sub_ps(mpWorldBoxes[i].mCenter[0], halfSignX);
-			__m128 cornerY = _mm_sub_ps(mpWorldBoxes[i].mCenter[1], halfSignY);
-			__m128 cornerZ = _mm_sub_ps(mpWorldBoxes[i].mCenter[2], halfSignZ);
+			__m128 cornerX = ssp_sub_ps(mpWorldBoxes[i].mCenter[0], halfSignX);
+			__m128 cornerY = ssp_sub_ps(mpWorldBoxes[i].mCenter[1], halfSignY);
+			__m128 cornerZ = ssp_sub_ps(mpWorldBoxes[i].mCenter[2], halfSignZ);
 
 			// Compute dot product
 			__m128 dot = planeDist[j];
-			dot = _mm_add_ps(dot, _mm_mul_ps(cornerX, planeNormal[j][0]));
-			dot = _mm_add_ps(dot, _mm_mul_ps(cornerY, planeNormal[j][1]));
-			dot = _mm_add_ps(dot, _mm_mul_ps(cornerZ, planeNormal[j][2]));
+			dot = ssp_add_ps(dot, ssp_mul_ps(cornerX, planeNormal[j][0]));
+			dot = ssp_add_ps(dot, ssp_mul_ps(cornerY, planeNormal[j][1]));
+			dot = ssp_add_ps(dot, ssp_mul_ps(cornerZ, planeNormal[j][2]));
 
 			// The plane box is inside as long as the dot product is negative -> sign bit set
 			// So AND result together with current mask
-			inMask = _mm_and_ps(inMask, dot);
+			inMask = ssp_and_ps(inMask, dot);
 		}
 
 		// Write the results for this packet
-		int packetMask = _mm_movemask_ps(inMask);
+		int packetMask = ssp_movemask_ps(inMask);
 		visible[i*4 + 0] = (packetMask >> 0) & 1;
 		visible[i*4 + 1] = (packetMask >> 1) & 1;
 		visible[i*4 + 2] = (packetMask >> 2) & 1;

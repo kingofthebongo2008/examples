@@ -142,7 +142,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <FloatingPointExceptions>
       </FloatingPointExceptions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL;$(SolutionDir)\extern\SSEPlus\include</AdditionalIncludeDirectories>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
@@ -166,7 +166,7 @@
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <FloatingPointExceptions>false</FloatingPointExceptions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL;$(SolutionDir)\extern\SSEPlus\include</AdditionalIncludeDirectories>
       <MinimalRebuild>false</MinimalRebuild>
     </ClCompile>
     <Link>
@@ -188,7 +188,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL;$(SolutionDir)\extern\SSEPlus\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -212,7 +212,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;CPUT_GPA_INSTRUMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL;$(SolutionDir)\extern\SSEPlus\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
@@ -237,7 +237,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL;$(SolutionDir)\extern\SSEPlus\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -261,7 +261,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;CPUT_GPA_INSTRUMENTATION;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
-      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)\..\SampleComponentsDLL;$(SolutionDir)\extern\SSEPlus\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -315,6 +315,46 @@
     <ClInclude Include="..\DepthBufferRasterizerSSE.h" />
     <ClInclude Include="..\DepthBufferRasterizerSSEMT.h" />
     <ClInclude Include="..\DepthBufferRasterizerSSEST.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\arithmetic\SSEPlus_arithmetic_REF.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\arithmetic\SSEPlus_arithmetic_SSE2.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\arithmetic\SSEPlus_arithmetic_SSE3.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\convert\SSEPlus_convert_REF.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\convert\SSEPlus_convert_SSE2.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_comps_REF.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_comps_SSE2.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_comps_SSE3.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_REF.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_SSE2.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\emulation\SSEPlus_emulation_SSE3.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\logical\SSEPlus_logical_REF.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\logical\SSEPlus_logical_SSE2.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\map\SSEPlus_MAP_SSE2.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\map\SSEPlus_MAP_SSE3.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\map\SSEPlus_UNMAP_ALL.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\memory\SSEPlus_memory_REF.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\memory\SSEPlus_memory_SSE2.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE2.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE3.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE4.1.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE4.2.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSE4a.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\native\sseplus_native_SSE5.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\native\SSEPlus_native_SSSE3.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\number\SSEPlus_number_REF.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_base.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_CPUID.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_platform.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_REF.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE2.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE3.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE4.1.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE4.2.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE4a.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSE5.h" />
+    <ClInclude Include="..\extern\SSEPlus\include\SSEPlus_SSSE3.h" />
     <ClInclude Include="..\HelperMT.h" />
     <ClInclude Include="..\HelperScalar.h" />
     <ClInclude Include="..\HelperSSE.h" />

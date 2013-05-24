@@ -17,11 +17,15 @@
 
 #include "immintrin.h"
 #include <intrin.h>
+#include <SSEPlus.h>
+#include <map/SSEPlus_MAP_SSE3.h>
+
+
 #ifndef HELPERSSE_H
 #define HELPERSSE_H
 
 // Find index of least-significant set bit in mask and clear it (mask must be nonzero)
-static int FindClearLSB(unsigned int *mask)
+static inline int FindClearLSB(unsigned int *mask)
 {
 	unsigned long idx;
 	_BitScanForward(&idx, *mask);
@@ -57,16 +61,12 @@ class HelperSSE
 
 		__forceinline __m128i Min(const __m128i &v0, const __m128i &v1)
 		{
-			__m128i tmp;
-			tmp = _mm_min_epi32(v0, v1);
-			return tmp;
+            return ssp_min_epi32(v0, v1);
 		}
 
 		__forceinline __m128i Max(const __m128i &v0, const __m128i &v1)
 		{
-			__m128i tmp;
-			tmp = _mm_max_epi32(v0, v1);
-			return tmp;
+            return ssp_max_epi32(v0, v1);
 		}
 };
 

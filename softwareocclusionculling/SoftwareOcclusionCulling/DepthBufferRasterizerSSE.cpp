@@ -164,13 +164,13 @@ void DepthBufferRasterizerSSE::ClearDepthTile(int startX, int startY, int endX, 
 
 void DepthBufferRasterizerSSE::SetViewProj(float4x4 *viewMatrix, float4x4 *projMatrix, UINT idx)
 {
-	mpViewMatrix[idx][0] = _mm_loadu_ps((float*)&viewMatrix->r0);
-	mpViewMatrix[idx][1] = _mm_loadu_ps((float*)&viewMatrix->r1);
-	mpViewMatrix[idx][2] = _mm_loadu_ps((float*)&viewMatrix->r2);
-	mpViewMatrix[idx][3] = _mm_loadu_ps((float*)&viewMatrix->r3);
+	mpViewMatrix[idx][0] = ssp_loadu_ps((float*)&viewMatrix->r0);
+	mpViewMatrix[idx][1] = ssp_loadu_ps((float*)&viewMatrix->r1);
+	mpViewMatrix[idx][2] = ssp_loadu_ps((float*)&viewMatrix->r2);
+	mpViewMatrix[idx][3] = ssp_loadu_ps((float*)&viewMatrix->r3);
 
-	mpProjMatrix[idx][0] = _mm_loadu_ps((float*)&projMatrix->r0);
-	mpProjMatrix[idx][1] = _mm_loadu_ps((float*)&projMatrix->r1);
-	mpProjMatrix[idx][2] = _mm_loadu_ps((float*)&projMatrix->r2);
-	mpProjMatrix[idx][3] = _mm_loadu_ps((float*)&projMatrix->r3);
+	mpProjMatrix[idx][0] = ssp_loadu_ps((float*)&projMatrix->r0);
+	mpProjMatrix[idx][1] = ssp_loadu_ps((float*)&projMatrix->r1);
+	mpProjMatrix[idx][2] = ssp_loadu_ps((float*)&projMatrix->r2);
+	mpProjMatrix[idx][3] = ssp_loadu_ps((float*)&projMatrix->r3);
 }

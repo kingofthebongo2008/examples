@@ -50,10 +50,10 @@ void TransformedModelSSE::CreateTransformedMeshes(CPUTModelDX11 *pModel)
 	mNumMeshes = pModel->GetMeshCount();
 
 	float *world = (float*)pModel->GetWorldMatrix();
-	mWorldMatrix[0] = _mm_loadu_ps(world + 0);
-	mWorldMatrix[1] = _mm_loadu_ps(world + 4);
-	mWorldMatrix[2] = _mm_loadu_ps(world + 8);
-	mWorldMatrix[3] = _mm_loadu_ps(world + 12);
+	mWorldMatrix[0] = ssp_loadu_ps(world + 0);
+	mWorldMatrix[1] = ssp_loadu_ps(world + 4);
+	mWorldMatrix[2] = ssp_loadu_ps(world + 8);
+	mWorldMatrix[3] = ssp_loadu_ps(world + 12);
 		
 	float3 center, half;
 	pModel->GetBoundsObjectSpace(&center, &half);

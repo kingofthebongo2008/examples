@@ -53,13 +53,13 @@ void TransformedMeshSSE::TransformVertices(__m128 *cumulativeMatrix,
 	for(i = start; i <= end; i++)
 	{
 		__m128 xform = TransformCoords(&mpVertices[i].position, cumulativeMatrix);
-		__m128 vertZ = _mm_shuffle_ps(xform, xform, 0xaa);
-		__m128 vertW = _mm_shuffle_ps(xform, xform, 0xff);
-		__m128 projected = _mm_div_ps(xform, vertW);
+		__m128 vertZ = ssp_shuffle_ps(xform, xform, 0xaa);
+		__m128 vertW = ssp_shuffle_ps(xform, xform, 0xff);
+		__m128 projected = ssp_div_ps(xform, vertW);
 
 		//set to all 0s if clipped by near clip plane
-		__m128 noNearClip = _mm_cmple_ps(vertZ, vertW);
-		mpXformedPos[idx][i] = _mm_and_ps(projected, noNearClip);
+		__m128 noNearClip = ssp_cmple_ps(vertZ, vertW);
+		mpXformedPos[idx][i] = ssp_and_ps(projected, noNearClip);
 	}
 }
 
@@ -117,39 +117,39 @@ void TransformedMeshSSE::BinTransformedTrianglesST(UINT taskId,
 		__m128i fxPtX[3], fxPtY[3];
 		for(int i = 0; i < 3; i++)
 		{
-			fxPtX[i] = _mm_cvtps_epi32(xformedPos[i].X);
-			fxPtY[i] = _mm_cvtps_epi32(xformedPos[i].Y);
+			fxPtX[i] = ssp_cvtps_epi32(xformedPos[i].X);
+			fxPtY[i] = ssp_cvtps_epi32(xformedPos[i].Y);
 		}
 
 		// Compute triangle are
-		__m128i triArea1 = _mm_sub_epi32(fxPtX[1], fxPtX[0]);
-		triArea1 = _mm_mullo_epi32(triArea1, _mm_sub_epi32(fxPtY[2], fxPtY[0]));
+		__m128i triArea1 = ssp_sub_epi32(fxPtX[1], fxPtX[0]);
+		triArea1 = ssp_mullo_epi32(triArea1, ssp_sub_epi32(fxPtY[2], fxPtY[0]));
 
-		__m128i triArea2 = _mm_sub_epi32(fxPtX[0], fxPtX[2]);
-		triArea2 = _mm_mullo_epi32(triArea2, _mm_sub_epi32(fxPtY[0], fxPtY[1]));
+		__m128i triArea2 = ssp_sub_epi32(fxPtX[0], fxPtX[2]);
+		triArea2 = ssp_mullo_epi32(triArea2, ssp_sub_epi32(fxPtY[0], fxPtY[1]));
 
-		__m128i triArea = _mm_sub_epi32(triArea1, triArea2);
+		__m128i triArea = ssp_sub_epi32(triArea1, triArea2);
 				
 		// Find bounding box for screen space triangle in terms of pixels
-		__m128i vStartX = Max(Min(Min(fxPtX[0], fxPtX[1]), fxPtX[2]), _mm_set1_epi32(0));
-		__m128i vEndX   = Min(Max(Max(fxPtX[0], fxPtX[1]), fxPtX[2]), _mm_set1_epi32(SCREENW - 1));
+		__m128i vStartX = Max(Min(Min(fxPtX[0], fxPtX[1]), fxPtX[2]), ssp_set1_epi32(0));
+		__m128i vEndX   = Min(Max(Max(fxPtX[0], fxPtX[1]), fxPtX[2]), ssp_set1_epi32(SCREENW - 1));
 
-        __m128i vStartY = Max(Min(Min(fxPtY[0], fxPtY[1]), fxPtY[2]), _mm_set1_epi32(0));
-        __m128i vEndY   = Min(Max(Max(fxPtY[0], fxPtY[1]), fxPtY[2]), _mm_set1_epi32(SCREENH - 1));
+        __m128i vStartY = Max(Min(Min(fxPtY[0], fxPtY[1]), fxPtY[2]), ssp_set1_epi32(0));
+        __m128i vEndY   = Min(Max(Max(fxPtY[0], fxPtY[1]), fxPtY[2]), ssp_set1_epi32(SCREENH - 1));
 
 		//Figure out which lanes are active
-		__m128i front = _mm_cmpgt_epi32(triArea, _mm_setzero_si128());
-		__m128i nonEmptyX = _mm_cmpgt_epi32(vEndX, vStartX);
-		__m128i nonEmptyY = _mm_cmpgt_epi32(vEndY, vStartY);
-		__m128 accept1 = _mm_castsi128_ps(_mm_and_si128(_mm_and_si128(front, nonEmptyX), nonEmptyY));
+		__m128i front = ssp_cmpgt_epi32(triArea, ssp_setzero_si128());
+		__m128i nonEmptyX = ssp_cmpgt_epi32(vEndX, vStartX);
+		__m128i nonEmptyY = ssp_cmpgt_epi32(vEndY, vStartY);
+		__m128 accept1 = ssp_castsi128_ps(ssp_and_si128(ssp_and_si128(front, nonEmptyX), nonEmptyY));
 
 		// All verts must be inside the near clip volume
-		__m128 W0 = _mm_cmpgt_ps(xformedPos[0].W, _mm_setzero_ps());
-		__m128 W1 = _mm_cmpgt_ps(xformedPos[1].W, _mm_setzero_ps());
-		__m128 W2 = _mm_cmpgt_ps(xformedPos[2].W, _mm_setzero_ps());
+		__m128 W0 = ssp_cmpgt_ps(xformedPos[0].W, ssp_setzero_ps());
+		__m128 W1 = ssp_cmpgt_ps(xformedPos[1].W, ssp_setzero_ps());
+		__m128 W2 = ssp_cmpgt_ps(xformedPos[2].W, ssp_setzero_ps());
 
-		__m128 accept = _mm_and_ps(_mm_and_ps(accept1, W0), _mm_and_ps(W1, W2));
-		unsigned int triMask = _mm_movemask_ps(accept) & laneMask; 
+		__m128 accept = ssp_and_ps(ssp_and_ps(accept1, W0), ssp_and_ps(W1, W2));
+		unsigned int triMask = ssp_movemask_ps(accept) & laneMask; 
 		
 		while(triMask)
 		{
@@ -214,38 +214,38 @@ void TransformedMeshSSE::BinTransformedTrianglesMT(UINT taskId,
 		__m128i fxPtX[3], fxPtY[3];	
 		for(int i = 0; i < 3; i++)
 		{
-			fxPtX[i] = _mm_cvtps_epi32(xformedPos[i].X);
-			fxPtY[i] = _mm_cvtps_epi32(xformedPos[i].Y);		
+			fxPtX[i] = ssp_cvtps_epi32(xformedPos[i].X);
+			fxPtY[i] = ssp_cvtps_epi32(xformedPos[i].Y);		
 		}
 
-		__m128i triArea1 = _mm_sub_epi32(fxPtX[1], fxPtX[0]);
-		triArea1 = _mm_mullo_epi32(triArea1, _mm_sub_epi32(fxPtY[2], fxPtY[0]));
+		__m128i triArea1 = ssp_sub_epi32(fxPtX[1], fxPtX[0]);
+		triArea1 = ssp_mullo_epi32(triArea1, ssp_sub_epi32(fxPtY[2], fxPtY[0]));
 
-		__m128i triArea2 = _mm_sub_epi32(fxPtX[0], fxPtX[2]);
-		triArea2 = _mm_mullo_epi32(triArea2, _mm_sub_epi32(fxPtY[0], fxPtY[1]));
+		__m128i triArea2 = ssp_sub_epi32(fxPtX[0], fxPtX[2]);
+		triArea2 = ssp_mullo_epi32(triArea2, ssp_sub_epi32(fxPtY[0], fxPtY[1]));
 
-		__m128i triArea = _mm_sub_epi32(triArea1, triArea2);
+		__m128i triArea = ssp_sub_epi32(triArea1, triArea2);
 		
 		// Find bounding box for screen space triangle in terms of pixels
-		__m128i vStartX = Max(Min(Min(fxPtX[0], fxPtX[1]), fxPtX[2]), _mm_set1_epi32(0));
-		__m128i vEndX   = Min(Max(Max(fxPtX[0], fxPtX[1]), fxPtX[2]), _mm_set1_epi32(SCREENW - 1));
+		__m128i vStartX = Max(Min(Min(fxPtX[0], fxPtX[1]), fxPtX[2]), ssp_set1_epi32(0));
+		__m128i vEndX   = Min(Max(Max(fxPtX[0], fxPtX[1]), fxPtX[2]), ssp_set1_epi32(SCREENW - 1));
 
-        __m128i vStartY = Max(Min(Min(fxPtY[0], fxPtY[1]), fxPtY[2]), _mm_set1_epi32(0));
-        __m128i vEndY   = Min(Max(Max(fxPtY[0], fxPtY[1]), fxPtY[2]),  _mm_set1_epi32(SCREENH -1));
+        __m128i vStartY = Max(Min(Min(fxPtY[0], fxPtY[1]), fxPtY[2]), ssp_set1_epi32(0));
+        __m128i vEndY   = Min(Max(Max(fxPtY[0], fxPtY[1]), fxPtY[2]),  ssp_set1_epi32(SCREENH -1));
 
 		//Figure out which lanes are active
-		__m128i front = _mm_cmpgt_epi32(triArea, _mm_setzero_si128());
-		__m128i nonEmptyX = _mm_cmpgt_epi32(vEndX, vStartX);
-		__m128i nonEmptyY = _mm_cmpgt_epi32(vEndY, vStartY);
-		__m128 accept1 = _mm_castsi128_ps(_mm_and_si128(_mm_and_si128(front, nonEmptyX), nonEmptyY));
+		__m128i front = ssp_cmpgt_epi32(triArea, ssp_setzero_si128());
+		__m128i nonEmptyX = ssp_cmpgt_epi32(vEndX, vStartX);
+		__m128i nonEmptyY = ssp_cmpgt_epi32(vEndY, vStartY);
+		__m128 accept1 = ssp_castsi128_ps(ssp_and_si128(ssp_and_si128(front, nonEmptyX), nonEmptyY));
 
 		// All verts must be inside the near clip volume
-		__m128 W0 = _mm_cmpgt_ps(xformedPos[0].W, _mm_setzero_ps());
-		__m128 W1 = _mm_cmpgt_ps(xformedPos[1].W, _mm_setzero_ps());
-		__m128 W2 = _mm_cmpgt_ps(xformedPos[2].W, _mm_setzero_ps());
+		__m128 W0 = ssp_cmpgt_ps(xformedPos[0].W, ssp_setzero_ps());
+		__m128 W1 = ssp_cmpgt_ps(xformedPos[1].W, ssp_setzero_ps());
+		__m128 W2 = ssp_cmpgt_ps(xformedPos[2].W, ssp_setzero_ps());
 
-		__m128 accept = _mm_and_ps(_mm_and_ps(accept1, W0), _mm_and_ps(W1, W2));
-		unsigned int triMask = _mm_movemask_ps(accept) & laneMask; 
+		__m128 accept = ssp_and_ps(ssp_and_ps(accept1, W0), ssp_and_ps(W1, W2));
+		unsigned int triMask = ssp_movemask_ps(accept) & laneMask; 
 			
 		while(triMask)
 		{
