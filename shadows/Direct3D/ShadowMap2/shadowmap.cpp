@@ -287,12 +287,13 @@ IDirect3DSurface9 *				g_iframe_depthbuffer_surface[2];
 IDirect3DSurface9 *				g_null_render_target;
 IDirect3DSurface9 *				g_null_depth_surface;
 
-IDirect3DTexture9 *             g_shadow_map;			 // Texture to which the shadow map is rendered
-IDirect3DSurface9 *             g_shadow_map_surface;     // Depth-stencil buffer for rendering to shadow map
+IDirect3DTexture9 *             g_shadow_map;			    // Texture to which the shadow map is rendered
+IDirect3DSurface9 *             g_shadow_map_surface;       // Depth-stencil buffer for rendering to shadow map
 
 IDirect3DTexture9 *             g_light_buffer;				// Texture to which the shadow map is rendered
 IDirect3DSurface9 *             g_light_buffer_surface;     // Depth-stencil buffer for rendering to shadow map
 
+IDirect3DTexture9 *             g_light_depth_buffer;		// Texture to which the shadow map is rendered
 IDirect3DSurface9 *				g_light_depth_surface;
 
 std::uint32_t					g_BackBufferWidth;
@@ -842,14 +843,18 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
 
     //Create two temporary buffers
     //v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, FOURCC_NULL, D3DMULTISAMPLE_4_SAMPLES, 0, FALSE, &g_null_render_target, NULL ) );
-    v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.BackBufferFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &g_null_render_target, NULL ) );
+    
+    //v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.BackBufferFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &g_null_render_target, NULL ) );
     v( pd3dDevice->CreateDepthStencilSurface( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.AutoDepthStencilFormat, D3DMULTISAMPLE_NONE, 0, FALSE, &g_null_depth_surface, NULL ) );
-
 
     v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_light_buffer, NULL ) );
     v( g_light_buffer->GetSurfaceLevel(0, &g_light_buffer_surface));
+
+
+    v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_light_depth_buffer, NULL ) );
+    v( g_light_depth_buffer->GetSurfaceLevel(0, &g_light_depth_surface));
+
     
-    v( pd3dDevice->CreateDepthStencilSurface( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.AutoDepthStencilFormat, D3DMULTISAMPLE_NONE, 0, FALSE, &g_light_depth_surface, NULL ) );
     
     g_BackBufferWidth = pBackBufferSurfaceDesc->Width;
 	g_BackBufferHeight = pBackBufferSurfaceDesc->Height;
@@ -1006,7 +1011,7 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
     SetAnimation_3( animation3 );
 
     
-    if (g_FrameStep % 4 == 0 )
+    if (g_FrameStep % 4 == 3 )
     {
         CopyTimeViewCameras();
         CopyTimeLightCameras();
@@ -1022,7 +1027,7 @@ void CALLBACK OnFrameMove( double fTime, float fElapsedTime, void* pUserContext 
 }
 
 //--------------------------------------------------------------------------------------
-// Renders the scene onto the current render target using the current
+// Renders the scene onto the current render target using the current 
 // technique in the effect.
 //--------------------------------------------------------------------------------------
 void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElapsedTime, const XMMATRIX* pmView,
@@ -1135,10 +1140,10 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
             v( g_pEffect->End() );
 
             // Render stats and help text
-            RenderText();
+            //RenderText();
 
             // Render the UI elements
-            g_HUD.OnRender( fElapsedTime );
+            //g_HUD.OnRender( fElapsedTime );
         }
 
         V( pd3dDevice->EndScene() );
@@ -1212,7 +1217,7 @@ void RenderIFrameStep1(IDirect3DDevice9* device, double fTime, float fElapsedTim
     ScopedRenderTargetDepthSurface surfaces(device);
 
     //simulate lower fps
-    ::Sleep(6);
+    ::Sleep(3);
 
     //Step 1
     //
@@ -1250,7 +1255,7 @@ void RenderIFrameStep2(IDirect3DDevice9* device, double fTime, float fElapsedTim
 
 
     //simulate lower fps
-    ::Sleep(6);
+    ::Sleep(3);
 
 
     //put animations for rendering
@@ -1297,14 +1302,14 @@ void RenderIFrameStep2(IDirect3DDevice9* device, double fTime, float fElapsedTim
 void RenderIFrameStep3(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step)
 {
     //simulate lower fps
-    ::Sleep(6);
+    ::Sleep(3);
 }
 
 void RenderIFrameStep4(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step)
 {
     CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep4" );
     //simulate lower fps
-    ::Sleep(6);
+    ::Sleep(3);
 }
 
 void RenderBFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step, uint32_t time_step_1, uint32_t time_step_2 )
@@ -1320,7 +1325,10 @@ void RenderBFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, vo
         const XMMATRIX  view = toMatrix(view_camera->GetViewMatrix());
         const XMMATRIX  proj = toMatrix(view_camera->GetProjMatrix());
 
-        device->SetRenderTarget(0, g_null_render_target);
+        CComPtr<IDirect3DSurface9>  back_buffer;
+        device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &back_buffer);
+
+        device->SetRenderTarget(0, back_buffer);
         device->SetDepthStencilSurface(g_null_depth_surface);
 
         //mark the static objects
@@ -1343,14 +1351,56 @@ void RenderBFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, vo
         const XMMATRIX  view_right = toMatrix(GetTimeViewCamera(time_step_2)->GetViewMatrix() );
 
         RenderSceneDepth(device, &view, &proj, &view_left, &view_right );
+
     }
 }
 
-void DisplayIFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step )
+void DisplayIFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext )
 {
     CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"DisplayIFrame" );
 
     DrawFullScreenQuad(device, g_light_buffer);
+
+    IDirect3DTexture9 **			frame_buffers[3] =
+    {
+        &g_iframe_back_buffer[0],
+        &g_iframe_back_buffer[1],
+        &g_light_buffer,
+    };
+
+    IDirect3DSurface9 **             frame_buffer_surfaces[3] =
+    {
+        &g_iframe_back_buffer_surface[0],
+        &g_iframe_back_buffer_surface[1],
+        &g_light_buffer_surface
+    };
+
+    IDirect3DTexture9 **	            depth_buffers[3]=
+    {
+        &g_iframe_depth_buffer[0],
+        &g_iframe_depth_buffer[1],
+        &g_light_depth_buffer,
+
+    };
+
+    IDirect3DSurface9 **	            depth_buffers_surfaces[3]=
+    {
+        &g_iframe_depthbuffer_surface[0],
+        &g_iframe_depthbuffer_surface[1],
+        &g_light_depth_surface
+    };
+
+    std::swap ( *frame_buffers[2], *frame_buffers[0] ) ;
+    std::swap ( *frame_buffers[0], *frame_buffers[1] ) ;
+
+    std::swap ( *frame_buffer_surfaces[2], *frame_buffer_surfaces[0] ) ;
+    std::swap ( *frame_buffer_surfaces[0], *frame_buffer_surfaces[1] ) ;
+
+    std::swap ( *depth_buffers[2], *depth_buffers[0] ) ;
+    std::swap ( *depth_buffers[0], *depth_buffers[1] ) ;
+
+    std::swap ( *depth_buffers_surfaces[2], *depth_buffers_surfaces[0] ) ;
+    std::swap ( *depth_buffers_surfaces[0], *depth_buffers_surfaces[1] ) ;
 }
 
 //--------------------------------------------------------------------------------------
@@ -1372,19 +1422,19 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
     if ( g_FrameStep % 4 == 0 )
     {
         RenderIFrameStep1( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
-        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 3, 4 );	// ( t-2, t-1, 1 / n )
+        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 4, 5 );	// ( t-2, t-1, 1 / n )
     }
 
     if ( g_FrameStep % 4 == 1 )
     {
         RenderIFrameStep2( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
-        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 3, 4 );	// ( t-2, t-1, 2 / n )
+        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 4, 5 );	// ( t-2, t-1, 2 / n )
     }
 
     if ( g_FrameStep % 4 == 2 )
     {
         RenderIFrameStep3( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
-        DisplayIFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 4);		// ( t-1 )
+        DisplayIFrame( pd3dDevice, fTime, fElapsedTime, pUserContext);		// ( t-1 )
     }
 
     if ( g_FrameStep % 4 == 3 )
@@ -1602,6 +1652,7 @@ void CALLBACK OnLostDevice( void* pUserContext )
     SAFE_RELEASE(g_light_buffer);
     SAFE_RELEASE(g_light_buffer_surface);
     SAFE_RELEASE(g_light_depth_surface);
+    SAFE_RELEASE(g_light_depth_buffer);
 }
 
 

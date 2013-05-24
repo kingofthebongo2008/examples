@@ -301,8 +301,7 @@ void VertDepthScene
                 float4 iPos : POSITION,
                 out float4 oPos : POSITION,
                 out float4 left_frame : TEXCOORD0,
-                out float4 right_frame: TEXCOORD1,
-                out float4 middle_frame: TEXCOORD2
+                out float4 right_frame: TEXCOORD1
 )
 {
     float4 pos;
@@ -325,31 +324,36 @@ void VertDepthScene
     right_frame = mul( pos_right, g_mProj );
 }
 
+float2 to_uv(float2 uv)
+{
+	return float2( uv.x , 1.0f - uv.y );
+}
 //-----------------------------------------------------------------------------
 // Pixel Shader: PixShadow
 // Desc: Process pixel for the shadow map
 //-----------------------------------------------------------------------------
 void PixDepthScene( out float4 Color : COLOR, float4 left_frame : TEXCOORD0, float4 right_frame: TEXCOORD1, float4 middle_frame: TEXCOORD2 )
 {
-    Color = float4( 1, 0, 0, 0);
+    Color = float4( 0, 0, 1, 0);
 
     left_frame /= left_frame.w;
     right_frame /= right_frame.w;
-    middle_frame /= middle_frame.w;
 
-    float left_frame_depth = tex2D( g_sam_depth_buffer_left, left_frame.xy * 0.5 + 0.5).r;
-    float right_frame_depth = tex2D( g_sam_depth_buffer_right, right_frame.xy * 0.5 + 0.5).r;
+    float left_frame_depth = tex2D(  g_sam_depth_buffer_left, to_uv ( left_frame.xy * 0.5 + 0.5 ) ).r;
+    float right_frame_depth = tex2D( g_sam_depth_buffer_right,to_uv ( right_frame.xy * 0.5 + 0.5) ).r;
 
-    float4 left_frame_image = tex2D( g_sam_frame_buffer_right, left_frame.xy * 0.5 + 0.5).r;
-    float4 right_frame_image = tex2D( g_sam_frame_buffer_right, right_frame.xy * 0.5 + 0.5).r;
+    float4 left_frame_image = tex2D( g_sam_frame_buffer_right, to_uv ( left_frame.xy * 0.5 + 0.5) );
+    float4 right_frame_image = tex2D( g_sam_frame_buffer_right, to_uv ( right_frame.xy * 0.5 + 0.5) );
 
-    float l = abs ( left_frame_depth - left_frame.z );
-    float r = abs ( right_frame_depth - right_frame.z );
+    float r = abs ( left_frame_depth - left_frame.z );
+    float l = abs ( right_frame_depth - right_frame.z );
 
-    if ( l < 0.0001)
+	float tolerance = 0.001;
+
+    if ( l < tolerance)
     {
         //both are visibile
-        if ( r < 0.0001)
+        if ( r < tolerance)
         {
             Color = ( left_frame_image + right_frame_image ) / 2;
         }
@@ -357,19 +361,21 @@ void PixDepthScene( out float4 Color : COLOR, float4 left_frame : TEXCOORD0, flo
         {
             //only left is visibile
             Color = left_frame_image;
+			Color = float4( 0, 1, 0, 0);
         }
     }
     else
     {
         //only right is visible
-        if ( r )
+        if ( r < tolerance )
         {
             Color = right_frame_image;
+			Color = float4( 1, 0, 0, 0);
         }
         else
         {
             //nothing is visible.
-            Color =  l < r ? left_frame_image : right_frame_image;
+            //Color =  l < r ? left_frame_image : right_frame_image;
         }
     }
 }
