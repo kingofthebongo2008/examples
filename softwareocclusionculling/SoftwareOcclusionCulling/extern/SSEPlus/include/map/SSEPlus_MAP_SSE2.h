@@ -439,7 +439,7 @@
 #define ssp_minpos_epu16         ssp_minpos_epu16_SSE2     
 #define ssp_mpsadbw_epu8         ssp_mpsadbw_epu8_SSE2     
 #define ssp_mul_epi32            ssp_mul_epi32_SSE2        
-#define ssp_mullo_epi32          ssp_mullo_epi32_REF      
+#define ssp_mullo_epi32          ssp_mullo_epi32_SSE2      
 #define ssp_packus_epi32         ssp_packus_epi32_SSE2     
 #define ssp_round_pd             ssp_round_pd_SSE2         
 #define ssp_round_ps             ssp_round_ps_SSE2         

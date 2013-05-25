@@ -1154,6 +1154,13 @@ SSP_FORCEINLINE __m128i ssp_xor_si128_SSE2( __m128i a, __m128i b )
     return _mm_xor_si128( a, b );
 }
 
+SSP_FORCEINLINE __m128i ssp_mullo_epi32_SSE2(__m128i a, __m128i b)
+{
+    __m128i tmp1 = _mm_mul_epu32(a,b); /* mul 2,0*/
+    __m128i tmp2 = _mm_mul_epu32( _mm_srli_si128(a,4), _mm_srli_si128(b,4)); /* mul 3,1 */
+    return _mm_unpacklo_epi32(_mm_shuffle_epi32(tmp1, _MM_SHUFFLE (0,0,2,0)), _mm_shuffle_epi32(tmp2, _MM_SHUFFLE (0,0,2,0))); /* shuffle results to [63..0] and pack */
+}
+
 //@}
 //@}
 
