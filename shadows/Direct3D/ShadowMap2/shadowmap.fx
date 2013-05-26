@@ -326,7 +326,12 @@ void VertDepthScene
 
 float2 to_uv(float2 uv)
 {
-	return float2( uv.x , 1.0f - uv.y );
+	return float2( uv.x, 1.0f - uv.y );
+}
+
+float2 to_texel(float2 pixel)
+{
+	return float2( pixel.x + 1.0f/640.0f , pixel.y + 1.0f / 480.0f );
 }
 //-----------------------------------------------------------------------------
 // Pixel Shader: PixShadow
@@ -339,16 +344,16 @@ void PixDepthScene( out float4 Color : COLOR, float4 left_frame : TEXCOORD0, flo
     left_frame /= left_frame.w;
     right_frame /= right_frame.w;
 
-    float left_frame_depth = tex2D(  g_sam_depth_buffer_left, to_uv ( left_frame.xy * 0.5 + 0.5 ) ).r;
-    float right_frame_depth = tex2D( g_sam_depth_buffer_right,to_uv ( right_frame.xy * 0.5 + 0.5) ).r;
+    float left_frame_depth = tex2D(  g_sam_depth_buffer_left, to_uv ( to_texel( left_frame.xy ) * 0.5 + 0.5 ) ).r;
+    float right_frame_depth = tex2D( g_sam_depth_buffer_right,to_uv ( to_texel( right_frame.xy ) * 0.5 + 0.5) ).r;
 
-    float4 left_frame_image = tex2D( g_sam_frame_buffer_right, to_uv ( left_frame.xy * 0.5 + 0.5) );
-    float4 right_frame_image = tex2D( g_sam_frame_buffer_right, to_uv ( right_frame.xy * 0.5 + 0.5) );
+    float4 left_frame_image = tex2D( g_sam_frame_buffer_right, to_uv ( to_texel( left_frame.xy ) * 0.5 + 0.5) );
+    float4 right_frame_image = tex2D( g_sam_frame_buffer_right, to_uv ( to_texel ( right_frame.xy ) * 0.5 + 0.5) );
 
     float r = abs ( left_frame_depth - left_frame.z );
-    float l = abs ( right_frame_depth - right_frame.z );
+    float l = abs ( right_frame_depth - right_frame.z);
 
-	float tolerance = 0.001;
+	float tolerance = 0.0001;
 
     if ( l < tolerance)
     {
