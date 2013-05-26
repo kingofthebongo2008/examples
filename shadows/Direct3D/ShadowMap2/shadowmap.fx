@@ -26,6 +26,8 @@ float	 g_Light_Space_Far_Z = 100.0f;
 float	 g_Light_Space_Near_Z = 1.0f;
 float4x4 g_mShadowProj;
 
+float4	 g_InverseScreenDimensions;	//screen width, screen height
+
 float4x4 g_mWorldView;
 float4x4 g_mWorldViewLeft;
 float4x4 g_mWorldViewRight;
@@ -331,7 +333,8 @@ float2 to_uv(float2 uv)
 
 float2 to_texel(float2 pixel)
 {
-	return float2( pixel.x + 1.0f/640.0f , pixel.y + 1.0f / 480.0f );
+	return float2( pixel + g_InverseScreenDimensions.xy ); 
+	//return float2( pixel.x + 1.0f / 640.0f , pixel.y + 1.0f / 480.0f );
 }
 //-----------------------------------------------------------------------------
 // Pixel Shader: PixShadow

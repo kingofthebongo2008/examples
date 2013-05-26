@@ -1172,6 +1172,11 @@ void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const XMMATRIX* pmView, con
         v( g_pEffect->SetTexture( "g_depth_buffer_left", g_iframe_depth_buffer[0] ) );
         v( g_pEffect->SetTexture( "g_depth_buffer_right", g_iframe_depth_buffer[1] ) );
 
+        //Aligned on the stack?
+        XMVECTOR v1 = XMVectorSet( 1.0f / static_cast<float> ( g_BackBufferWidth ) , 1.0f / static_cast<float> ( g_BackBufferHeight ), 0.0f, 0.0f );
+
+        v( g_pEffect->SetVector( "g_InverseScreenDimensions", (const D3DXVECTOR4*) &v1 ) );
+
         // Render the objects
         for( int obj = 0; obj < NUM_OBJ; ++obj )
         {
