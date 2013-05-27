@@ -6170,7 +6170,8 @@ void DXUTUpdateFrameStats()
         GetDXUTState().SetLastStatsUpdateFrames( 0 );
 
         WCHAR* pstrFPS = GetDXUTState().GetFPSStats();
-        swprintf_s( pstrFPS, 64, L"%0.2f fps ", fFPS );
+
+        swprintf_s( pstrFPS, 64, L"%0.2f ms ", 1000.0f / fFPS );
     }
 }
 
