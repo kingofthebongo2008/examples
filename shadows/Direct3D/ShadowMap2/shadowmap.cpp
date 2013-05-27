@@ -278,23 +278,16 @@ CFirstPersonCamera              g_Time_LCamera[6];  // Camera obj to help adjust
 CFirstPersonCamera              g_VCamera[6];           // View camera
 CFirstPersonCamera              g_LCamera[6];           // Camera obj to help adjust light
 
-IDirect3DTexture9 *				g_iframe_back_buffer[2];
-IDirect3DTexture9 *				g_iframe_depth_buffer[2];
-
-IDirect3DSurface9 *				g_iframe_back_buffer_surface[2];
-IDirect3DSurface9 *				g_iframe_depthbuffer_surface[2];
-
-IDirect3DSurface9 *				g_null_render_target;
-IDirect3DSurface9 *				g_null_depth_surface;
+IDirect3DTexture9 *				g_iframe_back_buffer[3];
+IDirect3DTexture9 *				g_iframe_depth_buffer[3];
 
 IDirect3DTexture9 *             g_shadow_map;			    // Texture to which the shadow map is rendered
 IDirect3DSurface9 *             g_shadow_map_surface;       // Depth-stencil buffer for rendering to shadow map
 
 IDirect3DTexture9 *             g_light_buffer;				// Texture to which the shadow map is rendered
-IDirect3DSurface9 *             g_light_buffer_surface;     // Depth-stencil buffer for rendering to shadow map
-
 IDirect3DTexture9 *             g_light_depth_buffer;		// Texture to which the shadow map is rendered
-IDirect3DSurface9 *				g_light_depth_surface;
+
+IDirect3DSurface9 *             g_null_depth_buffer_surface;       // Depth-stencil buffer for rendering to shadow map
 
 std::uint32_t					g_BackBufferWidth;
 std::uint32_t					g_BackBufferHeight;
@@ -831,30 +824,18 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
     //Create two temporary buffers
     v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_iframe_back_buffer[0], NULL ) );
     v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_iframe_back_buffer[1], NULL ) );
-
-    v( g_iframe_back_buffer[0]->GetSurfaceLevel(0, &g_iframe_back_buffer_surface[0]));
-    v( g_iframe_back_buffer[1]->GetSurfaceLevel(0, &g_iframe_back_buffer_surface[1]));
+    v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_iframe_back_buffer[2], NULL ) );
 
     v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_iframe_depth_buffer[0], NULL ) );
     v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_iframe_depth_buffer[1], NULL ) );
+    v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_iframe_depth_buffer[2], NULL ) );
 
-    v( g_iframe_depth_buffer[0]->GetSurfaceLevel(0, &g_iframe_depthbuffer_surface[0]));
-    v( g_iframe_depth_buffer[1]->GetSurfaceLevel(0, &g_iframe_depthbuffer_surface[1]));
-
-    //Create two temporary buffers
-    //v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, FOURCC_NULL, D3DMULTISAMPLE_4_SAMPLES, 0, FALSE, &g_null_render_target, NULL ) );
-    
-    //v( pd3dDevice->CreateRenderTarget( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.BackBufferFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &g_null_render_target, NULL ) );
-    v( pd3dDevice->CreateDepthStencilSurface( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.AutoDepthStencilFormat, D3DMULTISAMPLE_NONE, 0, FALSE, &g_null_depth_surface, NULL ) );
-
-    v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_RENDERTARGET, d3dSettings.d3d9.pp.BackBufferFormat, D3DPOOL_DEFAULT, &g_light_buffer, NULL ) );
-    v( g_light_buffer->GetSurfaceLevel(0, &g_light_buffer_surface));
+    v( pd3dDevice->CreateDepthStencilSurface( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, d3dSettings.d3d9.pp.AutoDepthStencilFormat, D3DMULTISAMPLE_NONE, 0, TRUE, &g_null_depth_buffer_surface, NULL ) );
 
 
-    v( pd3dDevice->CreateTexture( pBackBufferSurfaceDesc->Width, pBackBufferSurfaceDesc->Height, 1, D3DUSAGE_DEPTHSTENCIL, FOURCC_INTZ, D3DPOOL_DEFAULT, &g_light_depth_buffer, NULL ) );
-    v( g_light_depth_buffer->GetSurfaceLevel(0, &g_light_depth_surface));
+    g_light_buffer = g_iframe_back_buffer[2];
+    g_light_depth_buffer = g_iframe_depth_buffer[2];
 
-    
     
     g_BackBufferWidth = pBackBufferSurfaceDesc->Width;
 	g_BackBufferHeight = pBackBufferSurfaceDesc->Height;
@@ -1150,7 +1131,7 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
     }
 }
 
-void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const XMMATRIX* pmView, const XMMATRIX* pmProj, const XMMATRIX* view_left, const XMMATRIX* view_right )
+void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const XMMATRIX* pmView, const XMMATRIX* pmProj, const XMMATRIX* view_left, const XMMATRIX* view_right, float blending )
 {
     HRESULT hr;
 
@@ -1159,6 +1140,15 @@ void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const XMMATRIX* pmView, con
                           0x000000ff, 1.0f, 0L ) );
 
     v( g_pEffect->SetTechnique( "RenderSceneDepth" ) );
+
+
+    XMMATRIX view;// = XMMatrixMultiply( * view_left, *view_right );
+    
+    view.r[0] = XMVectorScale ( XMVectorAdd( view_left->r[0], view_right->r[0]), 0.5f  );
+    view.r[1] = XMVectorScale ( XMVectorAdd( view_left->r[1], view_right->r[1]), 0.5f  );
+    view.r[2] = XMVectorScale ( XMVectorAdd( view_left->r[2], view_right->r[2]), 0.5f  );
+    view.r[3] = XMVectorScale ( XMVectorAdd( view_left->r[3], view_right->r[3]), 0.5f  );
+
 
     // Begin the scene
     if( SUCCEEDED( pd3dDevice->BeginScene() ) )
@@ -1177,11 +1167,14 @@ void RenderSceneDepth( IDirect3DDevice9* pd3dDevice, const XMMATRIX* pmView, con
 
         v( g_pEffect->SetVector( "g_InverseScreenDimensions", (const D3DXVECTOR4*) &v1 ) );
 
+        v( g_pEffect->SetFloat( "g_WorldBlending",  blending ) );
+    
+
         // Render the objects
         for( int obj = 0; obj < NUM_OBJ; ++obj )
         {
             XMMATRIX mWorldView = *g_Obj[obj].m_pWorld;
-            mWorldView = XMMatrixMultiply(mWorldView, *pmView);
+            mWorldView = XMMatrixMultiply(mWorldView, view);
             
             v( g_pEffect->SetMatrix( "g_mWorldView",(const D3DXMATRIX*) &mWorldView ) );
 
@@ -1222,7 +1215,7 @@ void RenderIFrameStep1(IDirect3DDevice9* device, double fTime, float fElapsedTim
     ScopedRenderTargetDepthSurface surfaces(device);
 
     //simulate lower fps
-    ::Sleep(3);
+    ::Sleep(6);
 
     //Step 1
     //
@@ -1257,10 +1250,10 @@ void RenderIFrameStep1(IDirect3DDevice9* device, double fTime, float fElapsedTim
 void RenderIFrameStep2(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step)
 {
     CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep2" );
-
+    ScopedRenderTargetDepthSurface surfaces(device);
 
     //simulate lower fps
-    ::Sleep(3);
+    ::Sleep(6);
 
 
     //put animations for rendering
@@ -1289,12 +1282,16 @@ void RenderIFrameStep2(IDirect3DDevice9* device, double fTime, float fElapsedTim
     v( g_pEffect->SetMatrix( "g_mViewToLight", (const D3DXMATRIX* ) &mViewToLightProj ) );
 
     {
-        ScopedRenderTargetDepthSurface surfaces(device);
-
         CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"Scene" );
 
-        v( device->SetDepthStencilSurface( g_light_depth_surface ) );
-        v( device->SetRenderTarget( 0, g_light_buffer_surface ) );
+        CComPtr<IDirect3DSurface9> light_depth_surface;
+        CComPtr<IDirect3DSurface9> light_buffer_surface;
+
+        v(g_light_depth_buffer->GetSurfaceLevel(0, &light_depth_surface));
+        v(g_light_buffer->GetSurfaceLevel(0, &light_buffer_surface));
+
+        v( device->SetDepthStencilSurface( light_depth_surface ) );
+        v( device->SetRenderTarget( 0, light_buffer_surface ) );
 
         XMMATRIX view = toMatrix( view_camera->GetProjMatrix() );
 
@@ -1306,35 +1303,30 @@ void RenderIFrameStep2(IDirect3DDevice9* device, double fTime, float fElapsedTim
 
 void RenderIFrameStep3(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step)
 {
+    CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep3" );
     //simulate lower fps
-    ::Sleep(3);
+    ::Sleep(6);
 }
 
 void RenderIFrameStep4(IDirect3DDevice9* pd3dDevice, double fTime, float fElapsedTime, void* pUserContext, uint32_t time_step)
 {
     CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderIFrameStep4" );
     //simulate lower fps
-    ::Sleep(3);
+    ::Sleep(6);
 }
 
-void RenderBFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step, uint32_t time_step_1, uint32_t time_step_2 )
+void RenderBFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext, uint32_t frame_step, uint32_t time_step_1, uint32_t time_step_2, float blending )
 {
+
     CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"RenderBFrame" );
-    ScopedRenderTargetDepthSurface surfaces(device);
+    //ScopedRenderTargetDepthSurface surfaces(device);
 
     {
-        CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"Depth" );
         ScopedAnimations animations(frame_step);
 
         CFirstPersonCamera* view_camera = GetViewCamera(frame_step);
         const XMMATRIX  view = toMatrix(view_camera->GetViewMatrix());
         const XMMATRIX  proj = toMatrix(view_camera->GetProjMatrix());
-
-        CComPtr<IDirect3DSurface9>  back_buffer;
-        device->GetBackBuffer(0, 0, D3DBACKBUFFER_TYPE_MONO, &back_buffer);
-
-        device->SetRenderTarget(0, back_buffer);
-        device->SetDepthStencilSurface(g_null_depth_surface);
 
         //mark the static objects
         for( int i = 0; i < NUM_OBJ; ++i )
@@ -1355,57 +1347,42 @@ void RenderBFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, vo
         const XMMATRIX  view_left = toMatrix(GetTimeViewCamera(time_step_1)->GetViewMatrix() );
         const XMMATRIX  view_right = toMatrix(GetTimeViewCamera(time_step_2)->GetViewMatrix() );
 
-        RenderSceneDepth(device, &view, &proj, &view_left, &view_right );
-
+        RenderSceneDepth(device, &view, &proj, &view_left, &view_right, blending );
     }
 }
 
 void DisplayIFrame(IDirect3DDevice9* device, double fTime, float fElapsedTime, void* pUserContext )
 {
-    CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"DisplayIFrame" );
+    
+    //CDXUTPerfEventGenerator g( DXUT_PERFEVENTCOLOR, L"DisplayIFrame" );
 
-    DrawFullScreenQuad(device, g_light_buffer);
+    //DrawFullScreenQuad(device, g_light_buffer );
 
+    
     IDirect3DTexture9 **			frame_buffers[3] =
     {
         &g_iframe_back_buffer[0],
         &g_iframe_back_buffer[1],
-        &g_light_buffer,
-    };
-
-    IDirect3DSurface9 **             frame_buffer_surfaces[3] =
-    {
-        &g_iframe_back_buffer_surface[0],
-        &g_iframe_back_buffer_surface[1],
-        &g_light_buffer_surface
+        &g_iframe_back_buffer[2],
     };
 
     IDirect3DTexture9 **	            depth_buffers[3]=
     {
         &g_iframe_depth_buffer[0],
         &g_iframe_depth_buffer[1],
-        &g_light_depth_buffer,
+        &g_iframe_depth_buffer[2],
 
-    };
-
-    IDirect3DSurface9 **	            depth_buffers_surfaces[3]=
-    {
-        &g_iframe_depthbuffer_surface[0],
-        &g_iframe_depthbuffer_surface[1],
-        &g_light_depth_surface
     };
 
     std::swap ( *frame_buffers[2], *frame_buffers[0] ) ;
     std::swap ( *frame_buffers[0], *frame_buffers[1] ) ;
 
-    std::swap ( *frame_buffer_surfaces[2], *frame_buffer_surfaces[0] ) ;
-    std::swap ( *frame_buffer_surfaces[0], *frame_buffer_surfaces[1] ) ;
-
     std::swap ( *depth_buffers[2], *depth_buffers[0] ) ;
     std::swap ( *depth_buffers[0], *depth_buffers[1] ) ;
 
-    std::swap ( *depth_buffers_surfaces[2], *depth_buffers_surfaces[0] ) ;
-    std::swap ( *depth_buffers_surfaces[0], *depth_buffers_surfaces[1] ) ;
+    g_light_buffer = g_iframe_back_buffer[2];
+    g_light_depth_buffer = g_iframe_depth_buffer[2];
+    
 }
 
 //--------------------------------------------------------------------------------------
@@ -1427,25 +1404,25 @@ void CALLBACK OnFrameRender( IDirect3DDevice9* pd3dDevice, double fTime, float f
     if ( g_FrameStep % 4 == 0 )
     {
         RenderIFrameStep1( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
-        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 4, 5 );	// ( t-2, t-1, 1 / n )
+        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 4, 5, 1.0f / 4.0f );	// ( t-2, t-1, 1 / n )
     }
 
     if ( g_FrameStep % 4 == 1 )
     {
         RenderIFrameStep2( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
-        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 4, 5 );	// ( t-2, t-1, 2 / n )
+        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 4, 5 , 2 * 1.0f / 4.0f );	// ( t-2, t-1, 2 / n )
     }
 
     if ( g_FrameStep % 4 == 2 )
     {
         RenderIFrameStep3( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
-        DisplayIFrame( pd3dDevice, fTime, fElapsedTime, pUserContext);		// ( t-1 )
+        DisplayIFrame( pd3dDevice, fTime, fElapsedTime, pUserContext);		    // ( t-1 )
     }
 
     if ( g_FrameStep % 4 == 3 )
     {
         RenderIFrameStep4( pd3dDevice, fTime, fElapsedTime, pUserContext, 5);	// t
-        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 4, 5 );	// ( t-1, t, 1 / n)
+        RenderBFrame( pd3dDevice, fTime, fElapsedTime, pUserContext, 5, 4, 5, 1.0f / 4.0f );	// ( t-1, t, 1 / n)
     }
 
     g_FrameStep++;
@@ -1640,24 +1617,14 @@ void CALLBACK OnLostDevice( void* pUserContext )
 
     SAFE_RELEASE( g_iframe_back_buffer[0] );
     SAFE_RELEASE( g_iframe_back_buffer[1] );
-
-    SAFE_RELEASE( g_iframe_back_buffer_surface[0] );
-    SAFE_RELEASE( g_iframe_back_buffer_surface[1] );
-
+    SAFE_RELEASE( g_iframe_back_buffer[2] );
 
     SAFE_RELEASE( g_iframe_depth_buffer[0] ); 
     SAFE_RELEASE( g_iframe_depth_buffer[1] ); 
+    SAFE_RELEASE( g_iframe_depth_buffer[2] ); 
 
-    SAFE_RELEASE( g_iframe_depthbuffer_surface[0] ); 
-    SAFE_RELEASE( g_iframe_depthbuffer_surface[1] ); 
+    SAFE_RELEASE( g_null_depth_buffer_surface );
 
-    SAFE_RELEASE(g_null_render_target);
-    SAFE_RELEASE(g_null_depth_surface);
-
-    SAFE_RELEASE(g_light_buffer);
-    SAFE_RELEASE(g_light_buffer_surface);
-    SAFE_RELEASE(g_light_depth_surface);
-    SAFE_RELEASE(g_light_depth_buffer);
 }
 
 

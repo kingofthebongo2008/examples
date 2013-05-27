@@ -31,6 +31,7 @@ float4	 g_InverseScreenDimensions;	//screen width, screen height
 float4x4 g_mWorldView;
 float4x4 g_mWorldViewLeft;
 float4x4 g_mWorldViewRight;
+float	 g_WorldBlending;
 
 sampler2D g_samScene =
 sampler_state
@@ -62,9 +63,9 @@ sampler2D g_sam_frame_buffer_left =
 sampler_state
 {
     Texture = <g_frame_buffer_left>;
-    MinFilter = Point;
-    MagFilter = Point;
-    MipFilter = Point;
+    MinFilter = Linear;
+    MagFilter = Linear;
+    MipFilter = Linear;
     AddressU = Clamp;
     AddressV = Clamp;
 };
@@ -73,9 +74,9 @@ sampler2D g_sam_frame_buffer_right =
 sampler_state
 {
     Texture = <g_frame_buffer_right>;
-    MinFilter = Point;
-    MagFilter = Point;
-    MipFilter = Point;
+    MinFilter = Linear;
+    MagFilter = Linear;
+    MipFilter = Linear;
     AddressU = Clamp;
     AddressV = Clamp;
 };
@@ -340,7 +341,7 @@ float2 to_texel(float2 pixel)
 // Pixel Shader: PixShadow
 // Desc: Process pixel for the shadow map
 //-----------------------------------------------------------------------------
-void PixDepthScene( out float4 Color : COLOR, float4 left_frame : TEXCOORD0, float4 right_frame: TEXCOORD1, float4 middle_frame: TEXCOORD2 )
+void PixDepthScene( out float4 Color : COLOR, float4 left_frame : TEXCOORD0, float4 right_frame: TEXCOORD1)
 {
     Color = float4( 0, 0, 1, 0);
 
@@ -350,11 +351,11 @@ void PixDepthScene( out float4 Color : COLOR, float4 left_frame : TEXCOORD0, flo
     float left_frame_depth = tex2D(  g_sam_depth_buffer_left, to_uv ( to_texel( left_frame.xy ) * 0.5 + 0.5 ) ).r;
     float right_frame_depth = tex2D( g_sam_depth_buffer_right,to_uv ( to_texel( right_frame.xy ) * 0.5 + 0.5) ).r;
 
-    float4 left_frame_image = tex2D( g_sam_frame_buffer_right, to_uv ( to_texel( left_frame.xy ) * 0.5 + 0.5) );
+    float4 left_frame_image = tex2D( g_sam_frame_buffer_left, to_uv ( to_texel( left_frame.xy ) * 0.5 + 0.5) );
     float4 right_frame_image = tex2D( g_sam_frame_buffer_right, to_uv ( to_texel ( right_frame.xy ) * 0.5 + 0.5) );
-
-    float r = abs ( left_frame_depth - left_frame.z );
-    float l = abs ( right_frame_depth - right_frame.z);
+ 
+    float l = abs ( left_frame_depth - left_frame.z );
+    float r = abs ( right_frame_depth - right_frame.z);
 
 	float tolerance = 0.0001;
 
@@ -363,13 +364,13 @@ void PixDepthScene( out float4 Color : COLOR, float4 left_frame : TEXCOORD0, flo
         //both are visibile
         if ( r < tolerance)
         {
-            Color = ( left_frame_image + right_frame_image ) / 2;
+            Color = lerp ( left_frame_image, right_frame_image, g_WorldBlending ); //( left_frame_image + right_frame_image ) / 2;
         }
         else
         {
             //only left is visibile
             Color = left_frame_image;
-			Color = float4( 0, 1, 0, 0);
+			//Color = float4( 0, 1, 0, 0);
         }
     }
     else
@@ -378,7 +379,7 @@ void PixDepthScene( out float4 Color : COLOR, float4 left_frame : TEXCOORD0, flo
         if ( r < tolerance )
         {
             Color = right_frame_image;
-			Color = float4( 1, 0, 0, 0);
+			//Color = float4( 1, 0, 0, 0);
         }
         else
         {
