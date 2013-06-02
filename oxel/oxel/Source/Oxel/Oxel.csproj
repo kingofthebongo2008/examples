@@ -1,0 +1,362 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <ProjectType>Local</ProjectType>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{FEA58BC4-0000-0000-0000-000000000000}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ApplicationIcon>Images\bunny.ico</ApplicationIcon>
+    <AssemblyKeyContainerName>
+    </AssemblyKeyContainerName>
+    <AssemblyName>Oxel</AssemblyName>
+    <AssemblyOriginatorKeyFile>OpenTK.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>false</SignAssembly>
+    <DefaultClientScript>JScript</DefaultClientScript>
+    <DefaultHTMLPageLayout>Grid</DefaultHTMLPageLayout>
+    <DefaultTargetSchema>IE50</DefaultTargetSchema>
+    <DelaySign>false</DelaySign>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>
+    </AppDesignerFolder>
+    <RootNamespace>Oxel</RootNamespace>
+    <StartupObject>
+    </StartupObject>
+    <StartArguments>
+    </StartArguments>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Bin\x64\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;</DefineConstants>
+    <BaseAddress>285212672</BaseAddress>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <FileAlignment>4096</FileAlignment>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Bin\x64\Release\</OutputPath>
+    <BaseAddress>285212672</BaseAddress>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <FileAlignment>4096</FileAlignment>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Bin\x86\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE;</DefineConstants>
+    <BaseAddress>285212672</BaseAddress>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <FileAlignment>4096</FileAlignment>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisLogFile>..\..\Bin\x32\Debug\Oxel.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>..\..\Bin\x86\Release\</OutputPath>
+    <BaseAddress>285212672</BaseAddress>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <FileAlignment>4096</FileAlignment>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x86</PlatformTarget>
+    <CodeAnalysisLogFile>..\..\Bin\x32\Release\Oxel.exe.CodeAnalysisLog.xml</CodeAnalysisLogFile>
+    <CodeAnalysisUseTypeNameInSuppression>true</CodeAnalysisUseTypeNameInSuppression>
+    <CodeAnalysisModuleSuppressionsFile>GlobalSuppressions.cs</CodeAnalysisModuleSuppressionsFile>
+    <UseVSHostingProcess>false</UseVSHostingProcess>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSetDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\\Rule Sets</CodeAnalysisRuleSetDirectories>
+    <CodeAnalysisIgnoreBuiltInRuleSets>true</CodeAnalysisIgnoreBuiltInRuleSets>
+    <CodeAnalysisRuleDirectories>;C:\Program Files (x86)\Microsoft Visual Studio 10.0\Team Tools\Static Analysis Tools\FxCop\\Rules</CodeAnalysisRuleDirectories>
+    <CodeAnalysisIgnoreBuiltInRules>true</CodeAnalysisIgnoreBuiltInRules>
+    <CodeAnalysisFailOnMissingRules>false</CodeAnalysisFailOnMissingRules>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Cloo">
+      <HintPath>Assemblies\Cloo.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Assemblies\OpenTK.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="OpenTK.GLControl, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Assemblies\OpenTK.GLControl.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System">
+      <Name>System</Name>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data">
+      <Name>System.Data</Name>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Drawing">
+      <Name>System.Drawing</Name>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms">
+      <Name>System.Windows.Forms</Name>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Name>System.Xml</Name>
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AboutDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="AboutDialog.Designer.cs">
+      <DependentUpon>AboutDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CommandLineParser.cs" />
+    <Compile Include="Edge.cs" />
+    <Compile Include="Exporters\IExporter.cs" />
+    <Compile Include="Exporters\WavefrontObjectExporter.cs" />
+    <Compile Include="FpsCamera.cs" />
+    <Compile Include="Geometry\BestFit.cs" />
+    <Compile Include="Geometry\FloatUtility.cs" />
+    <Compile Include="Geometry\PlaneSideResult.cs" />
+    <Compile Include="Geometry\Vector3Ex.cs" />
+    <Compile Include="Importers\IImporter.cs" />
+    <Compile Include="Importers\WavefrontObjectImporter.cs" />
+    <Compile Include="Importers\WavefrontObjLoader.cs" />
+    <Compile Include="IOFactory.cs" />
+    <Compile Include="Logger.cs" />
+    <Compile Include="MathEx.cs" />
+    <Compile Include="Mesh.cs" />
+    <Compile Include="MeshBuilder.cs" />
+    <Compile Include="MeshOptimizer.cs" />
+    <Compile Include="OccluderBoxExpansion.Density.cs" />
+    <Compile Include="OccluderBoxExpansion.Fill.cs" />
+    <Compile Include="Opertions.cs" />
+    <Compile Include="Poly2Tri\P2T.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\DelaunayTriangle.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\AdvancingFront.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\AdvancingFrontNode.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweep.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepBasin.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepConstraint.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepContext.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepDebugContext.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepEdgeEvent.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepPointComparator.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\PointOnEdgeException.cs" />
+    <Compile Include="Poly2Tri\Triangulation\ITriangulatable.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Orientation.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Polygon\Contour.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Polygon\Polygon.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Polygon\PolygonPoint.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Polygon\PolygonSet.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Polygon\PolygonUtil.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Sets\ConstrainedPointSet.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Sets\PointSet.cs" />
+    <Compile Include="Poly2Tri\Triangulation\TriangulationAlgorithm.cs" />
+    <Compile Include="Poly2Tri\Triangulation\TriangulationConstraint.cs" />
+    <Compile Include="Poly2Tri\Triangulation\TriangulationContext.cs" />
+    <Compile Include="Poly2Tri\Triangulation\TriangulationDebugContext.cs" />
+    <Compile Include="Poly2Tri\Triangulation\TriangulationMode.cs" />
+    <Compile Include="Poly2Tri\Triangulation\TriangulationPoint.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Util\PointGenerator.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Util\PolygonGenerator.cs" />
+    <Compile Include="Poly2Tri\Triangulation\Util\TriangulationUtil.cs" />
+    <Compile Include="Poly2Tri\Utility\FixedArray3.cs" />
+    <Compile Include="Poly2Tri\Utility\FixedBitArray3.cs" />
+    <Compile Include="Poly2Tri\Utility\MathUtil.cs" />
+    <Compile Include="Poly2Tri\Utility\Point2D.cs" />
+    <Compile Include="Poly2Tri\Utility\Point2DList.cs" />
+    <Compile Include="Poly2Tri\Utility\Rect2D.cs" />
+    <Compile Include="PolygonFilter.cs" />
+    <Compile Include="UpdateChecker.cs" />
+    <Compile Include="User32.cs" />
+    <Compile Include="VoxelField.cs" />
+    <Compile Include="IOccluderGenerator.cs" />
+    <Compile Include="OccluderBoxExpansion.cs" />
+    <Compile Include="OccluderOctree.cs" />
+    <Compile Include="OpenGL\GLEx.cs" />
+    <Compile Include="ProgressBarEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ProgressDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProgressDialog.Designer.cs">
+      <DependentUpon>ProgressDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="QuickFont\Builder.cs" />
+    <Compile Include="QuickFont\JBitmap.cs" />
+    <Compile Include="QuickFont\JMath.cs" />
+    <Compile Include="QuickFont\JTexture.cs" />
+    <Compile Include="QuickFont\JTextureManager.cs" />
+    <Compile Include="QuickFont\KerningCalculator.cs" />
+    <Compile Include="QuickFont\ProjectionStack.cs" />
+    <Compile Include="QuickFont\QBitmap.cs" />
+    <Compile Include="QuickFont\QFont.cs" />
+    <Compile Include="QuickFont\QFontBuilderConfiguration.cs" />
+    <Compile Include="QuickFont\QFontData.cs" />
+    <Compile Include="QuickFont\QFontGlyph.cs" />
+    <Compile Include="QuickFont\QFontRenderOptions.cs" />
+    <Compile Include="QuickFont\QFontShadowConfiguration.cs" />
+    <Compile Include="QuickFont\TextNodeList.cs" />
+    <Compile Include="QuickFont\TexturePage.cs" />
+    <Compile Include="RenderableMesh.cs" />
+    <Compile Include="RobustVoxelizer.cs" />
+    <Compile Include="SilhouetteOcclusionValidator.cs" />
+    <Compile Include="UI\PercentageConverter.cs" />
+    <Compile Include="VoxelizationContext.cs" />
+    <Compile Include="VoxelizationInput.cs" />
+    <Compile Include="VoxelizationOutput.cs" />
+    <Compile Include="VoxelizationProgress.cs" />
+    <Compile Include="VoxelizingOctree.cs" />
+    <Content Include="Images\Update.ico" />
+    <Content Include="Images\bunny.ico" />
+    <Compile Include="Importers\MeshData.cs" />
+    <Compile Include="MainWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainWindow.Designer.cs">
+      <DependentUpon>MainWindow.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Geometry\Frustum.cs" />
+    <Compile Include="Geometry\GeometryUtility.cs" />
+    <Compile Include="Geometry\Matrix4Ex.cs" />
+    <Compile Include="Geometry\QuaternionEx.cs" />
+    <Compile Include="Tools\MeshWelder.cs" />
+    <Compile Include="CSG\CSGCategorization.cs" />
+    <Compile Include="CSG\CSGMesh.cs" />
+    <Compile Include="CSG\CSGTree.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CSG\CSGNode.cs" />
+    <Compile Include="CSG\CSGNodeType.cs" />
+    <Compile Include="CSG\CSGUtility.cs" />
+    <Compile Include="Geometry\AABBi.cs" />
+    <Compile Include="Geometry\AABBf.cs" />
+    <Compile Include="CSG\Constants.cs" />
+    <Compile Include="CSG\HalfEdge.cs" />
+    <Compile Include="Geometry\Plane.cs" />
+    <Compile Include="CSG\Polygon.cs" />
+    <Compile Include="CSG\PolygonCategory.cs" />
+    <Compile Include="CSG\PolygonSplitResult.cs" />
+    <Compile Include="Geometry\Ray.cs" />
+    <Compile Include="Geometry\Triangle.cs" />
+    <Compile Include="Geometry\Vector3i.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs">
+      <SubType>Code</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.2.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 2.0 %28x86%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.0">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.0 %28x86%29</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Fonts\consolab.ttf" />
+    <EmbeddedResource Include="AboutDialog.resx">
+      <DependentUpon>AboutDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Shaders\ps_FrontBack.glsl" />
+    <None Include="Shaders\vs_FrontBack.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Images\bunny.png" />
+    <EmbeddedResource Include="Assemblies\Cloo.dll" />
+    <EmbeddedResource Include="Assemblies\OpenTK.dll" />
+    <EmbeddedResource Include="Assemblies\OpenTK.GLControl.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="MainWindow.resx">
+      <DependentUpon>MainWindow.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProgressDialog.resx">
+      <DependentUpon>ProgressDialog.cs</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+    <PostBuildEvent>
+    </PostBuildEvent>
+  </PropertyGroup>
+</Project>
