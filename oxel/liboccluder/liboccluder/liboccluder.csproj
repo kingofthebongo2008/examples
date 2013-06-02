@@ -1,0 +1,318 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{342EE1D3-95F1-44AD-9589-5D7779031E94}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>liboccluder</RootNamespace>
+    <AssemblyName>liboccluder</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>ExtendedDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
+    <RegisterForComInterop>false</RegisterForComInterop>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>liboccluder.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Cloo">
+      <HintPath>..\..\..\..\cloo\Cloo\bin\Release\Cloo.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK">
+      <HintPath>extern\OpenTK.dll</HintPath>
+    </Reference>
+    <Reference Include="OpenTK.GLControl">
+      <HintPath>extern\OpenTK.GLControl.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Class1.cs" />
+    <Compile Include="CommandLineParser.cs" />
+    <Compile Include="CSG\Constants.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CSG\CSGCategorization.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CSG\CSGMesh.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CSG\CSGNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CSG\CSGNodeType.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CSG\CSGTree.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CSG\CSGUtility.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CSG\HalfEdge.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CSG\Polygon.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CSG\PolygonCategory.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="CSG\PolygonSplitResult.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Edge.cs" />
+    <Compile Include="Geometry\AABBf.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\AABBi.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\BestFit.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\FloatUtility.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\Frustum.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\GeometryUtility.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\Matrix4Ex.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\Plane.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\PlaneSideResult.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\QuaternionEx.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\Ray.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\Triangle.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\Vector3Ex.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Geometry\Vector3i.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Importers\IImporter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Importers\MeshData.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Importers\WavefrontObjectImporter.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Importers\WavefrontObjLoader.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IOccluderGenerator.cs" />
+    <Compile Include="MathEx.cs" />
+    <Compile Include="Mesh.cs" />
+    <Compile Include="MeshBuilder.cs" />
+    <Compile Include="MeshOptimizer.cs" />
+    <Compile Include="OccluderBoxExpansion.cs" />
+    <Compile Include="OccluderBoxExpansion.Density.cs" />
+    <Compile Include="OccluderBoxExpansion.Fill.cs" />
+    <Compile Include="OccluderOctree.cs" />
+    <Compile Include="OpenGL\GLEx.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\P2T.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\DelaunayTriangle.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\AdvancingFront.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\AdvancingFrontNode.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweep.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepBasin.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepConstraint.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepDebugContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepEdgeEvent.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\DTSweepPointComparator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Delaunay\Sweep\PointOnEdgeException.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\ITriangulatable.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Orientation.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Polygon\Contour.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Polygon\Polygon.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Polygon\PolygonPoint.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Polygon\PolygonSet.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Polygon\PolygonUtil.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Sets\ConstrainedPointSet.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Sets\PointSet.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\TriangulationAlgorithm.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\TriangulationConstraint.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\TriangulationContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\TriangulationDebugContext.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\TriangulationMode.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\TriangulationPoint.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Util\PointGenerator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Util\PolygonGenerator.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Triangulation\Util\TriangulationUtil.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Utility\FixedArray3.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Utility\FixedBitArray3.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Utility\MathUtil.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Utility\Point2D.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Utility\Point2DList.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Poly2Tri\Utility\Rect2D.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="PolygonFilter.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="RenderableMesh.cs" />
+    <Compile Include="RobustVoxelizer.cs" />
+    <Compile Include="SilhouetteOcclusionValidator.cs" />
+    <Compile Include="Tools\MeshWelder.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="UI\PercentageConverter.cs" />
+    <Compile Include="VoxelField.cs" />
+    <Compile Include="VoxelizationContext.cs" />
+    <Compile Include="VoxelizationInput.cs" />
+    <Compile Include="VoxelizationOutput.cs" />
+    <Compile Include="VoxelizationProgress.cs" />
+    <Compile Include="VoxelizingOctree.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="liboccluder.snk" />
+    <None Include="Shaders\ps_FrontBack.glsl" />
+    <None Include="Shaders\vs_FrontBack.glsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="CSG\Readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\Resources\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>Properties</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
