@@ -31,7 +31,7 @@ float4	 g_InverseScreenDimensions;	//screen width, screen height
 float4x4 g_mWorldView;
 float4x4 g_mWorldViewLeft;
 float4x4 g_mWorldViewRight;
-float	 g_WorldBlending;
+float  	 g_WorldBlending;
 
 sampler2D g_samScene =
 sampler_state
@@ -58,6 +58,8 @@ texture  g_frame_buffer_right;
 
 texture  g_depth_buffer_left;
 texture  g_depth_buffer_right;
+
+texture  g_refresh_pattern;
 
 sampler2D g_sam_frame_buffer_left =
 sampler_state
@@ -88,14 +90,30 @@ sampler_state
     MinFilter = Point;
     MagFilter = Point;
     MipFilter = Point;
-    AddressU = Clamp;
-    AddressV = Clamp;
+    AddressU  =	Border;
+    AddressV  = Border;
+	AddressW  = Border;
+	BorderColor = float4(1.0f, 1.0f, 1.0f, 1.0f );
 };
 
 sampler2D g_sam_depth_buffer_right =
 sampler_state
 {
     Texture = <g_depth_buffer_right>;
+    MinFilter = Point;
+    MagFilter = Point;
+    MipFilter = Point;
+    AddressU  =	Border;
+    AddressV  = Border;
+	AddressW  = Border;
+	BorderColor = float4(1.0f, 1.0f, 1.0f, 1.0f );
+};
+
+
+sampler2D g_sam_refresh_pattern =
+sampler_state
+{
+    Texture = <g_refresh_pattern>;
     MinFilter = Point;
     MagFilter = Point;
     MipFilter = Point;
@@ -181,7 +199,9 @@ float4 PixScene( float2 Tex : TEXCOORD0,
                  float4 vPos : TEXCOORD1,
                  float3 vNormal : TEXCOORD2,
                  float4 vPosLight : TEXCOORD3,
-				 float4 left_frame : TEXCOORD4
+				 float4 left_frame : TEXCOORD4,
+
+				 uniform float pattern
 				  ) : COLOR
 {
 	left_frame /= left_frame.w;
@@ -192,9 +212,11 @@ float4 PixScene( float2 Tex : TEXCOORD0,
     float l = abs ( left_frame_depth - left_frame.z );
 	float tolerance = 0.001f;
 
-	if ( l < tolerance && g_WorldBlending != 3.0f )
+	float refresh_pattern = tex2D( g_sam_refresh_pattern, to_uv ( to_texel( left_frame.xy ) * 0.5 + 0.5 ) ).a;
+
+	if ( l < tolerance && refresh_pattern != pattern ) // && refresh_pattern != g_WorldBlending) // != 3.0f )
 	{
-		return  left_frame_image; //float4(1.0, 0.0, 0.0, 0.0);
+		return float4(1.0, 0.0, 0.0, 0.0); //left_frame_image;// float4(1.0, 0.0, 0.0, 0.0); //left_frame_image; //float4(1.0, 0.0, 0.0, 0.0);
 	}
 	else
 	{
@@ -419,18 +441,45 @@ void PixDepthScene( out float4 Color : COLOR, float4 left_frame : TEXCOORD0, flo
 // Technique: RenderScene
 // Desc: Renders scene objects
 //-----------------------------------------------------------------------------
-technique RenderScene
+technique RenderScene0
 {
     pass p0
     {
         CullMode = CCW;
         VertexShader = compile vs_3_0 VertScene();
-        PixelShader = compile ps_3_0 PixScene();
+        PixelShader = compile ps_3_0 PixScene( 0.0f / 255.0f );
     }
 }
 
+technique RenderScene1
+{
+    pass p0
+    {
+        CullMode = CCW;
+        VertexShader = compile vs_3_0 VertScene();
+        PixelShader = compile ps_3_0 PixScene( 1.0f / 255.0f );
+    }
+}
 
+technique RenderScene2
+{
+    pass p0
+    {
+        CullMode = CCW;
+        VertexShader = compile vs_3_0 VertScene();
+        PixelShader = compile ps_3_0 PixScene( 2.0f / 255.0f );
+    }
+}
 
+technique RenderScene3
+{
+    pass p0
+    {
+        CullMode = CCW;
+        VertexShader = compile vs_3_0 VertScene();
+        PixelShader = compile ps_3_0 PixScene( 3.0f / 255.0f );
+    }
+}
 
 //-----------------------------------------------------------------------------
 // Technique: RenderLight

@@ -250,7 +250,7 @@ CDXUTDialog                     g_HUD;                  // dialog for standard c
 CObj g_Obj[NUM_OBJ];         // Scene object meshes
 IDirect3DVertexDeclaration9*    g_pVertDecl = NULL;// Vertex decl for the sample
 IDirect3DTexture9*              g_pTexDef = NULL;       // Default texture for objects
-IDirect3DTexture9*              g_RefreshTexture = NULL;       // Default texture for objects
+IDirect3DTexture9*              g_refresh_pattern = NULL;       // Default texture for objects
 D3DLIGHT9                       g_Light;                // The spot light in the scene
 CDXUTXFileMesh                  g_LightMesh;
 float                           g_fLightFov;            // FOV of the spot light (in radian)
@@ -702,8 +702,8 @@ HRESULT CALLBACK OnResetDevice( IDirect3DDevice9* pd3dDevice,
     V_RETURN( g_pTexDef->UnlockRect( 0 ) );
 
     // Create the default texture (used when a triangle does not use a texture)
-    V_RETURN( pd3dDevice->CreateTexture( 320, 240, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8, D3DPOOL_DEFAULT, &g_RefreshTexture,  NULL ) );
-    CreateRefreshTexture( g_RefreshTexture);
+    V_RETURN( pd3dDevice->CreateTexture( 320, 240, 1, D3DUSAGE_DYNAMIC, D3DFMT_A8, D3DPOOL_DEFAULT, &g_refresh_pattern,  NULL ) );
+    CreateRefreshTexture( g_refresh_pattern);
 
     // Restore the scene objects
     for( int i = 0; i < NUM_OBJ; ++i )
@@ -918,7 +918,24 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
     if( SUCCEEDED( pd3dDevice->BeginScene() ) )
     {
         if( !bRenderShadow )
-            v( g_pEffect->SetTechnique( "RenderScene" ) );
+        {
+            static uint32_t blending = 0;
+            const const char* technique_nmmes[4] =
+            {
+                "RenderScene0",
+                "RenderScene1",
+                "RenderScene2",
+                "RenderScene3"
+            };
+
+            v( g_pEffect->SetFloat( "g_WorldBlending",  4.0f / 255.0f ) );
+
+            ::Sleep(22);
+            v( g_pEffect->SetTechnique( technique_nmmes[blending]  ) );
+
+            blending++;
+            blending = blending % 4;
+        }
 
         g_pEffect->SetFloat("g_Light_Space_Far_Z", g_Light_Space_Far_Z);
         g_pEffect->SetFloat("g_Light_Space_Near_Z", g_Light_Space_Near_Z);
@@ -940,18 +957,15 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
             v( g_pEffect->SetTexture( "g_frame_buffer_left", g_iframe_back_buffer[0] ) );
             v( g_pEffect->SetTexture( "g_depth_buffer_left", g_iframe_depth_buffer[0] ) );
 
+            v( g_pEffect->SetTexture( "g_refresh_pattern", g_refresh_pattern ) );
+
             //Aligned on the stack?
             XMVECTOR v1 = XMVectorSet( +1.0f / static_cast<float> ( g_BackBufferWidth ) , -1.0f / static_cast<float> ( g_BackBufferHeight ), 0.0f, 0.0f );
 
             
             v( g_pEffect->SetVector( "g_InverseScreenDimensions", (const D3DXVECTOR4*) &v1 ) );
             
-            static float blending = 0.0f;
-
-            v( g_pEffect->SetFloat( "g_WorldBlending",  blending ) );
-
-            blending++;
-            blending = fmod( blending, 4 );
+           
 
         }
 
@@ -1034,10 +1048,10 @@ void RenderScene( IDirect3DDevice9* pd3dDevice, bool bRenderShadow, float fElaps
             v( g_pEffect->End() );
 
             // Render stats and help text
-            RenderText();
+            //RenderText();
 
             // Render the UI elements
-            g_HUD.OnRender( fElapsedTime );
+            //g_HUD.OnRender( fElapsedTime );
         }
 
         V( pd3dDevice->EndScene() );
@@ -1354,7 +1368,7 @@ void CALLBACK OnLostDevice( void* pUserContext )
     SAFE_RELEASE( g_shadow_map_surface );
     SAFE_RELEASE( g_shadow_map );
     SAFE_RELEASE( g_pTexDef );
-    SAFE_RELEASE( g_RefreshTexture );
+    SAFE_RELEASE( g_refresh_pattern );
 
     for( int i = 0; i < NUM_OBJ; ++i )
         g_Obj[i].m_Mesh.InvalidateDeviceObjects();
