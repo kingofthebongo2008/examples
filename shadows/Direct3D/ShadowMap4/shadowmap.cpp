@@ -62,8 +62,8 @@ static void DrawFullScreenQuad ( IDirect3DDevice9* device, IDirect3DTexture9*  t
 //#define DEBUG_VS   // Uncomment this line to debug vertex shaders 
 //#define DEBUG_PS   // Uncomment this line to debug pixel shaders 
 
-float g_Light_Space_Far_Z = 350.0f;
-float g_Light_Space_Near_Z = 0.01f;
+float g_Light_Space_Far_Z = 100.0f;
+float g_Light_Space_Near_Z = 0.0001f;
 
 #define SHADOWMAP_SIZE 512
 

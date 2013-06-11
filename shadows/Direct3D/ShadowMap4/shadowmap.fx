@@ -87,9 +87,9 @@ sampler2D g_sam_depth_buffer_left =
 sampler_state
 {
     Texture = <g_depth_buffer_left>;
-    MinFilter = Point;
-    MagFilter = Point;
-    MipFilter = Point;
+    MinFilter = Linear;
+    MagFilter = Linear;
+    MipFilter = Linear;
     AddressU  =	Border;
     AddressV  = Border;
 	AddressW  = Border;
@@ -100,9 +100,9 @@ sampler2D g_sam_depth_buffer_right =
 sampler_state
 {
     Texture = <g_depth_buffer_right>;
-    MinFilter = Point;
-    MagFilter = Point;
-    MipFilter = Point;
+    MinFilter = Linear;
+    MagFilter = Linear;
+    MipFilter = Linear;
     AddressU  =	Border;
     AddressV  = Border;
 	AddressW  = Border;
@@ -206,17 +206,17 @@ float4 PixScene( float2 Tex : TEXCOORD0,
 {
 	left_frame /= left_frame.w;
 
-    float left_frame_depth = tex2D(  g_sam_depth_buffer_left, to_uv ( to_texel( left_frame.xy ) * 0.5 + 0.5 ) ).r;
-    float4 left_frame_image = tex2D( g_sam_frame_buffer_left, to_uv ( to_texel( left_frame.xy ) * 0.5 + 0.5) );
+    float	left_frame_depth = tex2D(  g_sam_depth_buffer_left, to_uv ( to_texel( left_frame.xy ) * 0.5 + 0.5 ) ).r;
+    float4  left_frame_image = tex2D( g_sam_frame_buffer_left, to_uv ( to_texel( left_frame.xy ) * 0.5 + 0.5) );
 
     float l = abs ( left_frame_depth - left_frame.z );
-	float tolerance = 0.001f;
+	float tolerance =  0.000000059604644775390625f; //0.0001f;
 
 	float refresh_pattern = tex2D( g_sam_refresh_pattern, to_uv ( to_texel( left_frame.xy ) * 0.5 + 0.5 ) ).a;
 
 	if ( l < tolerance && refresh_pattern != pattern ) // && refresh_pattern != g_WorldBlending) // != 3.0f )
 	{
-		return float4(1.0, 0.0, 0.0, 0.0); //left_frame_image;// float4(1.0, 0.0, 0.0, 0.0); //left_frame_image; //float4(1.0, 0.0, 0.0, 0.0);
+		return left_frame_image; //left_frame_image;// float4(1.0, 0.0, 0.0, 0.0); //left_frame_image; //float4(1.0, 0.0, 0.0, 0.0);
 	}
 	else
 	{
@@ -253,6 +253,8 @@ float4 PixScene( float2 Tex : TEXCOORD0,
 			float LightAmount = lerp( lerp( sourcevals[0], sourcevals[1], lerps.x ),
 									  lerp( sourcevals[2], sourcevals[3], lerps.x ),
 									  lerps.y );
+
+			LightAmount = 1.0f;
 			// Light it
 			Diffuse = ( saturate( dot( -vLight, normalize( vNormal ) ) ) * LightAmount * ( 1 - g_vLightAmbient ) + g_vLightAmbient )
 					  * g_vMaterial;
