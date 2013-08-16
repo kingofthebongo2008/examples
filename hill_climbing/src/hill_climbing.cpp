@@ -7,12 +7,16 @@
 #include <vector>
 #include <iostream>
 
-#include <thrust/generate.h>
 #include <thrust/host_vector.h>
-#include <thrust/random.h>
-#include <thrust/sort.h>
+#include <thrust/functional.h>
+
+#include <thrust/iterator/zip_iterator.h>
+
+#include <vector_functions.h>
 
 #include "morton_order.h"
+
+#include "strided_range_iterator.h"
 
 struct grayscale_image
 {
@@ -23,64 +27,92 @@ struct grayscale_image
     std::vector< uint8_t > m_image;
 };
 
+typedef thrust::tuple< float,float, float, float > f4;
 
-template <typename Iterator>
-class tiled_range
+static inline __host__ __device__ float dot3( float3 a, float3 b )
 {
-    public:
+    return a.x * b.x + a.y + b.y + a.z + b.z;
+}
 
-    typedef typename thrust::iterator_difference<Iterator>::type difference_type;
-
-    struct tile_functor : public thrust::unary_function<difference_type,difference_type>
+//haar transform on 4x4
+struct haar_2d_transform : public thrust::unary_function< f4, f4 >
+{
+    __host__ __device__ f4 operator() ( const f4& o ) const
     {
-        difference_type tile_size;
+        float a = thrust::get<0> ( o );
+        float b = thrust::get<1> ( o );
+        float c = thrust::get<2> ( o );
+        float d = thrust::get<3> ( o );
 
-        tile_functor(difference_type tile_size)
-            : tile_size(tile_size) {}
+        float ll = 0.5f *  ( a + b + c + d );
+        float hl = 0.5f *  ( a - b + c - d );
+        float lh = 0.5f *  ( a + b - c - d );
+        float hh = 0.5f *  ( a - b - c - d );
 
-        __host__ __device__
-        difference_type operator()(const difference_type& i) const
-        { 
-            return i % tile_size;
-        }
-    };
-
-    typedef typename thrust::counting_iterator<difference_type>                   CountingIterator;
-    typedef typename thrust::transform_iterator<tile_functor, CountingIterator>   TransformIterator;
-    typedef typename thrust::permutation_iterator<Iterator,TransformIterator>     PermutationIterator;
-
-    // type of the tiled_range iterator
-    typedef PermutationIterator iterator;
-
-    // construct repeated_range for the range [first,last)
-    tiled_range(Iterator first, Iterator last, difference_type tiles)
-        : first(first), last(last), tiles(tiles) {}
-   
-    iterator begin(void) const
-    {
-        return PermutationIterator(first, TransformIterator(CountingIterator(0), tile_functor(last - first)));
+        return thrust::make_tuple ( ll, hl, lh, hh );
     }
-
-    iterator end(void) const
-    {
-        return begin() + tiles * (last - first);
-    }
-    
-    protected:
-    Iterator first;
-    Iterator last;
-    difference_type tiles;
 };
 
+//partially inverted haar transform on 4x4
+struct haar_pi_2d_transform : public thrust::unary_function< f4, f4 >
+{
+
+    haar_pi_2d_transform( float w ) : m_w ( w )
+    {
+
+    }
+
+    __host__ __device__ f4 operator() ( const f4& o ) const
+    {
+        float a = thrust::get<0> ( o );
+        float b = thrust::get<1> ( o );
+        float c = thrust::get<2> ( o );
+        float d = thrust::get<3> ( o );
+
+        //haar 2d transform
+        float ll = 0.5f *  ( a + b + c + d );
+        float hl = 0.5f *  ( a - b + c - d );
+        float lh = 0.5f *  ( a + b - c - d );
+        float hh = 0.5f *  ( a - b - c - d );
+
+        float3 r0 = make_float3( 1.0f, 1.0f, m_w );
+        float3 v = make_float3( hl, lh, hh );
+
+        //partially inverted haar transform
+        float hlp = dot3 ( make_float3(  1.0f, 1.0f,  m_w ), v );
+        float lhp = dot3 ( make_float3( -1.0f, 1.0f, -m_w ), v );
+        float hhp = dot3 ( make_float3( 1.0f, -1.0f, -m_w ), v );
+            
+        return thrust::make_tuple ( ll, hlp, lhp, hhp );
+    }
+
+    float   m_w;
+};
+
+typedef thrust::tuple<float, float, float, float > Float4;
+
+struct arbitrary_functor : public thrust::unary_function< Float4, Float4 >
+{
+    __host__ __device__
+    Float4 operator()(const Float4& t ) const
+    {
+        float a = thrust::get<0>(t);
+        float b = thrust::get<1>(t);
+        float c = thrust::get<2>(t);
+        float d = thrust::get<3>(t);
+
+        return thrust::make_tuple ( a, b, c, d );
+    }
+};
 
 int main(int argc, _TCHAR* argv[])
 {
     // generate 20 random numbers on the host
     thrust::host_vector<float> h_vec(16);
     thrust::host_vector<float> h_vec_out(16);
+
+    thrust::host_vector<float> h_vec_transformed(16);
     
-
-
     h_vec[0] = 0.0f;
     h_vec[1] = 1.0f;
     h_vec[2] = 2.0f;
@@ -104,8 +136,46 @@ int main(int argc, _TCHAR* argv[])
     // interface to CUDA code
     convert_to_morton_order_2d( h_vec, 4, 4, h_vec_out);
 
+    auto b0  = h_vec.begin();
+    auto b1  = h_vec.begin() + 1;
+    auto b2  = h_vec.begin() + 2;
+    auto b3  = h_vec.begin() + 3;
+
+    auto e0  = h_vec.end()-3;
+    auto e1  = h_vec.end()-2;
+    auto e2  = h_vec.end()-1;
+    auto e3  = h_vec.end();
+
+    auto itb0  = make_strided_range ( b0, e0, 4 );
+    auto itb1  = make_strided_range ( b1, e1, 4 );
+    auto itb2  = make_strided_range ( b2, e2, 4 );
+    auto itb3  = make_strided_range ( b3, e3, 4 );
+
+    //------
+
+    auto bb0  = h_vec_transformed.begin();
+    auto bb1  = h_vec_transformed.begin() + 1;
+    auto bb2  = h_vec_transformed.begin() + 2;
+    auto bb3  = h_vec_transformed.begin() + 3;
+
+    auto ee0  = h_vec_transformed.end()-3;
+    auto ee1  = h_vec_transformed.end()-2;
+    auto ee2  = h_vec_transformed.end()-1;
+    auto ee3  = h_vec_transformed.end();
+
+    auto itbb0  = make_strided_range ( bb0, ee0, 4 );
+    auto itbb1  = make_strided_range ( bb1, ee1, 4 );
+    auto itbb2  = make_strided_range ( bb2, ee2, 4 );
+    auto itbb3  = make_strided_range ( bb3, ee3, 4 );
+
+    auto z0 = thrust::make_zip_iterator ( thrust::make_tuple( itb0.begin(), itb1.begin(), itb2.begin(), itb3.begin() ) );
+    auto z1 = thrust::make_zip_iterator ( thrust::make_tuple( itb0.end(),   itb1.end(), itb2.end(), itb3.end()  ) );
+    auto z2 = thrust::make_zip_iterator ( thrust::make_tuple( itbb0.begin(), itbb1.begin(), itbb2.begin(), itbb3.begin() ) );
+
+    thrust::transform ( z0, z1, z2, arbitrary_functor() );
+
     // print sorted array
-    thrust::copy(h_vec_out.begin(), h_vec_out.end(), std::ostream_iterator<int>(std::cout, "\n"));
+    thrust::copy(h_vec_transformed.begin(), h_vec_transformed.end(), std::ostream_iterator<int>(std::cout, "\n"));
 
     return 0;
 }

@@ -155,6 +155,8 @@
     <ClInclude Include="../src/precompiled.h" />
     <ClInclude Include="../src/targetver.h" />
     <ClInclude Include="..\src\morton_order.h" />
+    <ClInclude Include="..\src\morton_order_iterator.h" />
+    <ClInclude Include="..\src\strided_range_iterator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/hill_climbing.cpp">
