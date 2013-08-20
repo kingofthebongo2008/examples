@@ -16,6 +16,8 @@
 
 #include "morton_order.h"
 
+#include "morton_order_iterator.h"
+
 #include "strided_range_iterator.h"
 
 struct grayscale_image
@@ -89,12 +91,10 @@ struct haar_pi_2d_transform : public thrust::unary_function< f4, f4 >
     float   m_w;
 };
 
-typedef thrust::tuple<float, float, float, float > Float4;
-
-struct arbitrary_functor : public thrust::unary_function< Float4, Float4 >
+struct arbitrary_functor : public thrust::unary_function< f4, f4 >
 {
     __host__ __device__
-    Float4 operator()(const Float4& t ) const
+    f4 operator()(const f4& t ) const
     {
         float a = thrust::get<0>(t);
         float b = thrust::get<1>(t);
@@ -107,6 +107,7 @@ struct arbitrary_functor : public thrust::unary_function< Float4, Float4 >
 
 int main(int argc, _TCHAR* argv[])
 {
+
     // generate 20 random numbers on the host
     thrust::host_vector<float> h_vec(16);
     thrust::host_vector<float> h_vec_out(16);
@@ -136,15 +137,15 @@ int main(int argc, _TCHAR* argv[])
     // interface to CUDA code
     convert_to_morton_order_2d( h_vec, 4, 4, h_vec_out);
 
-    auto b0  = h_vec.begin();
-    auto b1  = h_vec.begin() + 1;
-    auto b2  = h_vec.begin() + 2;
-    auto b3  = h_vec.begin() + 3;
+    auto b0  = h_vec_out.begin();
+    auto b1  = h_vec_out.begin() + 1;
+    auto b2  = h_vec_out.begin() + 2;
+    auto b3  = h_vec_out.begin() + 3;
 
-    auto e0  = h_vec.end()-3;
-    auto e1  = h_vec.end()-2;
-    auto e2  = h_vec.end()-1;
-    auto e3  = h_vec.end();
+    auto e0  = h_vec_out.end()-3;
+    auto e1  = h_vec_out.end()-2;
+    auto e2  = h_vec_out.end()-1;
+    auto e3  = h_vec_out.end();
 
     auto itb0  = make_strided_range ( b0, e0, 4 );
     auto itb1  = make_strided_range ( b1, e1, 4 );
