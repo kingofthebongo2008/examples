@@ -156,6 +156,7 @@
     <ClInclude Include="../src/targetver.h" />
     <ClInclude Include="..\src\morton_order.h" />
     <ClInclude Include="..\src\morton_order_iterator.h" />
+    <ClInclude Include="..\src\norm.h" />
     <ClInclude Include="..\src\strided_range_iterator.h" />
   </ItemGroup>
   <ItemGroup>
@@ -177,6 +178,7 @@
       <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Release|x64'">compute_30,sm_35</CodeGeneration>
       <CodeGeneration Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">compute_30,sm_35</CodeGeneration>
     </CudaCompile>
+    <CudaCompile Include="..\src\norm.cu" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

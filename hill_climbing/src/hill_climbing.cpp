@@ -20,6 +20,8 @@
 
 #include "strided_range_iterator.h"
 
+#include "norm.h"
+
 struct grayscale_image
 {
     uint32_t    m_width;
@@ -105,6 +107,8 @@ struct arbitrary_functor : public thrust::unary_function< f4, f4 >
     }
 };
 
+extern     float mse( thrust::host_vector<float>& v0, thrust::host_vector<float>& v1 );
+
 int main(int argc, _TCHAR* argv[])
 {
 
@@ -177,6 +181,55 @@ int main(int argc, _TCHAR* argv[])
 
     // print sorted array
     thrust::copy(h_vec_transformed.begin(), h_vec_transformed.end(), std::ostream_iterator<int>(std::cout, "\n"));
+
+
+      
+    h_vec[0] = 0.0f;
+    h_vec[1] = 1.0f;
+    h_vec[2] = 2.0f;
+    h_vec[3] = 3.0f;
+
+    h_vec[4] = 4.0f;
+    h_vec[5] = 5.0f;
+    h_vec[6] = 6.0f;
+    h_vec[7] = 7.0f;
+
+    h_vec[8] = 8.0f;
+    h_vec[9] = 9.0f;
+    h_vec[10] = 10.0f;
+    h_vec[11] = 11.0f;
+
+    h_vec[12] = 12.0f;
+    h_vec[13] = 13.0f;
+    h_vec[14] = 14.0f;
+    h_vec[15] = 15.0f;
+
+
+    h_vec_out[0] = 0.0f;
+    h_vec_out[1] = 1.0f;
+    h_vec_out[2] = 2.0f;
+    h_vec_out[3] = 3.0f;
+
+    h_vec_out[4] = 4.0f;
+    h_vec_out[5] = 5.0f;
+    h_vec_out[6] = 6.0f;
+    h_vec_out[7] = 7.0f;
+
+    h_vec_out[8] = 8.0f;
+    h_vec_out[9] = 9.0f;
+    h_vec_out[10] = 10.0f;
+    h_vec_out[11] = 11.0f;
+
+    h_vec_out[12] = 12.0f;
+    h_vec_out[13] = 13.0f;
+    h_vec_out[14] = 14.0f;
+    h_vec_out[15] = 14.8f;
+
+    float mean_square_error = mse ( h_vec, h_vec_out);
+
+    std::cout<<"mean square error:"<< mean_square_error<<std::endl;
+
+    std::cout<<"psn4:"<< cuda_rt::psnr(mean_square_error, 16.0f);
 
     return 0;
 }

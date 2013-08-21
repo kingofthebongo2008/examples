@@ -30,6 +30,9 @@
     <ClInclude Include="..\src\strided_range_iterator.h">
       <Filter>src</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\norm.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/precompiled.cpp">
@@ -44,6 +47,9 @@
   </ItemGroup>
   <ItemGroup>
     <CudaCompile Include="..\src\morton_order.cu">
+      <Filter>src</Filter>
+    </CudaCompile>
+    <CudaCompile Include="..\src\norm.cu">
       <Filter>src</Filter>
     </CudaCompile>
   </ItemGroup>

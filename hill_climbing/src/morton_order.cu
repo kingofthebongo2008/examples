@@ -8,9 +8,9 @@
 void convert_to_morton_order_2d( thrust::host_vector<float>& in, uint32_t rows, uint32_t columns, thrust::host_vector<float>& out )
 {
     // transfer data to the device
-    thrust::host_vector<float> d_vec0 = in;
+    thrust::device_vector<float> d_vec0 = in;
 
-    thrust::host_vector<float> d_vec1 ( d_vec0.size() );
+    thrust::device_vector<float> d_vec1 ( d_vec0.size() );
 
     auto morton = make_linear_2_morton_order_2d_range ( d_vec0.begin(), d_vec0.end(), rows, columns );
 
