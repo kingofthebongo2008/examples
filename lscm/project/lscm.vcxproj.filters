@@ -1,0 +1,153 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Source Files\mem">
+      <UniqueIdentifier>{84da2c3d-5c7d-4c85-bf4c-28ece53ef5b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\d3d11">
+      <UniqueIdentifier>{9d68f812-3373-45d9-9544-ac050a78dc75}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{b9c3e0d7-05f2-4aac-a9a1-62988a6a1cc1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\gx">
+      <UniqueIdentifier>{b30627a5-c91f-4465-bb03-99482b6b7557}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\d3d11">
+      <UniqueIdentifier>{38eca037-830c-46e7-89eb-0fddffb9ba27}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\d2d">
+      <UniqueIdentifier>{b9ecfbb8-434f-42f8-a225-39b5db6b497e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\mem">
+      <UniqueIdentifier>{8066a4c8-f2e8-4886-bc04-91292563b910}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\os">
+      <UniqueIdentifier>{37ac886f-bb27-428d-834d-f9a0bf263fb9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\os\windows">
+      <UniqueIdentifier>{0d077a85-79ab-4abc-8379-b599ed3191bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\util">
+      <UniqueIdentifier>{e1872374-2b75-42ba-a046-6fa42f26d3e8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="../src/precompiled.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="../src/targetver.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_view_port.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_color.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_view.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_error.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_exception.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_helpers.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_pointers.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_system.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\dxgi_helpers.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_error.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_exception.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_helpers.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_pointers.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\dwrite_helpers.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\dwrite_pointers.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mem\mem_alloc.h">
+      <Filter>include\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mem\mem_alloc_aligned.h">
+      <Filter>include\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mem\mem_streamflow.h">
+      <Filter>include\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_initializer.h">
+      <Filter>include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\dxgi_pointers.h">
+      <Filter>include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_noncopyable.h">
+      <Filter>include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_bits.h">
+      <Filter>include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_iterator.h">
+      <Filter>include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_memory.h">
+      <Filter>include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_utf8_conv.h">
+      <Filter>include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_pointers.h">
+      <Filter>include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_error.h">
+      <Filter>include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_ptr.h">
+      <Filter>include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\wnd_application.h">
+      <Filter>include\os\windows</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="../src/lscm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="../src/precompiled.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\mem\mem_streamflow_utils.cpp">
+      <Filter>Source Files\mem</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
