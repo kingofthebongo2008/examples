@@ -19,7 +19,7 @@ namespace cuda_rt
 
         struct mse_op : public thrust::unary_function< float, f2 >
         {
-            __host__ __device__  float operator()( const f2 f) const
+            __host__ __device__  float operator()( const f2& f) const
             {
                 float difference = thrust::get<0>(f) - thrust::get<1>(f) ;
                 return ( difference ) * ( difference ) ;

@@ -1,5 +1,5 @@
-#ifndef __morton_order_h__
-#define __morton_order_h__
+#ifndef __morton_order_range_h__
+#define __morton_order_range_h__
 
 #include <thrust/iterator/counting_iterator.h>
 #include <thrust/iterator/transform_iterator.h>
@@ -32,7 +32,7 @@ namespace details
     }
 
 
-    //iterates on a 2d range in a morton order. rows and columns are expected to be power of 2 and up to 16536
+    //iterates on a 2d range in a morton order. rows and columns are expected to be power of 2 and up to 65536
     struct linear_2_morton_order : public thrust::unary_function< uint32_t, uint32_t >
     {
         uint32_t m_rows;

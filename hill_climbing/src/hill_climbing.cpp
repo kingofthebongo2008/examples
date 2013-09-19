@@ -8,6 +8,7 @@
 #include <iostream>
 
 #include <thrust/host_vector.h>
+#include <thrust/device_vector.h>
 #include <thrust/functional.h>
 
 #include <thrust/iterator/zip_iterator.h>
@@ -16,9 +17,9 @@
 
 #include "morton_order.h"
 
-#include "morton_order_iterator.h"
+#include "morton_order_range.h"
 
-#include "strided_range_iterator.h"
+#include "strided_range.h"
 
 #include "norm.h"
 
@@ -107,10 +108,42 @@ struct arbitrary_functor : public thrust::unary_function< f4, f4 >
     }
 };
 
+
 extern     float mse( thrust::host_vector<float>& v0, thrust::host_vector<float>& v1 );
+extern void convert_to_morton_order_2d2( thrust::host_vector<uint8_t>& in, uint32_t rows, uint32_t columns, thrust::host_vector<float>& out );
+
 
 int main(int argc, _TCHAR* argv[])
 {
+    thrust::host_vector<uint8_t>    h_image(16);
+    thrust::host_vector<float>      h_image_out(16);
+
+    h_image[0] = 0;
+    h_image[1] = 1;
+    h_image[2] = 2;
+    h_image[3] = 3;
+
+    h_image[4] = 4;
+    h_image[5] = 5;
+    h_image[6] = 6;
+    h_image[7] = 7;
+
+    h_image[8] = 8;
+    h_image[9] = 9;
+    h_image[10] = 10;
+    h_image[11] = 11;
+
+    h_image[12] = 12;
+    h_image[13] = 13;
+    h_image[14] = 14;
+    h_image[15] = 15;
+
+
+    h_image_out[5]= 5;
+
+    convert_to_morton_order_2d2(h_image, 4, 4, h_image_out );
+
+    thrust::copy(h_image_out.begin()+1, h_image_out.end(), std::ostream_iterator<int>(std::cout, "\n"));
 
     // generate 20 random numbers on the host
     thrust::host_vector<float> h_vec(16);
@@ -182,11 +215,10 @@ int main(int argc, _TCHAR* argv[])
     // print sorted array
     thrust::copy(h_vec_transformed.begin(), h_vec_transformed.end(), std::ostream_iterator<int>(std::cout, "\n"));
 
-
-      
     h_vec[0] = 0.0f;
     h_vec[1] = 1.0f;
     h_vec[2] = 2.0f;
+    
     h_vec[3] = 3.0f;
 
     h_vec[4] = 4.0f;

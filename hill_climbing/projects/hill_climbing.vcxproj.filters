@@ -24,13 +24,13 @@
     <ClInclude Include="..\src\morton_order.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\morton_order_iterator.h">
-      <Filter>src</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\strided_range_iterator.h">
-      <Filter>src</Filter>
-    </ClInclude>
     <ClInclude Include="..\src\norm.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\morton_order_range.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\strided_range.h">
       <Filter>src</Filter>
     </ClInclude>
   </ItemGroup>
