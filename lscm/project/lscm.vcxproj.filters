@@ -138,6 +138,9 @@
     <ClInclude Include="..\include\os\windows\wnd_application.h">
       <Filter>include\os\windows</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\gx\gx_application.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/lscm.cpp">

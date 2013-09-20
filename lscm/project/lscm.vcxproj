@@ -112,7 +112,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>vts_runtime.lib;dxguid.lib;dxgi.lib;d3d9.lib;d3d11.lib;d2d1.lib;dwrite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vts_runtime.lib;dxguid.lib;dxgi.lib;d3d9.lib;d3d11.lib;d2d1.lib;dwrite.lib;dinput8.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -149,7 +149,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>vts_runtime.lib;dxguid.lib;dxgi.lib;d3d9.lib;d3d11.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vts_runtime.lib;dxguid.lib;dxgi.lib;d3d9.lib;d3d11.lib;dinput8.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -167,6 +167,7 @@
     <ClInclude Include="..\include\d3d11\d3d11_pointers.h" />
     <ClInclude Include="..\include\d3d11\d3d11_system.h" />
     <ClInclude Include="..\include\d3d11\dxgi_helpers.h" />
+    <ClInclude Include="..\include\gx\gx_application.h" />
     <ClInclude Include="..\include\gx\gx_color.h" />
     <ClInclude Include="..\include\gx\gx_view.h" />
     <ClInclude Include="..\include\gx\gx_view_port.h" />
