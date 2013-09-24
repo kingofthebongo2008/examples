@@ -63,7 +63,7 @@ namespace os
                 return m_hwnd;
             }
 
-            private:
+            protected:
             virtual void on_update() = 0;
             virtual void on_render() = 0;
 
@@ -104,7 +104,11 @@ namespace os
 
         inline HWND create_window( uint32_t width, uint32_t height, HINSTANCE instance, const wchar_t* window_name )
         {
-            return CreateWindow( L"WindowClassCustom", window_name, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, width, height, 0, 0, instance, nullptr);
+            RECT r = { 0, 0, width, height };
+
+            throw_if_failed<win32_exception> ( ::AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, false) );
+
+            return CreateWindow( L"WindowClassCustom", window_name, WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, r.right - r.left, r.bottom - r.top, 0, 0, instance, nullptr);
         }
 
         inline HWND create_window( HINSTANCE instance, const wchar_t* window_name )
@@ -148,6 +152,16 @@ namespace os
                 on_resize( width, height );
             }
 
+            void activate()
+            {
+                on_activate();
+            }
+
+            void deactivate()
+            {
+                on_deactivate();
+            }
+
             private:
 
             HWND create_window( HINSTANCE instance, const wchar_t* window_name )
@@ -174,7 +188,12 @@ namespace os
                 }
             }
 
+            protected:
+
             virtual void on_resize( uint32_t width, uint32_t height ) = 0;
+            virtual void on_activate(){}
+            virtual void on_deactivate() {}
+
         };
 
         static inline LRESULT CALLBACK DefaultWindowProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
@@ -183,7 +202,19 @@ namespace os
 
             switch (message)
             {
-
+            case WM_ACTIVATE:
+                if (wnd != nullptr )
+                {
+                    if ( LOWORD(wParam) != WA_INACTIVE )
+                    {
+                        wnd->activate();
+                    }
+                    else
+                    {
+                        wnd->deactivate();
+                    }
+                }
+                break;
             case WM_PAINT:
                 if (wnd !=0 )
                 {
@@ -192,7 +223,6 @@ namespace os
                 }
 
                 break;
-
             case WM_SIZE:
                 {
                     if (wnd !=0 )

@@ -7,9 +7,11 @@
 
 namespace d2d
 {
-    typedef os::windows::com_ptr<ID2D1Factory>                ifactory_ptr;
-    typedef os::windows::com_ptr<ID2D1RenderTarget>           irendertarget_ptr;
+    typedef os::windows::com_ptr<ID2D1Bitmap>                 ibitmap_ptr;
     typedef os::windows::com_ptr<ID2D1Brush>                  ibrush_ptr;
+    typedef os::windows::com_ptr<ID2D1Factory>                ifactory_ptr;
+    typedef os::windows::com_ptr<ID2D1HwndRenderTarget>       ihwndrendertarget_ptr;
+    typedef os::windows::com_ptr<ID2D1RenderTarget>           irendertarget_ptr;
     typedef os::windows::com_ptr<ID2D1SolidColorBrush>        isolid_color_brush_ptr;
 }
 

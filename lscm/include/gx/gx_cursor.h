@@ -34,11 +34,10 @@ namespace gx
 
         private:
 
-        
+        d3d11::system_context   m_context;
         bool                    m_occluded_by_another_window;
 
         protected:
-        d3d11::system_context   m_context;
 
         void    render_frame()
         {

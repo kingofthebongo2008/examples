@@ -23,7 +23,6 @@ namespace d3d11
         {
 
         }
-
     };
 
     class create_device_exception : public exception

@@ -14,18 +14,18 @@ namespace dwrite
         using namespace os::windows;
 
         ifactory_ptr result;
-		throw_if_failed< com_exception> ( DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(&result))) ;
+        throw_if_failed< com_exception> ( DWriteCreateFactory(DWRITE_FACTORY_TYPE_SHARED, __uuidof(IDWriteFactory), reinterpret_cast<IUnknown**>(&result))) ;
 
         return result;
     }
 
-	inline itextformat_ptr create_text_format(ifactory_ptr factory)
+    inline itextformat_ptr create_text_format(ifactory_ptr factory)
     {
         using namespace os::windows;
 
-		itextformat_ptr result;
+        itextformat_ptr result;
 
-		throw_if_failed< com_exception > ( factory->CreateTextFormat(
+        throw_if_failed< com_exception > ( factory->CreateTextFormat(
         L"Courier",
         NULL,
         DWRITE_FONT_WEIGHT_REGULAR,

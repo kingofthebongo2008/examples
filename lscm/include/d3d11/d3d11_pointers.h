@@ -6,7 +6,6 @@
 #include <D3D11.h>
 #include <D3D11_1.h>
 
-
 namespace d3d11
  {
     typedef os::windows::com_ptr<ID3D11Device>				idevice_ptr;

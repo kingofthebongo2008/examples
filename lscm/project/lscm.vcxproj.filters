@@ -43,6 +43,12 @@
     <Filter Include="include\util">
       <UniqueIdentifier>{e1872374-2b75-42ba-a046-6fa42f26d3e8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\io">
+      <UniqueIdentifier>{1958a292-1ab7-467c-b3a2-6a8e0ad3beb8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\gx\shaders">
+      <UniqueIdentifier>{4b480261-1f57-4867-9698-9440dc6458d8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/precompiled.h">
@@ -141,6 +147,21 @@
     <ClInclude Include="..\include\gx\gx_application.h">
       <Filter>include\gx</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\io\io_keyboard.h">
+      <Filter>include\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\io\io_mouse.h">
+      <Filter>include\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_cursor.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\shaders\gx_shader_copy_texture.h">
+      <Filter>include\gx\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\shaders\gx_shader_full_screen.h">
+      <Filter>include\gx\shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/lscm.cpp">
@@ -152,5 +173,13 @@
     <ClCompile Include="..\src\mem\mem_streamflow_utils.cpp">
       <Filter>Source Files\mem</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\include\gx\shaders\gx_shader_full_screen_vs.hlsl">
+      <Filter>include\gx\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_ps.hlsl">
+      <Filter>include\gx\shaders</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

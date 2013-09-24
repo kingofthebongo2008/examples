@@ -20,7 +20,15 @@
 
 #include <gx/gx_application.h>
 
-#include <dinput.h>
+#include <io/io_keyboard.h>
+#include <io/io_mouse.h>
+
+#include <d3d11/dxgi_helpers.h>
+#include <d2d/d2d_helpers.h>
+#include <d2d/dwrite_helpers.h>
+
+#include <gx/shaders/gx_shader_copy_texture.h>
+#include <gx/shaders/gx_shader_full_screen.h>
 
 namespace lscm
 {
@@ -378,36 +386,88 @@ namespace lscm
     };
 }
 
-
-class command_generator
-{
-    void command()
-    {
-
-    }
-};
-
-class sample_application : public gx::application
+class windowed_with_input_application : public gx::application
 {
     typedef gx::application base;
 
     public:
 
-    sample_application( const wchar_t* window_title  ) : base ( window_title)
+    windowed_with_input_application( const wchar_t* window_title  ) : base ( window_title)
+        , m_mouse_state(window_width( get_window() ), window_height( get_window() ) )
     {
         using namespace os::windows;    
-`   
+  
         throw_if_failed< com_exception > ( DirectInput8Create ( GetModuleHandle(nullptr), DIRECTINPUT_VERSION, IID_IDirectInput8, reinterpret_cast<void**> (&m_direct_input), nullptr ) );
+
         throw_if_failed< com_exception > ( m_direct_input->CreateDevice( GUID_SysKeyboard, &m_keyboard, nullptr) );
         throw_if_failed< com_exception > ( m_keyboard->SetDataFormat( &c_dfDIKeyboard ) );
-        throw_if_failed< com_exception > ( m_keyboard->SetCooperativeLevel( this->get_window(), DISCL_FOREGROUND | DISCL_NONEXCLUSIVE )  );
+        throw_if_failed< com_exception > ( m_keyboard->SetCooperativeLevel( this->get_window(), DISCL_BACKGROUND | DISCL_NONEXCLUSIVE )  );
+
+        throw_if_failed< com_exception > ( m_direct_input->CreateDevice( GUID_SysMouse, &m_mouse, nullptr) );
+        throw_if_failed< com_exception > ( m_mouse->SetDataFormat( &c_dfDIMouse2  ) );
+        throw_if_failed< com_exception > ( m_mouse->SetCooperativeLevel( this->get_window(), DISCL_BACKGROUND | DISCL_NONEXCLUSIVE )  );
+
+
+        ShowCursor(false);
+    }
+
+    protected:
+
+    io::keyboard_state get_keyboard_state() const
+    {
+        return m_keyboard_state;        
+    }
+
+    io::mouse_state get_mouse_state() const
+    {
+            return m_mouse_state;
     }
 
     private:
+
+    uint16_t window_width( HWND window) const
+    {
+        RECT r;
+        ::GetClientRect ( window, &r);
+        return static_cast<uint16_t> ( r.right - r.left );
+    }
+
+    uint16_t window_height(HWND window) const
+    {
+        RECT r;
+        ::GetClientRect ( window, &r);
+        return static_cast<uint16_t> ( r.bottom - r.top );
+    }
+
+    protected:
+
     void on_update()
     {
         using namespace os::windows;
-        //throw_if_failed< com_exception > ( m_keyboard->Poll() );
+
+        uint8_t data[256] = {};
+        auto hr = m_keyboard->GetDeviceState( sizeof(data), &data[0] );
+
+        //swap the shadow states
+        m_keyboard_state.swap();
+
+        if (hr == S_OK )
+        {
+            m_keyboard_state.set_state( data );
+        }
+
+        DIMOUSESTATE2 mouse_state = {};
+
+        m_mouse_state.swap();
+
+        hr = m_mouse->GetDeviceState( sizeof(mouse_state), &mouse_state );
+
+        if (hr == S_OK )
+        {
+            m_mouse_state.set_state ( mouse_state );
+
+            std::cout << "x:" << m_mouse_state.get_x() << "y:"<<m_mouse_state.get_y() << std::endl; 
+        }
     }
 
     void on_render_frame()
@@ -415,8 +475,132 @@ class sample_application : public gx::application
 
     }
 
+    void on_activate()
+    {
+        using namespace os::windows;
+
+        auto hr = m_keyboard->Acquire();
+
+        if ( ! (hr == S_OK || hr == S_FALSE) )
+        {
+            throw_if_failed< com_exception > (  hr );
+        }
+
+        hr = m_mouse->Acquire();
+        if ( ! (hr == S_OK || hr == S_FALSE) )
+        {
+            throw_if_failed< com_exception > (  hr );
+        }
+    }
+
+    void on_deactivate() override
+    {
+        using namespace os::windows;
+        throw_if_failed< com_exception > ( m_keyboard->Unacquire() );
+
+        using namespace os::windows;
+        throw_if_failed< com_exception > ( m_mouse->Unacquire() );
+    }
+
+    void on_resize(uint32_t width, uint32_t height) override
+    {
+        base::on_resize(width, height);
+
+        m_mouse_state.set_width(width);
+        m_mouse_state.set_height(height);
+    }
+
+    private:
+
     os::windows::com_ptr<IDirectInput8>         m_direct_input;
     os::windows::com_ptr<IDirectInputDevice8>   m_keyboard;
+    os::windows::com_ptr<IDirectInputDevice8>   m_mouse;
+
+    io::keyboard_state                          m_keyboard_state;
+    io::mouse_state                             m_mouse_state;
+};
+
+
+class cursor
+{
+
+};
+
+inline cursor create_cursor( d2d::irendertarget_ptr render_target)
+{
+
+    //static uint8_t data = {};
+    D2D1_SIZE_U size = {};
+    size.width = 64;
+    size.height = 64;
+
+    return cursor();
+}
+
+
+class sample_application : public windowed_with_input_application
+{
+    typedef windowed_with_input_application base;
+
+    public:
+
+    sample_application( const wchar_t* window_title  ) : base ( window_title)
+        , m_d2d_factory( d2d::create_d2d_factory_single_threaded() )
+        , m_dwrite_factory( dwrite::create_dwrite_factory() )
+        , m_text_format ( dwrite::create_text_format(m_dwrite_factory) )
+    {
+
+    }
+
+    protected:
+
+    void on_update()
+    {
+
+    }
+
+    void on_render_frame()
+    {
+        return;
+        //render text
+        m_window_render_target->BeginDraw();
+        m_window_render_target->Clear();
+
+        RECT r;
+        ::GetClientRect(get_window(), &r);
+        ::InflateRect(&r, -10, -10 );
+    
+        D2D1_RECT_F rf = {static_cast<float> (r.left), static_cast<float>(r.top), static_cast<float>(r.right), static_cast<float>(r.bottom)};
+
+        m_window_render_target->DrawTextW(L"Testo", 4, m_text_format.get(), &rf, m_brush.get());
+
+        m_window_render_target->EndDraw();
+
+    }
+
+    void on_resize (uint32_t width, uint32_t height)
+    {
+        base::on_resize(width, height);
+
+
+        using namespace os::windows;
+        d3d11::itexture2d_ptr   texture = dxgi::get_buffer( m_context.m_swap_chain.get() );
+        dxgi::isurface_ptr      dxgi;
+
+        throw_if_failed<d3d11::exception> ( texture->QueryInterface(__uuidof(IDXGISurface), reinterpret_cast<void**> (&dxgi) ) );
+
+        m_window_render_target = d2d::create_render_target( m_d2d_factory, dxgi );
+        m_brush = d2d::create_solid_color_brush(m_window_render_target);
+    }
+
+    private:
+    d2d::ifactory_ptr           m_d2d_factory;
+    d2d::irendertarget_ptr      m_window_render_target;
+    d2d::isolid_color_brush_ptr m_brush;
+    dwrite::ifactory_ptr        m_dwrite_factory;
+    dwrite::itextformat_ptr     m_text_format;
+            
+            
 };
 
 int _tmain(int argc, _TCHAR* argv[])
