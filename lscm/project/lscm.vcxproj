@@ -172,6 +172,8 @@
     <ClInclude Include="..\include\gx\gx_application.h" />
     <ClInclude Include="..\include\gx\gx_color.h" />
     <ClInclude Include="..\include\gx\gx_cursor.h" />
+    <ClInclude Include="..\include\gx\gx_render_functions.h" />
+    <ClInclude Include="..\include\gx\gx_render_resource.h" />
     <ClInclude Include="..\include\gx\gx_view.h" />
     <ClInclude Include="..\include\gx\gx_view_port.h" />
     <ClInclude Include="..\include\gx\shaders\gx_shader_copy_texture.h" />

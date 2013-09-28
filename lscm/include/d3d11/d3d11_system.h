@@ -8,11 +8,11 @@ namespace d3d11
 {
     struct system_context
     {
-        dxgi::iadapter_ptr			m_adapter;
-        dxgi::iswapchain_ptr		m_swap_chain;
-        idevice_ptr					m_device;
-        idevicecontext_ptr			m_immediate_context;
-        HWND						m_hwnd;
+        dxgi::iadapter_ptr          m_adapter;
+        dxgi::iswapchain_ptr        m_swap_chain;
+        idevice_ptr	                m_device;
+        idevicecontext_ptr          m_immediate_context;
+        HWND                        m_hwnd;
     };
 
     system_context create_system_context(HWND hwnd);
@@ -30,7 +30,7 @@ namespace d3d11
 
             mode.RefreshRate.Numerator = 60;
             mode.RefreshRate.Denominator = 1;
-            mode.Format = DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM; //DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+            mode.Format = DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_B8G8R8A8_UNORM;//DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM;//DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM; //DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 
             desc.BufferDesc = mode;
             desc.Windowed = (hwnd !=0);
@@ -39,7 +39,8 @@ namespace d3d11
             desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
             desc.SampleDesc.Count = 1;
             desc.SampleDesc.Quality = 0;
-            //desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+            //desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
+            desc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
             desc.Flags = 0;
             return desc;
         }

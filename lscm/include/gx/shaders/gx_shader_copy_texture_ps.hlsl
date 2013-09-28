@@ -9,5 +9,5 @@ SamplerState    default_sampler;
 
 float4 main( in  vs_output input) : sv_target
 {
-	return sampled_texture.Sample(default_sampler, input.uv).xyzw;
+	return float4(1.0f, 0.0f, 0.0f, 1.0f ); //sampled_texture.Sample(default_sampler, input.uv).xyzw;
 }

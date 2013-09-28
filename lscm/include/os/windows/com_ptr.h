@@ -114,30 +114,35 @@ namespace os
                 this_type( rhs ).swap( *this );
             }
 
-            T * get() const
+            T * get() const throw()
             {
                 return px;
             }
 
-            T & operator*() const
+            T & operator*() const throw()
             {
-                BOOST_ASSERT( px != 0 );
                 return *px;
             }
 
-            T * operator->() const
+            T * operator->() const throw()
             {
                 return px;
             }
 
-            const T** operator&() const
+            const T** operator&() const throw()
             {
                 return &px;
             }
 
-            T** operator&()
+            T** operator&() throw() 
             {
                 return &px;
+            }
+
+            //to pass directly to com functions
+            operator const T* () const throw()
+            {
+                return px;
             }
 
             // implicit conversion to "bool"

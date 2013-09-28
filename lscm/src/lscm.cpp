@@ -19,6 +19,7 @@
 
 
 #include <gx/gx_application.h>
+#include <gx/gx_view_port.h>
 
 #include <io/io_keyboard.h>
 #include <io/io_mouse.h>
@@ -29,6 +30,8 @@
 
 #include <gx/shaders/gx_shader_copy_texture.h>
 #include <gx/shaders/gx_shader_full_screen.h>
+#include <gx/gx_render_resource.h>
+#include <gx/gx_render_functions.h>
 
 namespace lscm
 {
@@ -537,7 +540,6 @@ inline cursor create_cursor( d2d::irendertarget_ptr render_target)
     return cursor();
 }
 
-
 class sample_application : public windowed_with_input_application
 {
     typedef windowed_with_input_application base;
@@ -548,6 +550,13 @@ class sample_application : public windowed_with_input_application
         , m_d2d_factory( d2d::create_d2d_factory_single_threaded() )
         , m_dwrite_factory( dwrite::create_dwrite_factory() )
         , m_text_format ( dwrite::create_text_format(m_dwrite_factory) )
+        , m_full_screen_draw( m_context.m_device.get() )
+        , m_copy_texture_ps(m_context.m_device.get() )
+        , m_d2d_resource ( gx::create_render_target_resource( m_context.m_device.get(), 8, 8, DXGI_FORMAT_R8G8B8A8_UNORM ) )
+        , m_opaque_state ( gx::create_opaque_blend_state( m_context.m_device.get() ) )
+        , m_cull_back_raster_state ( gx::create_cull_back_rasterizer_state( m_context.m_device.get() ) )
+        , m_depth_enable_state ( gx::create_depth_test_enable_state( m_context.m_device.get() ) )
+        , m_depth_disable_state( gx::create_depth_test_disable_state( m_context.m_device.get() ) )
     {
 
     }
@@ -561,10 +570,8 @@ class sample_application : public windowed_with_input_application
 
     void on_render_frame()
     {
-        return;
-        //render text
-        m_window_render_target->BeginDraw();
-        m_window_render_target->Clear();
+        m_d2d_render_target->BeginDraw();
+        m_d2d_render_target->Clear();
 
         RECT r;
         ::GetClientRect(get_window(), &r);
@@ -572,35 +579,87 @@ class sample_application : public windowed_with_input_application
     
         D2D1_RECT_F rf = {static_cast<float> (r.left), static_cast<float>(r.top), static_cast<float>(r.right), static_cast<float>(r.bottom)};
 
-        m_window_render_target->DrawTextW(L"Testo", 4, m_text_format.get(), &rf, m_brush.get());
+        m_d2d_render_target->DrawTextW(L"Testo", 4, m_text_format.get(), &rf, m_brush.get());
+        m_d2d_render_target->EndDraw();
 
-        m_window_render_target->EndDraw();
+        auto device_context= m_context.m_immediate_context.get();
+
+        d3d11::om_set_render_target ( device_context, m_back_buffer_render_target.get() );
+
+        D3D11_VIEWPORT view_port;
+
+        view_port.Height = static_cast<float> (m_view_port.get_height());
+        view_port.MaxDepth = m_view_port.get_max_z();
+        view_port.MinDepth = m_view_port.get_min_z();
+        view_port.TopLeftX = static_cast<float> (m_view_port.get_left());
+        view_port.TopLeftY = static_cast<float> (m_view_port.get_top());
+        view_port.Width = static_cast<float> (m_view_port.get_width());
+
+        device_context->RSSetViewports(1, &view_port);
+
+        FLOAT rgba[] = { 0.5, 0.5, 0.5, 0.5 };
+        device_context->ClearRenderTargetView( m_back_buffer_render_target.get(), &rgba[0]);
+
+        d3d11::ps_set_shader( device_context, m_copy_texture_ps );
+        d3d11::ps_set_shader_resources( device_context,  m_d2d_resource );
+
+        device_context->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        device_context->RSSetState(m_cull_back_raster_state.get());
+
+        device_context->OMSetDepthStencilState( m_depth_disable_state.get() , 0 );
+        device_context->OMSetBlendState(m_opaque_state.get(), nullptr, 0xFFFFFFFF);
+
+        m_full_screen_draw.draw(device_context);
 
     }
 
     void on_resize (uint32_t width, uint32_t height)
     {
-        base::on_resize(width, height);
+        //Reset back buffer render targets
+        m_back_buffer_render_target.reset();
 
+        base::on_resize( width, height );
+
+        m_back_buffer_render_target =  d3d11::create_render_target_view ( m_context.m_device.get(), dxgi::get_buffer( m_context.m_swap_chain.get() ).get() ) ;
 
         using namespace os::windows;
-        d3d11::itexture2d_ptr   texture = dxgi::get_buffer( m_context.m_swap_chain.get() );
-        dxgi::isurface_ptr      dxgi;
+     
+        //Direct 2D
+        m_d2d_resource = gx::create_render_target_resource( m_context.m_device.get(), width, height, DXGI_FORMAT_R8G8B8A8_UNORM );
+      
+        dxgi::isurface_ptr surface;
+        ID3D11Texture2D* texture = m_d2d_resource;
+        throw_if_failed<d3d11::exception>( texture->QueryInterface( IID_IDXGISurface, reinterpret_cast<void**> (&surface) ) );
 
-        throw_if_failed<d3d11::exception> ( texture->QueryInterface(__uuidof(IDXGISurface), reinterpret_cast<void**> (&dxgi) ) );
+        m_d2d_render_target = d2d::create_render_target( m_d2d_factory, surface );
+        m_brush = d2d::create_solid_color_brush( m_d2d_render_target );
 
-        m_window_render_target = d2d::create_render_target( m_d2d_factory, dxgi );
-        m_brush = d2d::create_solid_color_brush(m_window_render_target);
+        //Reset view port dimensions
+        m_view_port.set_dimensions(width, height);
+
     }
 
     private:
-    d2d::ifactory_ptr           m_d2d_factory;
-    d2d::irendertarget_ptr      m_window_render_target;
-    d2d::isolid_color_brush_ptr m_brush;
-    dwrite::ifactory_ptr        m_dwrite_factory;
-    dwrite::itextformat_ptr     m_text_format;
-            
-            
+
+    d2d::ifactory_ptr                       m_d2d_factory;
+    gx::render_target_resource              m_d2d_resource;
+    d2d::irendertarget_ptr		            m_d2d_render_target;
+    d2d::isolid_color_brush_ptr             m_brush;
+    dwrite::ifactory_ptr                    m_dwrite_factory;
+    dwrite::itextformat_ptr                 m_text_format;
+
+    gx::full_screen_draw                    m_full_screen_draw;
+    gx::shader_copy_texture                 m_copy_texture_ps;
+    d3d11::id3d11rendertargetview_ptr       m_back_buffer_render_target;
+
+    d3d11::iblendstate_ptr                  m_opaque_state;
+    d3d11::irasterizerstate_ptr             m_cull_back_raster_state;
+
+    d3d11::idepthstencilstate_ptr           m_depth_enable_state;
+    d3d11::idepthstencilstate_ptr           m_depth_disable_state;
+
+    gx::view_port                           m_view_port;
+
 };
 
 int _tmain(int argc, _TCHAR* argv[])

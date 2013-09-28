@@ -162,6 +162,12 @@
     <ClInclude Include="..\include\gx\shaders\gx_shader_full_screen.h">
       <Filter>include\gx\shaders</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\gx\gx_render_resource.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_render_functions.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/lscm.cpp">
