@@ -387,25 +387,6 @@ namespace lscm
     };
 }
 
-
-
-
-class cursor
-{
-
-};
-
-inline cursor create_cursor( d2d::irendertarget_ptr render_target)
-{
-
-    //static uint8_t data = {};
-    D2D1_SIZE_U size = {};
-    size.width = 64;
-    size.height = 64;
-
-    return cursor();
-}
-
 class sample_application : public gx::default_application
 {
     typedef gx::default_application base;
@@ -424,6 +405,7 @@ class sample_application : public gx::default_application
         , m_cull_back_raster_state ( gx::create_cull_back_rasterizer_state( m_context.m_device.get() ) )
         , m_depth_enable_state ( gx::create_depth_test_enable_state( m_context.m_device.get() ) )
         , m_depth_disable_state( gx::create_depth_test_disable_state( m_context.m_device.get() ) )
+        , m_elapsed_update_time(0.0)
     {
 
     }
@@ -432,50 +414,64 @@ class sample_application : public gx::default_application
 
     void on_update()
     {
+        sys::profile_timer timer;
 
+
+        //Measure the update time and pass it to the render function
+        m_elapsed_update_time = timer.milliseconds();
     }
 
     void on_render_frame()
     {
         sys::profile_timer timer;
 
+        //Draw the gui and the texts
         m_d2d_render_target->BeginDraw();
         m_d2d_render_target->Clear();
 
         RECT r;
         ::GetClientRect(get_window(), &r);
 
+        //Get a description of the GPU or another simulator device
         DXGI_ADAPTER_DESC d;
         m_context.m_adapter->GetDesc(&d);
             
         D2D1_RECT_F rf = {static_cast<float> (r.left), static_cast<float>(r.top), static_cast<float>(r.right), static_cast<float>(r.bottom)};
 
-        std::wstring w = L"Elapsed time " + std::to_wstring(timer.milliseconds()) + L" ms\n";
-        std::wstring w2 = w + d.Description + L" Video Memory(MB): " + std::to_wstring(d.DedicatedVideoMemory / (1024 * 1024)) + L" System Memory(MB): " + std::to_wstring(d.DedicatedSystemMemory / (1024 * 1024)) + L" Shared Memory(MB): " + std::to_wstring(d.SharedSystemMemory / (1024 * 1024));
+        const std::wstring w = L"Update time: " + std::to_wstring(m_elapsed_update_time) + L"ms Render time: " + std::to_wstring(timer.milliseconds()) + L" ms\n";
+        const std::wstring w2 = w + d.Description + L" Video Memory(MB): " + std::to_wstring(d.DedicatedVideoMemory / (1024 * 1024)) + L" System Memory(MB): " + std::to_wstring(d.DedicatedSystemMemory / (1024 * 1024)) + L" Shared Memory(MB): " + std::to_wstring(d.SharedSystemMemory / (1024 * 1024));
       
         m_d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
         m_d2d_render_target->FillRectangle(rf, m_brush2.get());
         m_d2d_render_target->DrawTextW(w2.c_str(),  static_cast<uint32_t> ( w2.length() ) , m_text_format.get(), &rf, m_brush.get());
         m_d2d_render_target->EndDraw();
 
+        //get immediate context to submit commands to the gpu
         auto device_context= m_context.m_immediate_context.get();
 
+
+        //set render target as the back buffer, goes to the operating system
         d3d11::om_set_render_target ( device_context, m_back_buffer_render_target.get() );
 
+
+        //set a view port for rendering
         D3D11_VIEWPORT v = m_view_port;
         device_context->RSSetViewports(1, &v);
 
+        //clear the back buffer
         const float fraction = 1.0f / 128.0f;
         d3d11::clear_render_target_view(device_context, m_back_buffer_render_target, math::set(fraction, fraction, fraction, 1.0f));
 
-        //compose direct2d render target over the back buffer
+        //compose direct2d render target over the back buffer by rendering full screen quad that copies one texture onto another with alpha blending
         d3d11::ps_set_shader( device_context, m_copy_texture_ps );
         d3d11::ps_set_shader_resources( device_context,  m_d2d_resource );
 
-        d3d11::ia_set_primitive_topology( device_context, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+        //cull all back facing triangles
         d3d11::rs_set_state(device_context, m_cull_back_raster_state);
 
         d3d11::om_set_blend_state(device_context, m_premultiplied_alpha_state);
+        
+        //disable depth culling
         d3d11::om_set_depth_state(device_context, m_depth_disable_state);
         m_full_screen_draw.draw(device_context);
     }
@@ -528,13 +524,15 @@ class sample_application : public gx::default_application
     d3d11::idepthstencilstate_ptr           m_depth_disable_state;
 
     gx::view_port                           m_view_port;
+
+    double                                  m_elapsed_update_time;
 };
 
 int _tmain(int argc, _TCHAR* argv[])
 {
     using namespace lscm::indexed_face_set;
 
-    auto app = sample_application (  L"Least Squares Conformal Maps" );
+    auto app = sample_application (  L"Sample Application" );
 
     //auto mesh = create_from_noff_file( L"../media/meshes/bunny_nf4000.noff" ) ;
 

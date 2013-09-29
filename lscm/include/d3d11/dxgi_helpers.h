@@ -12,6 +12,7 @@
 
 namespace dxgi
 {
+    //return the back buffer
     inline d3d11::itexture2d_ptr get_buffer(IDXGISwapChain* swap_chain)
     {
         using namespace os::windows;

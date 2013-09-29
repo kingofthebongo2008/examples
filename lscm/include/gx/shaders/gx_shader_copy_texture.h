@@ -14,8 +14,11 @@ namespace gx
         {
             using namespace os::windows;
 
+            //strange? see in the hlsl file
+            static 
             #include "gx_shader_copy_texture_ps_compiled.hlsl"
 
+            //load, compile and create a pixel shader with the code in the hlsl file, might get slow (this is a compilation), consider offloading to another thread
             throw_if_failed<d3d11::create_pixel_shader> (device->CreatePixelShader( gx_shader_copy_texture_ps, sizeof(gx_shader_copy_texture_ps), nullptr, &m_shader));
             m_code = &gx_shader_copy_texture_ps[0];
             m_code_size = sizeof(gx_shader_copy_texture_ps);

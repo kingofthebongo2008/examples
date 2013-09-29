@@ -51,7 +51,7 @@ namespace d3d11
     {
         auto flags                  = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
-        auto level                  = D3D_FEATURE_LEVEL_11_0;
+        auto level                  = D3D_FEATURE_LEVEL_10_0;
         auto desc                   = create_default_swap_chain_desc(hwnd);
 
         dxgi::iadapter_ptr          adapter;

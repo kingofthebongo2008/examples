@@ -15,9 +15,11 @@ namespace gx
         {
             using namespace os::windows;
 
+            //strange? see in the hlsl file
             static 
             #include "gx_shader_full_screen_vs_compiled.hlsl"
 
+            //load, compile and create a pixel shader with the code in the hlsl file, might get slow (this is a compilation), consider offloading to another thread
             throw_if_failed<d3d11::create_vertex_shader> (device->CreateVertexShader( gx_shader_full_screen_vs, sizeof(gx_shader_full_screen_vs), nullptr, &m_shader));
             m_code = &gx_shader_full_screen_vs[0];
             m_code_size = sizeof(gx_shader_full_screen_vs);
@@ -45,6 +47,8 @@ namespace gx
                 { "texcoord",   0,  DXGI_FORMAT_R16G16_FLOAT,       0, 8, D3D11_INPUT_PER_VERTEX_DATA, 0 }
             };
 
+            //create description of the vertices that will go into the vertex shader
+            //example here: half4, half2
             os::windows::throw_if_failed<d3d11::create_input_layout> ( device->CreateInputLayout(&desc[0], sizeof(desc) / sizeof(desc[0]), shader.m_code, shader.m_code_size, &m_input_layout ) );
         }
 

@@ -61,6 +61,7 @@ namespace gx
 
             d3d11::ia_set_input_layout( device_context, m_input_layout );
             d3d11::vs_set_shader( device_context, m_shader );
+            d3d11::ia_set_primitive_topology(device_context, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
             d3d11::ia_set_vertex_buffer ( device_context, m_geometry, 12 );
 
             device_context->Draw( 6, 0 );
