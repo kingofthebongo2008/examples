@@ -11,8 +11,9 @@
 #include <d2d/d2d_pointers.h>
 #include <d2d/d2d_error.h>
 
-#include <os/windows/dxgi_pointers.h>
+#include <d3d11.h>
 
+#include <os/windows/dxgi_pointers.h>
 
 namespace d2d
 {
@@ -71,7 +72,6 @@ namespace d2d
 
         irendertarget_ptr result;
         
-
         D2D1_RENDER_TARGET_PROPERTIES properties = create_default_render_target_properties(factory);
 
         throw_if_failed<exception> ( factory->CreateDxgiSurfaceRenderTarget(surface.get(),&properties, &result) );
@@ -79,11 +79,30 @@ namespace d2d
         return result;
     }
 
+    inline irendertarget_ptr create_render_target( ifactory_ptr factory,  ID3D11Texture2D* const texture )
+    {
+        using namespace os::windows;
+        dxgi::isurface_ptr surface;
+        throw_if_failed<exception>(texture->QueryInterface(IID_IDXGISurface, reinterpret_cast<void**> (&surface)));
+
+        return create_render_target(factory, surface);
+    }
+
     inline isolid_color_brush_ptr create_solid_color_brush(irendertarget_ptr render_target)
     {
         using namespace os::windows;
         isolid_color_brush_ptr result;
-        throw_if_failed<exception> ( render_target->CreateSolidColorBrush( D2D1::ColorF(D2D1::ColorF::White, 1.0f), &result ) );
+        throw_if_failed<exception>(render_target->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White, 1.0f), &result));
+        return result;
+    }
+
+    inline isolid_color_brush_ptr create_solid_color_brush2(irendertarget_ptr render_target)
+    {
+        using namespace os::windows;
+        isolid_color_brush_ptr result;
+
+        const float fraction = 1.0f / 32.0f;
+        throw_if_failed<exception>(render_target->CreateSolidColorBrush(D2D1::ColorF( fraction, fraction, fraction, fraction ), &result));
         return result;
     }
 }

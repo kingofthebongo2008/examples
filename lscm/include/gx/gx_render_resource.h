@@ -1,4 +1,4 @@
-#ifndef __GX_RENDER_RESOURCE_H__
+ #ifndef __GX_RENDER_RESOURCE_H__
 #define __GX_RENDER_RESOURCE_H__
 
 #include <cstdint>
@@ -114,7 +114,7 @@ namespace gx
         description.ArraySize = 1;
         description.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
         description.CPUAccessFlags = 0;
-        description.Format = format;
+        description.Format = format;    
         description.Height = height;
         description.MipLevels = 1;
         description.MiscFlags = 0;
@@ -273,6 +273,22 @@ namespace gx
         sampler.MipLODBias = 0;
 
         return d3d11::create_sampler_state(device, &sampler );
+    }
+
+    inline d3d11::iblendstate_ptr          create_premultiplied_alpha_blend_state(ID3D11Device* device)
+    {
+        D3D11_BLEND_DESC blend = {};
+
+        blend.RenderTarget[0].BlendEnable = true;
+        blend.RenderTarget[0].BlendOp = D3D11_BLEND_OP_ADD;
+        blend.RenderTarget[0].SrcBlend = D3D11_BLEND_ONE;
+        blend.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC_ALPHA;
+        blend.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
+        blend.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
+        blend.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
+        blend.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
+
+        return d3d11::create_blend_state(device, &blend);
     }
 
     inline d3d11::isamplerstate_ptr         create_point_sampler_state( ID3D11Device* device )

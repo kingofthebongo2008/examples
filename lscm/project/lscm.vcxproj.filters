@@ -168,6 +168,9 @@
     <ClInclude Include="..\include\gx\gx_render_functions.h">
       <Filter>include\gx</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\gx\gx_default_application.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/lscm.cpp">

@@ -230,6 +230,34 @@ namespace d3d11
         ia_set_vertex_buffer(device_context, buffer, stride, 0 );
     }
 
+    inline void ia_set_primitive_topology(ID3D11DeviceContext* device_context, D3D11_PRIMITIVE_TOPOLOGY topology)
+    {
+        device_context->IASetPrimitiveTopology(topology);
+    }
+
+    inline void rs_set_state(ID3D11DeviceContext* device_context, const ID3D11RasterizerState * const state)
+    {
+        device_context->RSSetState(const_cast<ID3D11RasterizerState*> (state));
+    }
+
+    inline void om_set_depth_state(ID3D11DeviceContext* device_context, const ID3D11DepthStencilState * const state)
+    {
+        device_context->OMSetDepthStencilState(const_cast<ID3D11DepthStencilState*> (state), 0);
+    }
+
+    inline void om_set_blend_state(ID3D11DeviceContext* device_context, const ID3D11BlendState * const state)
+    {
+        device_context->OMSetBlendState(const_cast<ID3D11BlendState*> (state), nullptr, 0xFFFFFFFF);
+    }
+
+    inline void clear_render_target_view(ID3D11DeviceContext* device_context, const ID3D11RenderTargetView* const view, math::float4 value)
+    {
+        void* v = _alloca ( 4 * sizeof(float) );
+        
+        math::store4( v, value);
+        device_context->ClearRenderTargetView(const_cast<ID3D11RenderTargetView*> (view), reinterpret_cast<float*> (v) );
+    }
+
     inline void om_set_render_target( ID3D11DeviceContext* device_context, ID3D11RenderTargetView* const view )
     {
         ID3D11RenderTargetView* const views[1] =

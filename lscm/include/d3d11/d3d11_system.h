@@ -30,7 +30,8 @@ namespace d3d11
 
             mode.RefreshRate.Numerator = 60;
             mode.RefreshRate.Denominator = 1;
-            mode.Format = DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_B8G8R8A8_UNORM;//DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM;//DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM; //DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+
+            mode.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; //DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; //DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_B8G8R8A8_UNORM;//DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM;//DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM; //DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 
             desc.BufferDesc = mode;
             desc.Windowed = (hwnd !=0);
@@ -56,8 +57,24 @@ namespace d3d11
         dxgi::iadapter_ptr          adapter;
         dxgi::iswapchain_ptr        swap_chain;
 
-        idevice_ptr                device;
+        idevice_ptr                 device;
         idevicecontext_ptr          context;
+
+        dxgi::ifactory2_ptr factory;
+
+        using namespace os::windows;
+
+        throw_if_failed<create_dxgi_factory_exception>(CreateDXGIFactory1(__uuidof(IDXGIFactory2), (void**)&factory));
+
+        auto i = 0;
+        std::vector <dxgi::iadapter_ptr> adapters;
+        adapters.reserve(6);
+
+        while (factory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND)
+        {
+            adapters.push_back(adapter);
+            ++i;
+        }
 
         using namespace os::windows;
         auto hr = D3D11CreateDeviceAndSwapChain(nullptr, D3D_DRIVER_TYPE_HARDWARE, 0, flags, &level, 1, D3D11_SDK_VERSION, &desc, &swap_chain, &device, 0, &context ) ;
@@ -67,7 +84,7 @@ namespace d3d11
         unsigned int result1 = 0;
         device->CheckFormatSupport( DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM, &result1);
 
-        system_context result = {adapter, swap_chain, device, context, hwnd};
+        system_context result = { adapters[0], swap_chain, device, context, hwnd };
         return result;
     }
 

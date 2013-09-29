@@ -5,6 +5,8 @@
 
 #include "math/math_graphics.h"
 
+#include <d3d11.h>
+
 namespace gx
 {
     class view_port
@@ -98,7 +100,22 @@ namespace gx
                             };
             return v;
         }
-        
+
+        operator D3D11_VIEWPORT() const
+        {
+            D3D11_VIEWPORT view_port;
+
+            view_port.Height = static_cast<float> (get_height());
+            view_port.MaxDepth = get_max_z();
+            view_port.MinDepth = get_min_z();
+            view_port.TopLeftX = static_cast<float> (get_left());
+            view_port.TopLeftY = static_cast<float> (get_top());
+            view_port.Width = static_cast<float> (get_width());
+
+            return std::move(view_port);
+        }
+
+
         private:
 
         float   m_min_z;
