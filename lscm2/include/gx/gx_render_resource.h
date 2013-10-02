@@ -204,12 +204,12 @@ namespace gx
         return depth_resource( texture, create_write_depth_stencil_view( device, texture.get() ),  create_depth_resource_view( device, texture.get() ) );
     }
 
-    inline d3d11::idepthstencilstate_ptr   create_depth_test_enable_state( ID3D11Device* device)
+    inline d3d11::idepthstencilstate_ptr   create_depth_test_less_state( ID3D11Device* device )
     {
         D3D11_DEPTH_STENCIL_DESC dss = {};
 
         dss.DepthEnable = true;
-        dss.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
+        dss.DepthFunc = D3D11_COMPARISON_LESS;
         dss.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
 
         return d3d11::create_depth_stencil_state( device, &dss );

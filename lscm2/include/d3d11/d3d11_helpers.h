@@ -315,7 +315,7 @@ namespace d3d11
         D3D11_BUFFER_DESC desc = {};
         d3d11::ibuffer_ptr result;
 
-        desc.ByteWidth = static_cast<UINT> (size);
+        desc.ByteWidth = std::max< uint32_t> ( 16, static_cast<uint32_t> ( size ) );
         desc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
         desc.Usage = D3D11_USAGE_DYNAMIC;
         desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;

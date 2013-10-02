@@ -95,7 +95,7 @@ namespace lscm
 
         shader_depth_prepass_layout(ID3D11Device* device, const shader_depth_prepass_vs& shader)
         {
-            const D3D11_INPUT_ELEMENT_DESC desc[2] = 
+            const D3D11_INPUT_ELEMENT_DESC desc[] = 
             {
                 { "position",   0,  DXGI_FORMAT_R16G16B16A16_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
             };

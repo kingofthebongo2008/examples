@@ -173,6 +173,8 @@
     <ClInclude Include="..\include\gx\gx_color.h" />
     <ClInclude Include="..\include\gx\gx_cursor.h" />
     <ClInclude Include="..\include\gx\gx_default_application.h" />
+    <ClInclude Include="..\include\gx\gx_geometry_pass_common.h" />
+    <ClInclude Include="..\include\gx\gx_pinhole_camera.h" />
     <ClInclude Include="..\include\gx\gx_render_functions.h" />
     <ClInclude Include="..\include\gx\gx_render_resource.h" />
     <ClInclude Include="..\include\gx\gx_view.h" />
@@ -195,6 +197,7 @@
     <ClInclude Include="..\include\util\util_memory.h" />
     <ClInclude Include="..\include\util\util_noncopyable.h" />
     <ClInclude Include="..\include\util\util_utf8_conv.h" />
+    <ClInclude Include="..\src\shaders\gx_global_buffers.h" />
     <ClInclude Include="..\src\shaders\gx_shader_depth_prepass_ps.h" />
     <ClInclude Include="..\src\shaders\gx_shader_depth_prepass_vs.h" />
   </ItemGroup>

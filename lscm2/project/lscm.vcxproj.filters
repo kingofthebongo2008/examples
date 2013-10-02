@@ -180,6 +180,15 @@
     <ClInclude Include="..\src\shaders\gx_shader_depth_prepass_vs.h">
       <Filter>Source Files\shaders</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\gx\gx_geometry_pass_common.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_pinhole_camera.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shaders\gx_global_buffers.h">
+      <Filter>Source Files\shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/lscm.cpp">

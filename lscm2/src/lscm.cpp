@@ -28,16 +28,24 @@
 #include <d2d/d2d_helpers.h>
 #include <d2d/dwrite_helpers.h>
 
-#include <gx/shaders/gx_shader_copy_texture.h>
-#include <gx/shaders/gx_shader_full_screen.h>
+#include <gx/gx_geometry_pass_common.h>
+#include <gx/gx_pinhole_camera.h>
 #include <gx/gx_render_resource.h>
 #include <gx/gx_render_functions.h>
 
-//#include "shaders/gx_shader_depth_prepass_ps.h"
-//#include "shaders/gx_shader_depth_prepass_vs.h"
+#include <gx/shaders/gx_shader_copy_texture.h>
+#include <gx/shaders/gx_shader_full_screen.h>
+
+
+#include "shaders/gx_shader_depth_prepass_ps.h"
+#include "shaders/gx_shader_depth_prepass_vs.h"
+#include "shaders/gx_global_buffers.h"
+
 
 namespace lscm
 {
+    class renderable_mesh;
+
     namespace indexed_face_set
     {
         class mesh
@@ -165,6 +173,8 @@ namespace lscm
             std::vector< normal >          m_face_normals;
             std::vector< winged_edge >     m_edges;
             progress_notifier              m_notifier;
+
+            std::unique_ptr< renderable_mesh > create_renderable_mesh(std::shared_ptr< mesh > mesh);
 
             void build_edges()
             {
@@ -408,7 +418,6 @@ class sample_application : public gx::default_application
         , m_opaque_state ( gx::create_opaque_blend_state( m_context.m_device.get() ) )
         , m_premultiplied_alpha_state(gx::create_premultiplied_alpha_blend_state(m_context.m_device.get()))
         , m_cull_back_raster_state ( gx::create_cull_back_rasterizer_state( m_context.m_device.get() ) )
-        , m_depth_enable_state ( gx::create_depth_test_enable_state( m_context.m_device.get() ) )
         , m_depth_disable_state( gx::create_depth_test_disable_state( m_context.m_device.get() ) )
         , m_point_sampler(gx::create_point_sampler_state(m_context.m_device.get() ))
         , m_elapsed_update_time(0.0)
@@ -552,7 +561,6 @@ class sample_application : public gx::default_application
     d3d11::iblendstate_ptr                  m_alpha_blend_state;
     d3d11::irasterizerstate_ptr             m_cull_back_raster_state;
 
-    d3d11::idepthstencilstate_ptr           m_depth_enable_state;
     d3d11::idepthstencilstate_ptr           m_depth_disable_state;
     d3d11::isamplerstate_ptr                m_point_sampler;
 
@@ -562,6 +570,21 @@ class sample_application : public gx::default_application
 };
 
 
+class renderable_mesh
+{
+
+
+    private:
+
+
+
+};
+
+std::unique_ptr< renderable_mesh > create_renderable_mesh(std::shared_ptr< lscm::indexed_face_set::mesh > mesh)
+{
+    return std::make_unique<renderable_mesh>();
+}
+
 class sample_application2 : public sample_application
 {
     typedef sample_application base;
@@ -569,6 +592,17 @@ class sample_application2 : public sample_application
     public:
 
     sample_application2( const wchar_t* window_title) : base(window_title)
+    , m_visibility_buffer  ( gx::create_render_target_resource(m_context.m_device.get(), 8, 8, DXGI_FORMAT_R32_UINT) )
+    , m_depth_buffer ( gx::create_depth_resource(m_context.m_device.get(), 8, 8 ) )
+    , m_light_bufer ( gx::create_render_target_resource(m_context.m_device.get(), 8, 8, DXGI_FORMAT_R16G16B16A16_FLOAT) )
+    , m_depth_less( gx::create_depth_test_less_state(m_context.m_device.get() ) )
+    , m_depth_disabled( gx::create_depth_test_disable_state(m_context.m_device.get()))
+    , m_depth_prepass_ps_buffer( m_context.m_device.get() )
+    , m_depth_prepass_vs_buffer(m_context.m_device.get())
+    , m_depth_prepass_ps(m_context.m_device.get())
+    , m_depth_prepass_vs(m_context.m_device.get())
+    , m_depth_prepass_layout( m_context.m_device.get(), m_depth_prepass_vs )
+    , m_depth_prepass_buffer( m_context.m_device.get() )
     {
 
     }
@@ -582,15 +616,59 @@ class sample_application2 : public sample_application
 
     void     on_render_scene() override
     {
+        auto device_context = this->m_context.m_immediate_context.get();
 
+
+        //visibility pass
+        d3d11::om_set_render_target( device_context, m_visibility_buffer );
+        d3d11::om_set_blend_state( device_context, m_opaque_state );
+        d3d11::om_set_depth_state( device_context, m_depth_less );
+
+        d3d11::vs_set_shader( device_context, m_depth_prepass_vs );
+        d3d11::ps_set_shader(device_context, m_depth_prepass_ps);
+
+        m_depth_prepass_vs_buffer.set_w( math::identity_matrix() );
+        m_depth_prepass_ps_buffer.set_instance_id( 255 );
+
+
+        m_depth_prepass_buffer.set_view(gx::create_view_matrix( m_camera ) );
+        m_depth_prepass_buffer.set_projection(gx::create_perspective_matrix(m_camera));
+        m_depth_prepass_buffer.set_reverse_projection( static_cast<math::float4> ( gx::create_perspective_reprojection_params( m_camera ) ) );
+
+        m_depth_prepass_buffer.flush(device_context);
+        m_depth_prepass_vs_buffer.flush(device_context);
+        m_depth_prepass_ps_buffer.flush(device_context);
+
+        m_full_screen_draw.draw(device_context);
     }
 
     void    on_resize(uint32_t width, uint32_t height) override
     {
         base::on_resize(width, height);
+
+        m_visibility_buffer =   gx::create_render_target_resource( m_context.m_device.get(), width, height, DXGI_FORMAT_R32_UINT );
+        m_depth_buffer      =   gx::create_depth_resource( m_context.m_device.get(), width, height );
+        m_light_bufer       =   gx::create_render_target_resource(m_context.m_device.get(), width, height, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
     }
 
     private:
+
+    gx::pinhole_camera                      m_camera;
+    gx::depth_resource                      m_depth_buffer;
+    gx::render_target_resource              m_visibility_buffer;
+    gx::render_target_resource              m_light_bufer;
+    d3d11::idepthstencilstate_ptr           m_depth_less;
+    d3d11::idepthstencilstate_ptr           m_depth_disabled;
+
+    //visibility pass buffers
+    lscm::shader_depth_prepass_ps_buffer    m_depth_prepass_ps_buffer;
+    lscm::shader_depth_prepass_vs_buffer    m_depth_prepass_vs_buffer;
+
+    lscm::shader_depth_prepass_ps           m_depth_prepass_ps;
+    lscm::shader_depth_prepass_vs           m_depth_prepass_vs;
+    lscm::shader_depth_prepass_layout       m_depth_prepass_layout;
+    lscm::visibility_per_pass_buffer        m_depth_prepass_buffer;
 
 };
 
