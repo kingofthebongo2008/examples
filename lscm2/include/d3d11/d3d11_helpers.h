@@ -293,7 +293,7 @@ namespace d3d11
         device_context->ClearDepthStencilView(const_cast<ID3D11DepthStencilView*> (view), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0xFF);
     }
 
-    inline void om_set_render_target(ID3D11DeviceContext* device_context, ID3D11RenderTargetView* const render_target_view, const ID3D11DepthStencilView* const depth_view )
+    inline void om_set_render_target(ID3D11DeviceContext* device_context, const ID3D11RenderTargetView* const render_target_view, const ID3D11DepthStencilView* const depth_view )
     {
         ID3D11RenderTargetView* const views[1] =
         {

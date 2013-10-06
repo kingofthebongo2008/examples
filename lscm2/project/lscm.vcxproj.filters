@@ -52,6 +52,9 @@
     <Filter Include="Source Files\shaders">
       <UniqueIdentifier>{cd9e11d3-2967-4794-be0a-89908dace99e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\math">
+      <UniqueIdentifier>{0f059bda-128f-4b56-bad1-34a416e9c965}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/precompiled.h">
@@ -189,6 +192,30 @@
     <ClInclude Include="..\src\shaders\gx_global_buffers.h">
       <Filter>Source Files\shaders</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\math\math_functions.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_geometry.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_graphics.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_half.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_matrix.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_quaternion.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_vector.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_geometry_helpers.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/lscm.cpp">
@@ -199,6 +226,12 @@
     </ClCompile>
     <ClCompile Include="..\src\mem\mem_streamflow_utils.cpp">
       <Filter>Source Files\mem</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\math\math_functions.cpp">
+      <Filter>include\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\math\math_half.cpp">
+      <Filter>include\math</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

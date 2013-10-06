@@ -6,6 +6,8 @@
 #include <algorithm>
 #include <cstdint>
 #include <fstream>
+#include <future>
+
 #include <iostream>
 #include <memory>
 #include <string>
@@ -16,8 +18,8 @@
 
 #include <DXGIDebug.h>
 
-
 #include <math/math_vector.h>
+#include <math/math_graphics.h>
 
 #include <sys/sys_profile_timer.h>
 
@@ -29,6 +31,7 @@
 #include <d2d/dwrite_helpers.h>
 
 #include <gx/gx_geometry_pass_common.h>
+#include <gx/gx_geometry_helpers.h>
 #include <gx/gx_pinhole_camera.h>
 #include <gx/gx_render_resource.h>
 #include <gx/gx_render_functions.h>
@@ -36,11 +39,9 @@
 #include <gx/shaders/gx_shader_copy_texture.h>
 #include <gx/shaders/gx_shader_full_screen.h>
 
-
 #include "shaders/gx_shader_depth_prepass_ps.h"
 #include "shaders/gx_shader_depth_prepass_vs.h"
 #include "shaders/gx_global_buffers.h"
-
 
 namespace lscm
 {
@@ -108,12 +109,14 @@ namespace lscm
                     , m_faces(faces)
                     , m_notifier(notifier)
             {
+                /*
                 clean_degenerate_faces();
                 clean_duplicate_faces();
                 clear_vertices_not_referenced_by_faces();
                 normalize_normals();
                 build_edges();
                 build_face_normals();
+                */
             }
 
             mesh (
@@ -127,12 +130,14 @@ namespace lscm
                     , m_faces( std::move(faces) )
                     , m_notifier( std::move(notifier) )
             {
+                /*
                 clean_degenerate_faces();
                 clean_duplicate_faces();
                 clear_vertices_not_referenced_by_faces();
                 normalize_normals();
                 build_edges();
                 build_face_normals();
+                */
             }
 
             vertex* get_vertex( pointer p )
@@ -174,7 +179,7 @@ namespace lscm
             std::vector< winged_edge >     m_edges;
             progress_notifier              m_notifier;
 
-            std::unique_ptr< renderable_mesh > create_renderable_mesh(std::shared_ptr< mesh > mesh);
+            friend std::shared_ptr< renderable_mesh > create_renderable_mesh(ID3D11Device* device, std::shared_ptr< lscm::indexed_face_set::mesh > mesh);
 
             void build_edges()
             {
@@ -418,6 +423,7 @@ class sample_application : public gx::default_application
         , m_opaque_state ( gx::create_opaque_blend_state( m_context.m_device.get() ) )
         , m_premultiplied_alpha_state(gx::create_premultiplied_alpha_blend_state(m_context.m_device.get()))
         , m_cull_back_raster_state ( gx::create_cull_back_rasterizer_state( m_context.m_device.get() ) )
+        , m_cull_none_raster_state(gx::create_cull_none_rasterizer_state(m_context.m_device.get()))
         , m_depth_disable_state( gx::create_depth_test_disable_state( m_context.m_device.get() ) )
         , m_point_sampler(gx::create_point_sampler_state(m_context.m_device.get() ))
         , m_elapsed_update_time(0.0)
@@ -461,8 +467,17 @@ class sample_application : public gx::default_application
     {
         sys::profile_timer timer;
 
+        //get immediate context to submit commands to the gpu
+        auto device_context= m_context.m_immediate_context.get();
+
+        //set render target as the back buffer, goes to the operating system
+        d3d11::om_set_render_target ( device_context, m_back_buffer_render_target.get() );
+        d3d11::clear_render_target_view ( device_context, m_back_buffer_render_target.get(), math::zero() );
+
+
         on_render_scene();
 
+        /*
         //Draw the gui and the texts
         m_d2d_render_target->BeginDraw();
         m_d2d_render_target->Clear();
@@ -484,13 +499,6 @@ class sample_application : public gx::default_application
         m_d2d_render_target->DrawTextW(w2.c_str(),  static_cast<uint32_t> ( w2.length() ) , m_text_format.get(), &rf, m_brush.get());
         m_d2d_render_target->EndDraw();
 
-        //get immediate context to submit commands to the gpu
-        auto device_context= m_context.m_immediate_context.get();
-
-
-        //set render target as the back buffer, goes to the operating system
-        d3d11::om_set_render_target ( device_context, m_back_buffer_render_target.get() );
-
         //set a view port for rendering
         D3D11_VIEWPORT v = m_view_port;
         device_context->RSSetViewports(1, &v);
@@ -504,7 +512,6 @@ class sample_application : public gx::default_application
         d3d11::ps_set_shader_resources( device_context,  m_d2d_resource );
         d3d11::ps_set_sampler_state(device_context, m_point_sampler);
         
-
         //cull all back facing triangles
         d3d11::rs_set_state(device_context, m_cull_back_raster_state);
 
@@ -513,6 +520,7 @@ class sample_application : public gx::default_application
         //disable depth culling
         d3d11::om_set_depth_state(device_context, m_depth_disable_state);
         m_full_screen_draw.draw(device_context);
+        */
     }
 
     void on_resize (uint32_t width, uint32_t height)
@@ -525,6 +533,7 @@ class sample_application : public gx::default_application
         //Recreate the render target to the back buffer again
         m_back_buffer_render_target =  d3d11::create_render_target_view ( m_context.m_device.get(), dxgi::get_buffer( m_context.m_swap_chain.get() ).get() ) ;
 
+        /*
         using namespace os::windows;
      
         //Direct 2D resources
@@ -532,7 +541,7 @@ class sample_application : public gx::default_application
         m_d2d_render_target = d2d::create_render_target( m_d2d_factory, m_d2d_resource );
         m_brush = d2d::create_solid_color_brush( m_d2d_render_target );
         m_brush2 = d2d::create_solid_color_brush2(m_d2d_render_target);
-
+        */
         //Reset view port dimensions
         m_view_port.set_dimensions(width, height);
 
@@ -560,6 +569,7 @@ class sample_application : public gx::default_application
     
     d3d11::iblendstate_ptr                  m_alpha_blend_state;
     d3d11::irasterizerstate_ptr             m_cull_back_raster_state;
+    d3d11::irasterizerstate_ptr             m_cull_none_raster_state;
 
     d3d11::idepthstencilstate_ptr           m_depth_disable_state;
     d3d11::isamplerstate_ptr                m_point_sampler;
@@ -570,19 +580,55 @@ class sample_application : public gx::default_application
 };
 
 
-class renderable_mesh
+namespace lscm
 {
+    class renderable_mesh
+    {
+    public:
 
+        renderable_mesh( d3d11::ibuffer_ptr vertices, d3d11::ibuffer_ptr triangles, uint32_t vertex_count, uint32_t index_count) :
+              m_positions ( vertices )
+            , m_triangles ( triangles )
+            , m_vertex_count( vertex_count )
+            , m_index_count( index_count )
+        {
+
+        }
+
+        void draw(ID3D11DeviceContext* context)
+        {
+            d3d11::ia_set_primitive_topology(context, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
+            d3d11::ia_set_vertex_buffer(context, m_positions, 16);
+            d3d11::ia_set_index_buffer(context, m_triangles, DXGI_FORMAT_R32_UINT);
+            context->DrawIndexed( m_index_count, 0, 0);
+        }
 
     private:
 
+        d3d11::ibuffer_ptr  m_positions;
+        d3d11::ibuffer_ptr  m_triangles;
+        uint32_t            m_vertex_count;
+        uint32_t            m_index_count;
+    };
 
+    namespace indexed_face_set
+    {
+        std::shared_ptr< renderable_mesh > create_renderable_mesh(ID3D11Device* device, std::shared_ptr< lscm::indexed_face_set::mesh > mesh)
+        {
+            auto positions = gx::create_positions_x_y_z_w( (const float*)&mesh->m_vertices[0], static_cast<uint32_t> ( mesh->m_vertices.size() ) );
+            auto vertex_count = static_cast<uint32_t> (mesh->m_vertices.size());
+            
+            //triangle list
+            auto index_count = 3 * static_cast<uint32_t> (mesh->m_faces.size());
 
-};
-
-std::unique_ptr< renderable_mesh > create_renderable_mesh(std::shared_ptr< lscm::indexed_face_set::mesh > mesh)
-{
-    return std::make_unique<renderable_mesh>();
+            return std::make_shared<renderable_mesh>(
+                d3d11::create_immutable_vertex_buffer(device, &mesh->m_vertices[0], mesh->m_vertices.size() * sizeof( mesh::vertex ) ),
+                d3d11::create_immutable_index_buffer(device, &mesh->m_faces[0], mesh->m_faces.size() * sizeof(  mesh::face ) ), 
+                vertex_count,
+                index_count
+                );
+        }
+    }
 }
 
 class sample_application2 : public sample_application
@@ -591,8 +637,8 @@ class sample_application2 : public sample_application
 
     public:
 
-    sample_application2( const wchar_t* window_title) : base(window_title)
-    , m_visibility_buffer  ( gx::create_render_target_resource(m_context.m_device.get(), 8, 8, DXGI_FORMAT_R32_UINT) )
+    sample_application2( const wchar_t* window_title ) : base(window_title)
+    , m_visibility_buffer  ( gx::create_render_target_resource(m_context.m_device.get(), 8, 8, DXGI_FORMAT_R8G8B8A8_UNORM) )
     , m_depth_buffer ( gx::create_depth_resource(m_context.m_device.get(), 8, 8 ) )
     , m_light_bufer ( gx::create_render_target_resource(m_context.m_device.get(), 8, 8, DXGI_FORMAT_R16G16B16A16_FLOAT) )
     , m_depth_less( gx::create_depth_test_less_state(m_context.m_device.get() ) )
@@ -604,7 +650,7 @@ class sample_application2 : public sample_application
     , m_depth_prepass_layout( m_context.m_device.get(), m_depth_prepass_vs )
     , m_depth_prepass_buffer( m_context.m_device.get() )
     {
-
+        m_camera.set_view_position( math::set(0.0, 0.0f, -15.0f, 0.0f) );
     }
 
     protected:
@@ -616,20 +662,33 @@ class sample_application2 : public sample_application
 
     void     on_render_scene() override
     {
+     
         auto device_context = this->m_context.m_immediate_context.get();
 
-
         //visibility pass
-        d3d11::om_set_render_target( device_context, m_visibility_buffer );
+        D3D11_VIEWPORT v = m_view_port;
+        d3d11::rs_set_view_port(device_context, &v);
+
+        //cull all back facing triangles
+        d3d11::rs_set_state(device_context, m_cull_back_raster_state);
+
+        d3d11::om_set_render_target( device_context, m_visibility_buffer, m_depth_buffer );
         d3d11::om_set_blend_state( device_context, m_opaque_state );
         d3d11::om_set_depth_state( device_context, m_depth_less );
 
+        d3d11::clear_render_target_view(device_context, m_visibility_buffer, math::one());
+        d3d11::clear_depth_stencil_view(device_context, m_depth_buffer);
+
+        d3d11::ia_set_input_layout(device_context, m_depth_prepass_layout);
+
         d3d11::vs_set_shader( device_context, m_depth_prepass_vs );
-        d3d11::ps_set_shader(device_context, m_depth_prepass_ps);
+        d3d11::ps_set_shader( device_context, m_depth_prepass_ps );
 
-        m_depth_prepass_vs_buffer.set_w( math::identity_matrix() );
+        auto scale = math::scaling( math::set( 20.0f, 20.0f, 20.0f, 1.0f) );
+        auto w = math::mul(scale, math::identity_matrix());
+
+        m_depth_prepass_vs_buffer.set_w( w );
         m_depth_prepass_ps_buffer.set_instance_id( 255 );
-
 
         m_depth_prepass_buffer.set_view(gx::create_view_matrix( m_camera ) );
         m_depth_prepass_buffer.set_projection(gx::create_perspective_matrix(m_camera));
@@ -639,16 +698,46 @@ class sample_application2 : public sample_application
         m_depth_prepass_vs_buffer.flush(device_context);
         m_depth_prepass_ps_buffer.flush(device_context);
 
+        m_depth_prepass_buffer.bind_as_vertex(device_context);
+        m_depth_prepass_buffer.bind_as_pixel(device_context);
+        
+        m_depth_prepass_vs_buffer.bind_as_vertex(device_context);
+        m_depth_prepass_ps_buffer.bind_as_pixel(device_context);
+
+        //m_full_screen_draw.draw(device_context);
+        m_mesh->draw(device_context);
+
+        //compose visibility buffer  over the back buffer by rendering full screen quad that copies one texture onto another with alpha blending
+        d3d11::om_set_render_target( device_context, m_back_buffer_render_target.get(), 0 );
+        d3d11::ps_set_shader( device_context, m_copy_texture_ps );
+        d3d11::ps_set_shader_resources( device_context,  m_visibility_buffer );
+        d3d11::ps_set_sampler_state(device_context, m_point_sampler);
+        
+        d3d11::rs_set_state(device_context, m_cull_none_raster_state);
+
+        d3d11::om_set_blend_state( device_context, m_opaque_state);
+        d3d11::om_set_depth_state(device_context, m_depth_disable_state);
+
         m_full_screen_draw.draw(device_context);
     }
 
     void    on_resize(uint32_t width, uint32_t height) override
     {
+
         base::on_resize(width, height);
 
-        m_visibility_buffer =   gx::create_render_target_resource( m_context.m_device.get(), width, height, DXGI_FORMAT_R32_UINT );
+        m_visibility_buffer =   gx::create_render_target_resource( m_context.m_device.get(), width, height, DXGI_FORMAT_R8G8B8A8_UNORM );
         m_depth_buffer      =   gx::create_depth_resource( m_context.m_device.get(), width, height );
         m_light_bufer       =   gx::create_render_target_resource(m_context.m_device.get(), width, height, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+    }
+
+    public:
+
+    void set_mesh( std::shared_ptr< lscm::indexed_face_set::mesh > m )
+    {
+
+        m_mesh = lscm::indexed_face_set::create_renderable_mesh( m_context.m_device.get(), m );
 
     }
 
@@ -670,6 +759,8 @@ class sample_application2 : public sample_application
     lscm::shader_depth_prepass_layout       m_depth_prepass_layout;
     lscm::visibility_per_pass_buffer        m_depth_prepass_buffer;
 
+    //scene
+    std::shared_ptr<lscm::renderable_mesh>  m_mesh;
 };
 
 #define DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
@@ -682,10 +773,20 @@ int _tmain(int argc, _TCHAR* argv[])
 {
     using namespace lscm::indexed_face_set;
 
+    std::shared_ptr<mesh> m;
+
+    auto loading = std::async( [&]
+    {
+
+        m = create_from_noff_file(L"../media/meshes/bunny_nf4000.noff");
+
+    });
+
     auto app = new sample_application2 (  L"Sample Application" );
 
-    auto mesh = create_from_noff_file( L"../media/meshes/bunny_nf4000.noff" ) ;
+    loading.wait();
 
+    app->set_mesh(m);
 
     auto result = app->run();
 
@@ -693,17 +794,17 @@ int _tmain(int argc, _TCHAR* argv[])
 
     HMODULE h = LoadLibrary(L"DXGIDebug.dll");
 
-    os::windows::com_ptr < IDXGIDebug > debug;
+    if (h)
+    {
+        os::windows::com_ptr < IDXGIDebug > debug;
+        HRESULT WINAPI DXGIGetDebugInterface(REFIID riid, void **ppDebug);
 
+        typedef HRESULT(*DXGIDebug) (REFIID riid, void **ppDebug);
 
-    HRESULT WINAPI DXGIGetDebugInterface(REFIID riid, void **ppDebug);
-
-    typedef HRESULT(*DXGIDebug) (REFIID riid, void **ppDebug);
-
-
-    DXGIDebug g = (DXGIDebug) GetProcAddress(h, "DXGIGetDebugInterface");
-    g(__uuidof(IDXGIDebug), (void**)&debug);
-    debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+        DXGIDebug g = (DXGIDebug)GetProcAddress(h, "DXGIGetDebugInterface");
+        g(__uuidof(IDXGIDebug), (void**)&debug);
+        debug->ReportLiveObjects(DXGI_DEBUG_ALL, DXGI_DEBUG_RLO_ALL);
+    }
 
     return result;
 }

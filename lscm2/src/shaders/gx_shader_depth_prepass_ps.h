@@ -33,9 +33,14 @@ namespace lscm
             update(context, m_instance_id);
         }
 
-        void bind_as_vertex_constant_buffer(ID3D11DeviceContext* context)
+        void bind_as_pixel(ID3D11DeviceContext* context)
         {
-            context->VSSetConstantBuffers(1, 1, &m_buffer);
+            context->PSSetConstantBuffers(1, 1, &m_buffer);
+        }
+
+        void bind_as_pixel(ID3D11DeviceContext* context, uint32_t slot)
+        {
+            context->PSSetConstantBuffers(0, 1, &m_buffer);
         }
 
         operator ID3D11Buffer*()

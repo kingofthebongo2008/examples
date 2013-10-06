@@ -173,6 +173,7 @@
     <ClInclude Include="..\include\gx\gx_color.h" />
     <ClInclude Include="..\include\gx\gx_cursor.h" />
     <ClInclude Include="..\include\gx\gx_default_application.h" />
+    <ClInclude Include="..\include\gx\gx_geometry_helpers.h" />
     <ClInclude Include="..\include\gx\gx_geometry_pass_common.h" />
     <ClInclude Include="..\include\gx\gx_pinhole_camera.h" />
     <ClInclude Include="..\include\gx\gx_render_functions.h" />
@@ -183,6 +184,13 @@
     <ClInclude Include="..\include\gx\shaders\gx_shader_full_screen.h" />
     <ClInclude Include="..\include\io\io_keyboard.h" />
     <ClInclude Include="..\include\io\io_mouse.h" />
+    <ClInclude Include="..\include\math\math_functions.h" />
+    <ClInclude Include="..\include\math\math_geometry.h" />
+    <ClInclude Include="..\include\math\math_graphics.h" />
+    <ClInclude Include="..\include\math\math_half.h" />
+    <ClInclude Include="..\include\math\math_matrix.h" />
+    <ClInclude Include="..\include\math\math_quaternion.h" />
+    <ClInclude Include="..\include\math\math_vector.h" />
     <ClInclude Include="..\include\mem\mem_alloc.h" />
     <ClInclude Include="..\include\mem\mem_alloc_aligned.h" />
     <ClInclude Include="..\include\mem\mem_streamflow.h" />
@@ -209,6 +217,8 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\include\math\math_functions.cpp" />
+    <ClCompile Include="..\include\math\math_half.cpp" />
     <ClCompile Include="..\src\mem\mem_streamflow_utils.cpp" />
   </ItemGroup>
   <ItemGroup>

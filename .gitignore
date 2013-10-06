@@ -24,6 +24,7 @@ build/
 [Tt]est[Rr]esult
 [Bb]uild[Ll]og.*
 
+*.nvuser
 *_i.c
 *_p.c
 *.ilk

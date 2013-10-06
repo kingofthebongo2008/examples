@@ -41,9 +41,24 @@ namespace lscm
             gx::constant_buffer_update(context, m_buffer.get(), &m_view, size());
         }
 
-        void bind_as_pixel_constant_buffer(ID3D11DeviceContext* context)
+        void bind_as_vertex(ID3D11DeviceContext* context)
         {
-            context->VSSetConstantBuffers(1, 1, &m_buffer);
+            context->VSSetConstantBuffers(0, 1, &m_buffer);
+        }
+
+        void bind_as_pixel(ID3D11DeviceContext* context)
+        {
+            context->PSSetConstantBuffers(0, 1, &m_buffer);
+        }
+
+        void bind_as_vertex(ID3D11DeviceContext* context, uint32_t slot)
+        {
+            context->VSSetConstantBuffers(slot, 1, &m_buffer);
+        }
+
+        void bind_as_pixel(ID3D11DeviceContext* context, uint32_t slot)
+        {
+            context->PSSetConstantBuffers(slot, 1, &m_buffer);
         }
 
         operator ID3D11Buffer*()

@@ -37,9 +37,14 @@ namespace lscm
             update(context, &m_w);
         }
 
-        void bind_as_vertex_constant_buffer(ID3D11DeviceContext* context)
+        void bind_as_vertex(ID3D11DeviceContext* context)
         {
             context->VSSetConstantBuffers(1, 1, &m_buffer);
+        }
+
+        void bind_as_vertex(ID3D11DeviceContext* context, uint32_t slot)
+        {
+            context->VSSetConstantBuffers(slot, 1, &m_buffer);
         }
 
         operator ID3D11Buffer*()
@@ -97,7 +102,7 @@ namespace lscm
         {
             const D3D11_INPUT_ELEMENT_DESC desc[] = 
             {
-                { "position",   0,  DXGI_FORMAT_R16G16B16A16_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+                { "position", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
             };
 
             os::windows::throw_if_failed<d3d11::create_input_layout> ( device->CreateInputLayout(&desc[0], sizeof(desc) / sizeof(desc[0]), shader.m_code, shader.m_code_size, &m_input_layout ) );
