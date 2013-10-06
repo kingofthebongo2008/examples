@@ -109,14 +109,7 @@ namespace lscm
                     , m_faces(faces)
                     , m_notifier(notifier)
             {
-                /*
-                clean_degenerate_faces();
-                clean_duplicate_faces();
-                clear_vertices_not_referenced_by_faces();
-                normalize_normals();
-                build_edges();
-                build_face_normals();
-                */
+                initialize();
             }
 
             mesh (
@@ -130,14 +123,7 @@ namespace lscm
                     , m_faces( std::move(faces) )
                     , m_notifier( std::move(notifier) )
             {
-                /*
-                clean_degenerate_faces();
-                clean_duplicate_faces();
-                clear_vertices_not_referenced_by_faces();
-                normalize_normals();
-                build_edges();
-                build_face_normals();
-                */
+                initialize();
             }
 
             vertex* get_vertex( pointer p )
@@ -181,6 +167,52 @@ namespace lscm
 
             friend std::shared_ptr< renderable_mesh > create_renderable_mesh(ID3D11Device* device, std::shared_ptr< lscm::indexed_face_set::mesh > mesh);
 
+            void initialize()
+            {
+
+                auto f1 = std::async ( [=]
+                {
+                    clean_degenerate_faces();
+                });
+
+                auto f2 = std::async ( [&]
+                {
+                    f1.wait();
+                    clear_vertices_not_referenced_by_faces();
+                });
+
+                auto f3 = std::async ( [&]
+                {
+                    f1.wait();
+                    f2.wait();
+
+                    calculate_pivot();
+
+                    auto f6 = std::async ( [=]
+                    {
+                        build_face_normals();
+                    });
+
+                    f6.wait();
+                });
+
+                auto f4 = std::async ( [=]
+                {
+                    normalize_normals();
+                });
+
+                auto f5 = std::async ( [&]
+                {
+                    f2.wait();
+                    build_edges();
+                });
+
+                f3.wait();
+                f4.wait();
+                f5.wait();
+
+            }
+
             void build_edges()
             {
 
@@ -201,6 +233,41 @@ namespace lscm
 
                     math::store4( &face_normals[i], normal );
                 }
+            }
+
+            void calculate_pivot()
+            {
+                std::vector< mesh::vertex > vertices( m_vertices.size() ) ;
+                auto vertex_size = m_vertices.size();
+
+                double sum0 = 0.0;
+                double sum1 = 0.0;
+                double sum2 = 0.0;
+                double sum3 = 0.0;
+
+                std::for_each ( m_vertices.begin(), m_vertices.end(), [&] ( const vertex& v )
+                {
+                    sum0 += v.x;
+                    sum1 += v.y;
+                    sum2 += v.z;
+                    sum3 += v.w;
+                }
+                );
+
+                sum0 /= vertex_size;
+                sum1 /= vertex_size;
+                sum2 /= vertex_size;
+                sum3  = 0.0;
+
+
+                std::transform ( m_vertices.begin(), m_vertices.end(), vertices.begin(),  [&] ( const vertex& v )
+                {
+                    vertex v_new = { static_cast<float> ( v.x - sum0 ) , static_cast<float> ( v.y - sum1 ) , static_cast<float> ( v.z - sum2 ), static_cast<float> ( v.w - sum3 ) };
+                    return std::move( v_new );
+                }
+                );
+
+                m_vertices = std::move(vertices);
             }
 
             void clean_degenerate_faces()
