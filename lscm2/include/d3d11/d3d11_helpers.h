@@ -240,6 +240,16 @@ namespace d3d11
         ia_set_vertex_buffer(device_context, buffer, stride, 0 );
     }
 
+    inline void ia_set_index_buffer(ID3D11DeviceContext* device_context, const ID3D11Buffer* const buffer)
+    {
+        device_context->IASetIndexBuffer(const_cast <ID3D11Buffer *> (buffer), DXGI_FORMAT_R16_UINT, 0);
+    }
+
+    inline void ia_set_index_buffer(ID3D11DeviceContext* device_context, const ID3D11Buffer* const buffer, DXGI_FORMAT format)
+    {
+        device_context->IASetIndexBuffer(const_cast <ID3D11Buffer *> (buffer), format, 0);
+    }
+
     inline void ia_set_primitive_topology(ID3D11DeviceContext* device_context, D3D11_PRIMITIVE_TOPOLOGY topology)
     {
         device_context->IASetPrimitiveTopology(topology);
@@ -248,6 +258,11 @@ namespace d3d11
     inline void rs_set_state(ID3D11DeviceContext* device_context, const ID3D11RasterizerState * const state)
     {
         device_context->RSSetState(const_cast<ID3D11RasterizerState*> (state));
+    }
+
+    inline void rs_set_view_port(ID3D11DeviceContext* device_context, const D3D11_VIEWPORT* const view_port)
+    {
+        device_context->RSSetViewports(1, const_cast<const D3D11_VIEWPORT*> (view_port) );
     }
 
     inline void om_set_depth_state(ID3D11DeviceContext* device_context, const ID3D11DepthStencilState * const state)
@@ -268,14 +283,34 @@ namespace d3d11
         device_context->ClearRenderTargetView(const_cast<ID3D11RenderTargetView*> (view), reinterpret_cast<float*> (v) );
     }
 
-    inline void om_set_render_target( ID3D11DeviceContext* device_context, ID3D11RenderTargetView* const view )
+    inline void clear_depth_stencil_view(ID3D11DeviceContext* device_context, const ID3D11DepthStencilView* const view, float depth, uint8_t stencil)
+    {
+        device_context->ClearDepthStencilView(const_cast<ID3D11DepthStencilView*> (view), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth, stencil );
+    }
+
+    inline void clear_depth_stencil_view(ID3D11DeviceContext* device_context, const ID3D11DepthStencilView* const view)
+    {
+        device_context->ClearDepthStencilView(const_cast<ID3D11DepthStencilView*> (view), D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0xFF);
+    }
+
+    inline void om_set_render_target(ID3D11DeviceContext* device_context, ID3D11RenderTargetView* const render_target_view, const ID3D11DepthStencilView* const depth_view )
     {
         ID3D11RenderTargetView* const views[1] =
         {
-            const_cast< ID3D11RenderTargetView* const > (view)
+            const_cast<ID3D11RenderTargetView* const> (render_target_view)
         };
 
-        device_context->OMSetRenderTargets( 1, &views[0], nullptr );
+        device_context->OMSetRenderTargets(1, &views[0], const_cast< ID3D11DepthStencilView* > (depth_view) );
+    }
+
+    inline void om_set_render_target(ID3D11DeviceContext* device_context, ID3D11RenderTargetView* const render_target_view )
+    {
+        ID3D11RenderTargetView* const views[1] =
+        {
+            const_cast<ID3D11RenderTargetView* const> (render_target_view)
+        };
+
+        device_context->OMSetRenderTargets(1, &views[0], nullptr );
     }
 
     namespace

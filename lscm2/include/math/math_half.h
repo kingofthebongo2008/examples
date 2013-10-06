@@ -7,7 +7,7 @@ namespace math
 {
     typedef uint16_t	half;
     typedef __m128i			half4;
-    typedef __m128i			half4_2;		// two half4 vectors in a compact form
+    typedef __m128i			half4_2;		    // two half4 vectors in a compact form
     typedef std::uint64_t	compact_half4;		// half4 vector in a compact form, suitable for storage
 
     struct half2
