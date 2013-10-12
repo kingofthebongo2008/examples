@@ -16,20 +16,20 @@ namespace gx
 
             //strange? see in the hlsl file
             static 
-            #include "gx_shader_copy_texture_ps_compiled.hlsl"
+            #include "gx_shader_copy_texture_cs_compiled.hlsl"
 
             //load, compile and create a pixel shader with the code in the hlsl file, might get slow (this is a compilation), consider offloading to another thread
-            throw_if_failed<d3d11::create_pixel_shader> (device->CreatePixelShader( gx_shader_copy_texture_ps, sizeof(gx_shader_copy_texture_ps), nullptr, &m_shader));
-            m_code = &gx_shader_copy_texture_ps[0];
-            m_code_size = sizeof(gx_shader_copy_texture_ps);
+            throw_if_failed<d3d11::create_pixel_shader> (device->CreateComputeShader( gx_shader_copy_texture_cs, sizeof(gx_shader_copy_texture_cs), nullptr, &m_shader));
+            m_code = &gx_shader_copy_texture_cs[0];
+            m_code_size = sizeof(gx_shader_copy_texture_cs);
         }
 
-        operator const ID3D11PixelShader*() const
+        operator ID3D11ComputeShader* () const
         {
             return m_shader.get();
         }
 
-        d3d11::ipixelshader_ptr     m_shader;
+        d3d11::icomputeshader_ptr   m_shader;
         const void*                 m_code;
         uint32_t                    m_code_size;
     };

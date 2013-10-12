@@ -29,7 +29,7 @@ namespace lscm
 
         void update(ID3D11DeviceContext* context, math::float4x4* value)
         {
-            gx::constant_buffer_update(context, m_buffer.get(), value);
+            gx::constant_buffer_update(context, m_buffer, value);
         }
 
         void flush(ID3D11DeviceContext* context)
@@ -84,7 +84,7 @@ namespace lscm
             m_code_size = sizeof(gx_shader_depth_prepass_vs);
         }
 
-        operator const ID3D11VertexShader*() const
+        operator ID3D11VertexShader* const () const
         {
             return m_shader.get();
         }

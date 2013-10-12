@@ -74,7 +74,7 @@ namespace d2d
         
         D2D1_RENDER_TARGET_PROPERTIES properties = create_default_render_target_properties(factory);
 
-        throw_if_failed<exception> ( factory->CreateDxgiSurfaceRenderTarget(surface.get(),&properties, &result) );
+        throw_if_failed<exception> ( factory->CreateDxgiSurfaceRenderTarget( surface, &properties, &result) );
 
         return result;
     }

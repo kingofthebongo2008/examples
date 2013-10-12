@@ -33,8 +33,12 @@ namespace d3d11
     typedef os::windows::com_ptr<ID3D11VertexShader>        ivertexshader_ptr;
     typedef os::windows::com_ptr<ID3D11PixelShader>         ipixelshader_ptr;
     typedef os::windows::com_ptr<ID3D11GeometryShader>      igeometryshader_ptr;
+    typedef os::windows::com_ptr<ID3D11ComputeShader>       icomputeshader_ptr;
 
     typedef os::windows::com_ptr<ID3D11InputLayout>         iinputlayout_ptr;
+
+    typedef os::windows::com_ptr<ID3D11UnorderedAccessView> iunordered_access_view_ptr;
+
 }
 
 #endif

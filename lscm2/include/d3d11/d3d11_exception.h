@@ -223,6 +223,15 @@ namespace d3d11
 
         }
     };
+
+    class create_unordered_access_view_exception : public create_resource_exception
+    {
+        public:
+        create_unordered_access_view_exception ( const HRESULT hr ) : create_resource_exception(hr)
+        {
+
+        }
+    };
 }
 
 

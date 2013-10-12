@@ -484,15 +484,15 @@ class sample_application : public gx::default_application
         , m_d2d_factory( d2d::create_d2d_factory_single_threaded() )
         , m_dwrite_factory( dwrite::create_dwrite_factory() )
         , m_text_format ( dwrite::create_text_format(m_dwrite_factory) )
-        , m_full_screen_draw( m_context.m_device.get() )
-        , m_copy_texture_ps(m_context.m_device.get() )
-        , m_d2d_resource ( gx::create_render_target_resource( m_context.m_device.get(), 8, 8, DXGI_FORMAT_R8G8B8A8_UNORM ) )
-        , m_opaque_state ( gx::create_opaque_blend_state( m_context.m_device.get() ) )
-        , m_premultiplied_alpha_state(gx::create_premultiplied_alpha_blend_state(m_context.m_device.get()))
-        , m_cull_back_raster_state ( gx::create_cull_back_rasterizer_state( m_context.m_device.get() ) )
-        , m_cull_none_raster_state(gx::create_cull_none_rasterizer_state(m_context.m_device.get()))
-        , m_depth_disable_state( gx::create_depth_test_disable_state( m_context.m_device.get() ) )
-        , m_point_sampler(gx::create_point_sampler_state(m_context.m_device.get() ))
+        , m_full_screen_draw( m_context.m_device )
+        , m_copy_texture_ps(m_context.m_device )
+        , m_d2d_resource ( gx::create_render_target_resource( m_context.m_device, 8, 8, DXGI_FORMAT_R8G8B8A8_UNORM ) )
+        , m_opaque_state ( gx::create_opaque_blend_state( m_context.m_device ) )
+        , m_premultiplied_alpha_state(gx::create_premultiplied_alpha_blend_state(m_context.m_device))
+        , m_cull_back_raster_state ( gx::create_cull_back_rasterizer_state( m_context.m_device ) )
+        , m_cull_none_raster_state(gx::create_cull_none_rasterizer_state(m_context.m_device))
+        , m_depth_disable_state( gx::create_depth_test_disable_state( m_context.m_device ) )
+        , m_point_sampler(gx::create_point_sampler_state(m_context.m_device ))
         , m_elapsed_update_time(0.0)
     {
 
@@ -538,8 +538,8 @@ class sample_application : public gx::default_application
         auto device_context= m_context.m_immediate_context.get();
 
         //set render target as the back buffer, goes to the operating system
-        d3d11::om_set_render_target ( device_context, m_back_buffer_render_target.get() );
-        d3d11::clear_render_target_view ( device_context, m_back_buffer_render_target.get(), math::zero() );
+        d3d11::om_set_render_target ( device_context, m_back_buffer_render_target );
+        d3d11::clear_render_target_view ( device_context, m_back_buffer_render_target, math::zero() );
 
 
         on_render_scene();
@@ -562,8 +562,8 @@ class sample_application : public gx::default_application
         const std::wstring w2 = w + d.Description + L" Video Memory(MB): " + std::to_wstring(d.DedicatedVideoMemory / (1024 * 1024)) + L" System Memory(MB): " + std::to_wstring(d.DedicatedSystemMemory / (1024 * 1024)) + L" Shared Memory(MB): " + std::to_wstring(d.SharedSystemMemory / (1024 * 1024));
       
         m_d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
-        m_d2d_render_target->FillRectangle(rf, m_brush2.get());
-        m_d2d_render_target->DrawTextW(w2.c_str(),  static_cast<uint32_t> ( w2.length() ) , m_text_format.get(), &rf, m_brush.get());
+        m_d2d_render_target->FillRectangle(rf, m_brush2);
+        m_d2d_render_target->DrawTextW(w2.c_str(),  static_cast<uint32_t> ( w2.length() ) , m_text_format, &rf, m_brush);
         m_d2d_render_target->EndDraw();
 
         //set a view port for rendering
@@ -598,13 +598,13 @@ class sample_application : public gx::default_application
         base::on_resize( width, height );
 
         //Recreate the render target to the back buffer again
-        m_back_buffer_render_target =  d3d11::create_render_target_view ( m_context.m_device.get(), dxgi::get_buffer( m_context.m_swap_chain.get() ).get() ) ;
+        m_back_buffer_render_target =  d3d11::create_render_target_view ( m_context.m_device, dxgi::get_buffer( m_context.m_swap_chain ) ) ;
 
         /*
         using namespace os::windows;
      
         //Direct 2D resources
-        m_d2d_resource = gx::create_render_target_resource( m_context.m_device.get(), width, height, DXGI_FORMAT_R8G8B8A8_UNORM );
+        m_d2d_resource = gx::create_render_target_resource( m_context.m_device, width, height, DXGI_FORMAT_R8G8B8A8_UNORM );
         m_d2d_render_target = d2d::create_render_target( m_d2d_factory, m_d2d_resource );
         m_brush = d2d::create_solid_color_brush( m_d2d_render_target );
         m_brush2 = d2d::create_solid_color_brush2(m_d2d_render_target);
@@ -705,17 +705,17 @@ class sample_application2 : public sample_application
     public:
 
     sample_application2( const wchar_t* window_title ) : base(window_title)
-    , m_visibility_buffer  ( gx::create_render_target_resource(m_context.m_device.get(), 8, 8, DXGI_FORMAT_R8G8B8A8_UNORM) )
-    , m_depth_buffer ( gx::create_depth_resource(m_context.m_device.get(), 8, 8 ) )
-    , m_light_bufer ( gx::create_render_target_resource(m_context.m_device.get(), 8, 8, DXGI_FORMAT_R16G16B16A16_FLOAT) )
-    , m_depth_less( gx::create_depth_test_less_state(m_context.m_device.get() ) )
-    , m_depth_disabled( gx::create_depth_test_disable_state(m_context.m_device.get()))
-    , m_depth_prepass_ps_buffer( m_context.m_device.get() )
-    , m_depth_prepass_vs_buffer(m_context.m_device.get())
-    , m_depth_prepass_ps(m_context.m_device.get())
-    , m_depth_prepass_vs(m_context.m_device.get())
-    , m_depth_prepass_layout( m_context.m_device.get(), m_depth_prepass_vs )
-    , m_depth_prepass_buffer( m_context.m_device.get() )
+    , m_visibility_buffer  ( gx::create_render_target_resource(m_context.m_device, 8, 8, DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_UINT, DXGI_FORMAT_R32_UINT ) )
+    , m_depth_buffer ( gx::create_depth_resource(m_context.m_device, 8, 8 ) )
+    , m_light_bufer ( gx::create_render_target_resource(m_context.m_device, 8, 8, DXGI_FORMAT_R16G16B16A16_FLOAT) )
+    , m_depth_less( gx::create_depth_test_less_state(m_context.m_device ) )
+    , m_depth_disabled( gx::create_depth_test_disable_state(m_context.m_device))
+    , m_depth_prepass_ps_buffer( m_context.m_device )
+    , m_depth_prepass_vs_buffer(m_context.m_device)
+    , m_depth_prepass_ps(m_context.m_device)
+    , m_depth_prepass_vs(m_context.m_device)
+    , m_depth_prepass_layout( m_context.m_device, m_depth_prepass_vs )
+    , m_depth_prepass_buffer( m_context.m_device )
     {
         m_camera.set_view_position( math::set(0.0, 0.0f, -15.0f, 0.0f) );
     }
@@ -731,6 +731,11 @@ class sample_application2 : public sample_application
     {
      
         auto device_context = this->m_context.m_immediate_context.get();
+
+        gx::reset_render_targets( device_context );
+        gx::reset_shader_resources( device_context );
+        gx::reset_constant_buffers( device_context );
+        
 
         //visibility pass
         D3D11_VIEWPORT v = m_view_port;
@@ -775,10 +780,11 @@ class sample_application2 : public sample_application
         m_mesh->draw(device_context);
 
         //compose visibility buffer  over the back buffer by rendering full screen quad that copies one texture onto another with alpha blending
-        d3d11::om_set_render_target( device_context, m_back_buffer_render_target.get(), 0 );
-        d3d11::ps_set_shader( device_context, m_copy_texture_ps );
-        d3d11::ps_set_shader_resources( device_context,  m_visibility_buffer );
-        d3d11::ps_set_sampler_state(device_context, m_point_sampler);
+        d3d11::om_set_render_target( device_context, m_back_buffer_render_target, 0 );
+
+        d3d11::cs_set_shader( device_context, m_copy_texture_ps );
+        d3d11::cs_set_shader_resources( device_context,  m_visibility_buffer );
+        d3d11::cs_set_sampler_state(device_context, m_point_sampler);
         
         d3d11::rs_set_state(device_context, m_cull_none_raster_state);
 
@@ -793,9 +799,14 @@ class sample_application2 : public sample_application
 
         base::on_resize(width, height);
 
-        m_visibility_buffer =   gx::create_render_target_resource( m_context.m_device.get(), width, height, DXGI_FORMAT_R8G8B8A8_UNORM );
-        m_depth_buffer      =   gx::create_depth_resource( m_context.m_device.get(), width, height );
-        m_light_bufer       =   gx::create_render_target_resource(m_context.m_device.get(), width, height, DXGI_FORMAT_R16G16B16A16_FLOAT);
+        m_visibility_buffer =   gx::create_render_target_resource( m_context.m_device, width, height, DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_UINT, DXGI_FORMAT_R32_UINT );
+        m_depth_buffer      =   gx::create_depth_resource( m_context.m_device, width, height );
+        m_light_bufer       =   gx::create_render_target_resource(m_context.m_device, width, height, DXGI_FORMAT_R16G16B16A16_FLOAT);
+
+
+        m_visibility_buffer_view = d3d11::create_unordered_access_view_structured( m_context.m_device, m_visibility_buffer, DXGI_FORMAT_R32_UINT );
+
+        m_back_buffer_view = d3d11::create_unordered_access_view_structured( m_context.m_device, dxgi::get_buffer( m_context.m_swap_chain ), DXGI_FORMAT_R8G8B8A8_UNORM );
 
     }
 
@@ -804,7 +815,7 @@ class sample_application2 : public sample_application
     void set_mesh( std::shared_ptr< lscm::indexed_face_set::mesh > m )
     {
 
-        m_mesh = lscm::indexed_face_set::create_renderable_mesh( m_context.m_device.get(), m );
+        m_mesh = lscm::indexed_face_set::create_renderable_mesh( m_context.m_device, m );
 
     }
 
@@ -825,6 +836,11 @@ class sample_application2 : public sample_application
     lscm::shader_depth_prepass_vs           m_depth_prepass_vs;
     lscm::shader_depth_prepass_layout       m_depth_prepass_layout;
     lscm::visibility_per_pass_buffer        m_depth_prepass_buffer;
+
+
+    //debug output
+    d3d11::iunordered_access_view_ptr       m_visibility_buffer_view;
+    d3d11::iunordered_access_view_ptr       m_back_buffer_view;
 
     //scene
     std::shared_ptr<lscm::renderable_mesh>  m_mesh;

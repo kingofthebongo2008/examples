@@ -238,14 +238,14 @@
     <FxCompile Include="..\include\gx\shaders\gx_shader_full_screen_vs.hlsl">
       <Filter>include\gx\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_ps.hlsl">
-      <Filter>include\gx\shaders</Filter>
-    </FxCompile>
     <FxCompile Include="..\src\shaders\gx_shader_depth_prepass_ps.hlsl">
       <Filter>Source Files\shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\src\shaders\gx_shader_depth_prepass_vs.hlsl">
       <Filter>Source Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_cs.hlsl">
+      <Filter>include\gx\shaders</Filter>
     </FxCompile>
   </ItemGroup>
 </Project>

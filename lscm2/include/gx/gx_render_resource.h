@@ -126,7 +126,41 @@ namespace gx
 
         d3d11::itexture2d_ptr texture = d3d11::create_texture_2d( device, &description);
 
-        return render_target_resource( texture , d3d11::create_render_target_view( device, texture.get() ),  d3d11::create_shader_resource_view( device, texture.get() ) );
+        return render_target_resource( texture , d3d11::create_render_target_view( device, texture ),  d3d11::create_shader_resource_view( device, texture ) );
+    }
+
+    inline render_target_resource create_render_target_resource(ID3D11Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, DXGI_FORMAT target, DXGI_FORMAT view)
+    {
+        D3D11_TEXTURE2D_DESC description = {};
+
+        description.ArraySize = 1;
+        description.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
+        description.CPUAccessFlags = 0;
+        description.Format = format;    
+        description.Height = height;
+        description.MipLevels = 1;
+        description.MiscFlags = 0;
+        description.SampleDesc.Count = 1;
+        description.SampleDesc.Quality = 0;
+
+        description.Usage = D3D11_USAGE_DEFAULT;
+        description.Width = width;
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {};
+        D3D11_RENDER_TARGET_VIEW_DESC   render_desc = {};
+
+        render_desc.Format = target;
+        render_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+        render_desc.Texture2D.MipSlice = 0;
+
+        view_desc.Format = view;
+        view_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+        view_desc.Texture2D.MostDetailedMip = 0;
+        view_desc.Texture2D.MipLevels = 1;
+
+        d3d11::itexture2d_ptr texture = d3d11::create_texture_2d( device, &description);
+
+        return render_target_resource( texture , d3d11::create_render_target_view( device, texture , &render_desc ),  d3d11::create_shader_resource_view( device, texture, &view_desc ) );
     }
 
     inline render_target_resource create_normal_resource(ID3D11Device* device, uint32_t width, uint32_t height)
@@ -201,7 +235,7 @@ namespace gx
 
         d3d11::itexture2d_ptr texture = d3d11::create_texture_2d( device, &description);
 
-        return depth_resource( texture, create_write_depth_stencil_view( device, texture.get() ),  create_depth_resource_view( device, texture.get() ) );
+        return depth_resource( texture, create_write_depth_stencil_view( device, texture ),  create_depth_resource_view( device, texture ) );
     }
 
     inline d3d11::idepthstencilstate_ptr   create_depth_test_less_state( ID3D11Device* device )

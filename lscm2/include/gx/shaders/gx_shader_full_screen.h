@@ -25,7 +25,7 @@ namespace gx
             m_code_size = sizeof(gx_shader_full_screen_vs);
         }
 
-        operator const ID3D11VertexShader*() const
+        operator ID3D11VertexShader*() const
         {
             return m_shader.get();
         }

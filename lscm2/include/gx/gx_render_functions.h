@@ -1,6 +1,7 @@
 #ifndef __GX_RENDER_FUNCTIONS_H__
 #define __GX_RENDER_FUNCTIONS_H__
 
+#include <array>
 #include <cstdint>
 #include <limits>
 
@@ -72,6 +73,51 @@ namespace gx
         shader_full_screen_layout   m_input_layout;
         d3d11::ibuffer_ptr          m_geometry;
     };
+
+        void reset_shader_resources(ID3D11DeviceContext* device_context)
+    {
+        ID3D11ShaderResourceView* resources[ D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ];
+
+        for (auto i = 0; i <D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;++i)
+        {
+            resources[i] = nullptr;
+        }
+
+        d3d11::ps_set_shader_resources ( device_context, sizeof(resources) / sizeof(resources[0] ) , resources );
+        d3d11::vs_set_shader_resources ( device_context, sizeof(resources) / sizeof(resources[0] ) , resources );
+    }
+
+    void reset_constant_buffers(ID3D11DeviceContext* device_context)
+    {
+        ID3D11Buffer * buffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
+
+        for (auto i = 0; i <D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT;++i)
+        {
+            buffers[i] = nullptr;
+        }
+
+        device_context->VSSetConstantBuffers(0, sizeof(buffers)/ sizeof(buffers[0]), &buffers[0]); 
+        device_context->PSSetConstantBuffers(0, sizeof(buffers)/ sizeof(buffers[0]), &buffers[0]); 
+    }
+
+    void reset_render_targets(ID3D11DeviceContext* device_context)
+    {
+        std::array<ID3D11RenderTargetView*, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT> views = 
+        { 
+                                                nullptr,
+                                                nullptr,
+                                                nullptr,
+                                                nullptr,
+
+                                                nullptr,
+                                                nullptr,
+                                                nullptr,
+                                                nullptr
+        };
+
+        device_context->OMSetRenderTargets( static_cast<uint32_t> (views.size() ) , &views[0], nullptr );
+    }
+
 
 }
 

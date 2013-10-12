@@ -38,7 +38,7 @@ namespace lscm
 
         void flush(ID3D11DeviceContext* context)
         {
-            gx::constant_buffer_update(context, m_buffer.get(), &m_view, size());
+            gx::constant_buffer_update(context, m_buffer, &m_view, size());
         }
 
         void bind_as_vertex(ID3D11DeviceContext* context)

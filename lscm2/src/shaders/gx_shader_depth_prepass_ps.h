@@ -80,7 +80,7 @@ namespace lscm
             m_code_size = sizeof(gx_shader_depth_prepass_ps);
         }
 
-        operator const ID3D11PixelShader*() const
+        operator ID3D11PixelShader* const() const
         {
             return m_shader.get();
         }

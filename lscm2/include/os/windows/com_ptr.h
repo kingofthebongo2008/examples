@@ -139,8 +139,12 @@ namespace os
                 return &px;
             }
 
-            //to pass directly to com functions
             operator const T* () const throw()
+            {
+                return px;
+            }
+
+            operator T* () throw()
             {
                 return px;
             }
@@ -161,7 +165,6 @@ namespace os
             }
 
             private:
-
             T * px;
         };
 
@@ -209,21 +212,6 @@ namespace os
         template<class T> T * get_pointer(com_ptr<T> const & p)
         {
             return p.get();
-        }
-
-        template<class T, class U> com_ptr<T> static_pointer_cast(com_ptr<U> const & p)
-        {
-            return static_cast<T *>(p.get());
-        }
-
-        template<class T, class U> com_ptr<T> const_pointer_cast(com_ptr<U> const & p)
-        {
-            return const_cast<T *>(p.get());
-        }
-
-        template<class T, class U> com_ptr<T> dynamic_pointer_cast(com_ptr<U> const & p)
-        {
-            return dynamic_cast<T *>(p.get());
         }
     }
 }

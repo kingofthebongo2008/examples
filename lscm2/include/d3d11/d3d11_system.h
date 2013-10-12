@@ -31,13 +31,13 @@ namespace d3d11
             mode.RefreshRate.Numerator = 60;
             mode.RefreshRate.Denominator = 1;
 
-            mode.Format = DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; //DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; //DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_B8G8R8A8_UNORM;//DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM;//DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM; //DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
+            mode.Format = DXGI_FORMAT_R8G8B8A8_UNORM;//DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;//DXGI_FORMAT_R8G8B8A8_UNORM; //DXGI_FORMAT_R8G8B8A8_UNORM_SRGB; //DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_B8G8R8A8_UNORM;//DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM;//DXGI_FORMAT_R10G10B10A2_UNORM;//DXGI_FORMAT_R10G10B10_XR_BIAS_A2_UNORM; //DXGI_FORMAT_R8G8B8A8_UNORM_SRGB;
 
             desc.BufferDesc = mode;
             desc.Windowed = (hwnd !=0);
             desc.OutputWindow = hwnd;
             desc.BufferCount = 2;
-            desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+            desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT | DXGI_USAGE_UNORDERED_ACCESS | DXGI_USAGE_SHADER_INPUT;
             desc.SampleDesc.Count = 1;
             desc.SampleDesc.Quality = 0;
             //desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL;
@@ -49,7 +49,7 @@ namespace d3d11
 
     inline system_context create_system_context(HWND hwnd)
     {
-        auto flags = 0;//D3D11_CREATE_DEVICE_DEBUGGABLE; // D3D11_CREATE_DEVICE_BGRA_SUPPORT;  //D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+        auto flags = D3D11_CREATE_DEVICE_DEBUG;//D3D11_CREATE_DEVICE_DEBUGGABLE; // D3D11_CREATE_DEVICE_BGRA_SUPPORT;  //D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
         auto level                  = D3D_FEATURE_LEVEL_11_0;
         D3D_FEATURE_LEVEL           level_out;
@@ -80,7 +80,7 @@ namespace d3d11
 
         using namespace os::windows;
 
-        hr = D3D11CreateDevice(adapter.get(), D3D_DRIVER_TYPE_UNKNOWN, 0, flags, &level, 1, D3D11_SDK_VERSION, &device, &level_out, &context);
+        hr = D3D11CreateDevice( adapter, D3D_DRIVER_TYPE_UNKNOWN, 0, flags, &level, 1, D3D11_SDK_VERSION, &device, &level_out, &context);
         throw_if_failed<create_device_exception>(hr);
 
         hr = factory->CreateSwapChain(device.get(), &desc, &swap_chain);
