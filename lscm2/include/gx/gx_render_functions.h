@@ -74,17 +74,17 @@ namespace gx
         d3d11::ibuffer_ptr          m_geometry;
     };
 
-        void reset_shader_resources(ID3D11DeviceContext* device_context)
+    void reset_shader_resources(ID3D11DeviceContext* device_context)
     {
         ID3D11ShaderResourceView* resources[ D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ];
 
-        for (auto i = 0; i <D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT;++i)
+        for (auto i = 0; i < D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT; ++i )
         {
             resources[i] = nullptr;
         }
 
-        d3d11::ps_set_shader_resources ( device_context, sizeof(resources) / sizeof(resources[0] ) , resources );
-        d3d11::vs_set_shader_resources ( device_context, sizeof(resources) / sizeof(resources[0] ) , resources );
+        d3d11::ps_set_shader_resources ( device_context, resources );
+        d3d11::vs_set_shader_resources ( device_context, resources );
     }
 
     void reset_constant_buffers(ID3D11DeviceContext* device_context)
