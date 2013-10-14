@@ -83,6 +83,8 @@ namespace gx
             resources[i] = nullptr;
         }
 
+        d3d11::cs_set_shader_resources ( device_context, resources );
+        d3d11::gs_set_shader_resources ( device_context, resources );
         d3d11::ps_set_shader_resources ( device_context, resources );
         d3d11::vs_set_shader_resources ( device_context, resources );
     }
@@ -102,7 +104,7 @@ namespace gx
 
     void reset_render_targets(ID3D11DeviceContext* device_context)
     {
-        std::array<ID3D11RenderTargetView*, D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT> views = 
+        std::array<ID3D11RenderTargetView* const , D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT> views = 
         { 
                                                 nullptr,
                                                 nullptr,
@@ -115,7 +117,8 @@ namespace gx
                                                 nullptr
         };
 
-        device_context->OMSetRenderTargets( static_cast<uint32_t> (views.size() ) , &views[0], nullptr );
+        d3d11::om_set_render_targets ( device_context, std::cbegin(views), std::cend(views) );
+
     }
 
 

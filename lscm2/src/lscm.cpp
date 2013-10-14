@@ -537,6 +537,7 @@ class sample_application : public gx::default_application
         //get immediate context to submit commands to the gpu
         auto device_context= m_context.m_immediate_context.get();
 
+
         //set render target as the back buffer, goes to the operating system
         d3d11::om_set_render_target ( device_context, m_back_buffer_render_target );
         d3d11::clear_render_target_view ( device_context, m_back_buffer_render_target, math::zero() );
@@ -666,6 +667,8 @@ namespace lscm
         {
             d3d11::ia_set_primitive_topology(context, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
             d3d11::ia_set_vertex_buffer(context, m_positions, 16);
+
+
             d3d11::ia_set_index_buffer(context, m_triangles, DXGI_FORMAT_R32_UINT);
             context->DrawIndexed( m_index_count, 0, 0);
         }
@@ -729,8 +732,9 @@ class sample_application2 : public sample_application
 
     void     on_render_scene() override
     {
-     
         auto device_context = this->m_context.m_immediate_context.get();
+
+        device_context->ClearState();
 
         gx::reset_render_targets( device_context );
         gx::reset_shader_resources( device_context );
@@ -779,19 +783,14 @@ class sample_application2 : public sample_application
         //m_full_screen_draw.draw(device_context);
         m_mesh->draw(device_context);
 
+        d3d11::clear_state( device_context );
+
         //compose visibility buffer  over the back buffer by rendering full screen quad that copies one texture onto another with alpha blending
-        d3d11::om_set_render_target( device_context, m_back_buffer_render_target, 0 );
-
         d3d11::cs_set_shader( device_context, m_copy_texture_ps );
-        d3d11::cs_set_shader_resources( device_context,  m_visibility_buffer );
-        d3d11::cs_set_sampler_state(device_context, m_point_sampler);
-        
-        d3d11::rs_set_state(device_context, m_cull_none_raster_state);
-
-        d3d11::om_set_blend_state( device_context, m_opaque_state);
-        d3d11::om_set_depth_state(device_context, m_depth_disable_state);
-
-        m_full_screen_draw.draw(device_context);
+        d3d11::cs_set_shader_resource( device_context, 0, m_visibility_buffer );
+        d3d11::cs_set_unordered_access_view( device_context, 0, m_back_buffer_view );
+        d3d11::cs_dispatch ( device_context, 1280, 720 );
+        d3d11::clear_state( device_context );
     }
 
     void    on_resize(uint32_t width, uint32_t height) override
