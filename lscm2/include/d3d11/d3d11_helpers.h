@@ -167,6 +167,7 @@ namespace d3d11
         os::windows::throw_if_failed<d3d11::create_buffer_exception> (device->CreateBuffer(&desc, &initial_data_dx, &result));
         return result;
     }
+    
     //----------------------------------------------------------------------------------------------------------
     inline  d3d11::iunordered_access_view_ptr create_unordered_access_view_structured( ID3D11Device* device, ID3D11Texture2D* const texture, DXGI_FORMAT format )
     {
@@ -176,7 +177,7 @@ namespace d3d11
         desc.ViewDimension = D3D11_UAV_DIMENSION_TEXTURE2D;
         desc.Texture2D.MipSlice = 0;
         desc.Format = format;
-        os::windows::throw_if_failed<d3d11::create_unordered_access_view_exception> (device->CreateUnorderedAccessView( texture, &desc, &r));
+        os::windows::throw_if_failed<d3d11::create_unordered_access_view_exception> ( device->CreateUnorderedAccessView( texture, &desc, &r) );
         return r;
     }
     //----------------------------------------------------------------------------------------------------------

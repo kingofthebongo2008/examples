@@ -216,6 +216,9 @@
     <ClInclude Include="..\include\gx\gx_geometry_helpers.h">
       <Filter>include\gx</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\shaders\gx_shader_copy_texture.h">
+      <Filter>Source Files\shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/lscm.cpp">
@@ -244,7 +247,10 @@
     <FxCompile Include="..\src\shaders\gx_shader_depth_prepass_vs.hlsl">
       <Filter>Source Files\shaders</Filter>
     </FxCompile>
-    <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_cs.hlsl">
+    <FxCompile Include="..\src\shaders\gx_shader_copy_texture_cs.hlsl">
+      <Filter>Source Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\include\gx\shaders\gx_shader_copy_texture_ps.hlsl">
       <Filter>include\gx\shaders</Filter>
     </FxCompile>
   </ItemGroup>

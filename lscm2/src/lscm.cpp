@@ -42,6 +42,7 @@
 #include "shaders/gx_shader_depth_prepass_ps.h"
 #include "shaders/gx_shader_depth_prepass_vs.h"
 #include "shaders/gx_global_buffers.h"
+#include "shaders/gx_shader_copy_texture.h"
 
 namespace lscm
 {
@@ -710,7 +711,7 @@ class sample_application2 : public sample_application
     sample_application2( const wchar_t* window_title ) : base(window_title)
     , m_visibility_buffer  ( gx::create_render_target_resource(m_context.m_device, 8, 8, DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_UINT, DXGI_FORMAT_R32_UINT ) )
     , m_depth_buffer ( gx::create_depth_resource(m_context.m_device, 8, 8 ) )
-    , m_light_bufer ( gx::create_render_target_resource(m_context.m_device, 8, 8, DXGI_FORMAT_R16G16B16A16_FLOAT) )
+    , m_light_bufer ( gx::create_render_target_resource(m_context.m_device, 8, 8, DXGI_FORMAT_R32G32_TYPELESS, DXGI_FORMAT_R32G32_UINT, DXGI_FORMAT_R32G32_UINT ) )
     , m_depth_less( gx::create_depth_test_less_state(m_context.m_device ) )
     , m_depth_disabled( gx::create_depth_test_disable_state(m_context.m_device))
     , m_depth_prepass_ps_buffer( m_context.m_device )
@@ -719,6 +720,7 @@ class sample_application2 : public sample_application
     , m_depth_prepass_vs(m_context.m_device)
     , m_depth_prepass_layout( m_context.m_device, m_depth_prepass_vs )
     , m_depth_prepass_buffer( m_context.m_device )
+    , m_lighting_cs( m_context.m_device )
     {
         m_camera.set_view_position( math::set(0.0, 0.0f, -15.0f, 0.0f) );
     }
@@ -786,27 +788,37 @@ class sample_application2 : public sample_application
         d3d11::clear_state( device_context );
 
         //compose visibility buffer  over the back buffer by rendering full screen quad that copies one texture onto another with alpha blending
-        d3d11::cs_set_shader( device_context, m_copy_texture_ps );
+        d3d11::cs_set_shader( device_context, m_lighting_cs );
         d3d11::cs_set_shader_resource( device_context, 0, m_visibility_buffer );
-        d3d11::cs_set_unordered_access_view( device_context, 0, m_back_buffer_view );
+        d3d11::cs_set_unordered_access_view( device_context, 0, m_light_buffer_view );
         d3d11::cs_dispatch ( device_context, 1280, 720 );
         d3d11::clear_state( device_context );
+
+        d3d11::om_set_render_target ( device_context, m_back_buffer_render_target );
+        d3d11::om_set_blend_state( device_context, m_opaque_state );
+        d3d11::om_set_depth_state( device_context, m_depth_disabled );
+
+        d3d11::ps_set_shader_resource(  device_context, m_light_bufer );
+        d3d11::ps_set_shader( device_context, m_copy_texture_ps );
+        d3d11::ps_set_sampler_state(    device_context, m_point_sampler );
+        d3d11::rs_set_state(    device_context, m_cull_none_raster_state );
+
+        d3d11::rs_set_view_port(device_context, &v);
+
+        m_full_screen_draw.draw(device_context);
+
     }
 
     void    on_resize(uint32_t width, uint32_t height) override
     {
-
         base::on_resize(width, height);
 
-        m_visibility_buffer =   gx::create_render_target_resource( m_context.m_device, width, height, DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_UINT, DXGI_FORMAT_R32_UINT );
-        m_depth_buffer      =   gx::create_depth_resource( m_context.m_device, width, height );
-        m_light_bufer       =   gx::create_render_target_resource(m_context.m_device, width, height, DXGI_FORMAT_R16G16B16A16_FLOAT);
+        m_visibility_buffer         =   gx::create_render_target_resource( m_context.m_device, width, height, DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_UINT, DXGI_FORMAT_R32_UINT );
+        m_depth_buffer              =   gx::create_depth_resource( m_context.m_device, width, height );
+        m_light_bufer               =   gx::create_render_target_resource(m_context.m_device, width, height, DXGI_FORMAT_R32G32_TYPELESS, DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R32G32_FLOAT );
 
-
-        m_visibility_buffer_view = d3d11::create_unordered_access_view_structured( m_context.m_device, m_visibility_buffer, DXGI_FORMAT_R32_UINT );
-
-        m_back_buffer_view = d3d11::create_unordered_access_view_structured( m_context.m_device, dxgi::get_buffer( m_context.m_swap_chain ), DXGI_FORMAT_R8G8B8A8_UNORM );
-
+        m_visibility_buffer_view    =   d3d11::create_unordered_access_view_structured( m_context.m_device, m_visibility_buffer, DXGI_FORMAT_R32_UINT );
+        m_light_buffer_view         =   d3d11::create_unordered_access_view_structured( m_context.m_device, m_light_bufer, DXGI_FORMAT_R32G32_UINT );
     }
 
     public:
@@ -836,10 +848,14 @@ class sample_application2 : public sample_application
     lscm::shader_depth_prepass_layout       m_depth_prepass_layout;
     lscm::visibility_per_pass_buffer        m_depth_prepass_buffer;
 
+    //lighting
+    lscm::shader_copy_texture               m_lighting_cs;
+
 
     //debug output
     d3d11::iunordered_access_view_ptr       m_visibility_buffer_view;
     d3d11::iunordered_access_view_ptr       m_back_buffer_view;
+    d3d11::iunordered_access_view_ptr       m_light_buffer_view;
 
     //scene
     std::shared_ptr<lscm::renderable_mesh>  m_mesh;
