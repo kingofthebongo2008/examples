@@ -24,7 +24,5 @@ float4 main( in  vs_output input) : sv_target
     uint2  t = asuint(samples);
     float4 k = decode_light(t);
 
-	return float4( k.xy, 0.0f, 1.0f);
-
-    //return float4(1.0f, 0.0f, 0.0f, 1.0f);
+    return k;
 }
