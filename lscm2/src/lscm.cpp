@@ -724,6 +724,7 @@ class sample_application2 : public sample_application
     , m_depth_prepass_vs(m_context.m_device)
     , m_depth_prepass_layout( m_context.m_device, m_depth_prepass_vs )
     , m_depth_prepass_buffer( m_context.m_device )
+    , m_global_per_frame_buffer( m_context.m_device )
     , m_lighting_cs( m_context.m_device )
     , m_draw_lighting_ps(m_context.m_device)
     {
@@ -792,11 +793,17 @@ class sample_application2 : public sample_application
 
         d3d11::clear_state( device_context );
 
+        auto dimensions = m_global_per_frame_buffer.get_light_accumulation_buffer_dimensions();
+
         //light calculation in the light_buffer_1
         d3d11::cs_set_shader( device_context, m_lighting_cs );
         d3d11::cs_set_shader_resource( device_context, 0, m_visibility_buffer );
         d3d11::cs_set_unordered_access_view(device_context, 0, m_light_buffer );
-        d3d11::cs_dispatch ( device_context, 1280, 720 );
+        
+        m_global_per_frame_buffer.flush(device_context);
+        m_global_per_frame_buffer.bind_as_compute(device_context);
+
+        d3d11::cs_dispatch(device_context, std::get<0>(dimensions), std::get<1>(dimensions) );
         d3d11::clear_state( device_context );
 
         d3d11::om_set_render_target (   device_context, m_back_buffer_render_target );
@@ -809,6 +816,8 @@ class sample_application2 : public sample_application
         d3d11::ps_set_sampler_state(    device_context, m_point_sampler );
         d3d11::rs_set_state(    device_context, m_cull_none_raster_state );
         d3d11::rs_set_view_port(device_context, &v);
+        
+        m_global_per_frame_buffer.bind_as_pixel(device_context);
 
         m_full_screen_draw.draw(device_context);
 
@@ -823,6 +832,7 @@ class sample_application2 : public sample_application
 
         m_light_buffer              =   gx::create_structured_compute_resource(m_context.m_device, width * height, 2 * sizeof(uint32_t));
 
+        m_global_per_frame_buffer.set_light_accumulation_buffer_dimensions( width, height );
     }
 
     public:
@@ -851,6 +861,8 @@ class sample_application2 : public sample_application
     lscm::shader_depth_prepass_vs           m_depth_prepass_vs;
     lscm::shader_depth_prepass_layout       m_depth_prepass_layout;
     lscm::visibility_per_pass_buffer        m_depth_prepass_buffer;
+
+    lscm::global_per_frame_buffer           m_global_per_frame_buffer;
 
     //lighting
     lscm::shader_light_accumulation_cs      m_lighting_cs;

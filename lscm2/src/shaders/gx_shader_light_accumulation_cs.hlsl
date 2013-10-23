@@ -1,9 +1,16 @@
+#include "gx_shader_geometry_pass_common.hlsl"
+
 typedef uint uint32_t;
 
 static const uint32_t sample_count = 8;
 
 Texture2DMS<uint,       sample_count>         visibility_buffer;
 RWStructuredBuffer<uint2>                     light_buffer;
+
+cbuffer per_frame : register(SLOT_PER_FRAME)
+{
+    uint2    light_accumulation_buffer_dimensions;
+}
 
 float4 decode_light ( uint2 r )
 {
@@ -31,6 +38,10 @@ void blend_light ( uint index, float4 r )
     write_light ( index, r + s );
 }
 
+uint linear_address(uint2 address)
+{
+    return address.y * light_accumulation_buffer_dimensions.x + address.x;
+}
 
 [numthreads(1, 1, 1)]
 void main( uint3 dispatch_thread_id : SV_DispatchThreadID ) 
@@ -42,7 +53,7 @@ void main( uint3 dispatch_thread_id : SV_DispatchThreadID )
 
     for(uint32_t i = 0; i < sample_count; ++i)
     {
-        uint    s = visibility_buffer.sample[0][dispatch_thread_id.xy];
+        uint    s = visibility_buffer.sample[i][dispatch_thread_id.xy];
         uint    instance_id = s & mask;
         float   o = 0.0f;
 
@@ -50,6 +61,6 @@ void main( uint3 dispatch_thread_id : SV_DispatchThreadID )
 
         light += r;
     }
-    
-    blend_light(dispatch_thread_id.y * 1280 + dispatch_thread_id.x, light * rcp(sample_count) );
+
+    blend_light( linear_address ( dispatch_thread_id.xy ), light * rcp(sample_count) );
 }
