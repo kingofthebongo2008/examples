@@ -125,6 +125,20 @@ namespace d3d11
         return result;
     }
     //----------------------------------------------------------------------------------------------------------
+    inline d3d11::ibuffer_ptr create_unordered_access_structured_buffer(ID3D11Device* device, size_t structure_count, size_t structure_size)
+    {
+        D3D11_BUFFER_DESC desc = {};
+        d3d11::ibuffer_ptr result;
+
+        desc.ByteWidth = static_cast<uint32_t> (structure_count * structure_size);
+        desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+        desc.StructureByteStride = static_cast<uint32_t> ( structure_size );
+        os::windows::throw_if_failed<d3d11::create_buffer_exception>(device->CreateBuffer(&desc, nullptr, &result));
+        return result;
+    }
+    //----------------------------------------------------------------------------------------------------------
     inline d3d11::ibuffer_ptr create_default_vertex_buffer(ID3D11Device* device, const void* initial_data, size_t size )
     {
         return create_vertex_buffer(device, initial_data, size, D3D11_USAGE_DEFAULT, 0);
@@ -178,6 +192,25 @@ namespace d3d11
         desc.Texture2D.MipSlice = 0;
         desc.Format = format;
         os::windows::throw_if_failed<d3d11::create_unordered_access_view_exception> ( device->CreateUnorderedAccessView( texture, &desc, &r) );
+        return r;
+    }
+
+    //----------------------------------------------------------------------------------------------------------
+    inline  d3d11::iunordered_access_view_ptr create_unordered_access_view_structured(ID3D11Device* device, ID3D11Buffer* const buffer)
+    {
+        D3D11_BUFFER_DESC buffer_desc = {};
+
+        buffer->GetDesc(&buffer_desc);
+
+        D3D11_UNORDERED_ACCESS_VIEW_DESC desc = {};
+
+        d3d11::iunordered_access_view_ptr r;
+        desc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
+        desc.Format = DXGI_FORMAT_UNKNOWN;
+        desc.Buffer.FirstElement = 0;
+        desc.Buffer.NumElements = buffer_desc.ByteWidth / buffer_desc.StructureByteStride;
+
+        os::windows::throw_if_failed<d3d11::create_unordered_access_view_exception>(device->CreateUnorderedAccessView(buffer, &desc, &r));
         return r;
     }
     //----------------------------------------------------------------------------------------------------------

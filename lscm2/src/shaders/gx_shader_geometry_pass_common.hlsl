@@ -1,8 +1,9 @@
 #ifndef __GX_SHADER_GEOMETRY_PASS_COMMON_H__
 #define __GX_SHADER_GEOMETRY_PASS_COMMON_H__
 
-#define SLOT_PER_PASS b0
-#define SLOT_PER_DRAW_CALL b1
+#define SLOT_PER_FRAME  b0
+#define SLOT_PER_PASS b1
+#define SLOT_PER_DRAW_CALL b2
 
 cbuffer per_pass : register(SLOT_PER_PASS)
 {

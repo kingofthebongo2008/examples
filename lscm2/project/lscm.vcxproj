@@ -171,6 +171,7 @@
     <ClInclude Include="..\include\d3d11\dxgi_helpers.h" />
     <ClInclude Include="..\include\gx\gx_application.h" />
     <ClInclude Include="..\include\gx\gx_color.h" />
+    <ClInclude Include="..\include\gx\gx_compute_resource.h" />
     <ClInclude Include="..\include\gx\gx_cursor.h" />
     <ClInclude Include="..\include\gx\gx_default_application.h" />
     <ClInclude Include="..\include\gx\gx_geometry_helpers.h" />
@@ -208,7 +209,8 @@
     <ClInclude Include="..\src\shaders\gx_global_buffers.h" />
     <ClInclude Include="..\src\shaders\gx_shader_depth_prepass_ps.h" />
     <ClInclude Include="..\src\shaders\gx_shader_depth_prepass_vs.h" />
-    <ClInclude Include="..\src\shaders\gx_shader_copy_texture.h" />
+    <ClInclude Include="..\src\shaders\gx_shader_light_accumulation_cs.h" />
+    <ClInclude Include="..\src\shaders\gx_shader_draw_light_accumulation_ps.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/lscm.cpp" />
@@ -251,7 +253,21 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)</AdditionalIncludeDirectories>
     </FxCompile>
-    <FxCompile Include="..\src\shaders\gx_shader_copy_texture_cs.hlsl">
+ 
+    <FxCompile Include="..\src\shaders\gx_shader_draw_light_accumulation_ps.hlsl">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)</AdditionalIncludeDirectories>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</VariableName>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)shaders\%(Filename)_compiled%(Extension)</HeaderFileOutput>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)shaders\%(Filename)_compiled%(Extension)</HeaderFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Pixel</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+    </FxCompile>
+    
+    <FxCompile Include="..\src\shaders\gx_shader_light_accumulation_cs.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</VariableName>
@@ -261,6 +277,7 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)shaders\%(Filename)_compiled%(Extension)</HeaderFileOutput>
     </FxCompile>
+
     <FxCompile Include="..\src\shaders\gx_shader_depth_prepass_vs.hlsl">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(WindowsSDKDir)\bin\x64\fxc.exe" "%(FullPath)" /Fh  $(IntDir)shaders\%(Filename)_compiled%(Extension)  /I $(ProjectDir) /T vs_5_0 /Vn %(FileName)</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">"$(WindowsSDKDir)\bin\x64\fxc.exe" "%(FullPath)" /Fh  $(IntDir)shaders\%(Filename)_compiled%(Extension)  /I $(ProjectDir) /T vs_5_0 /Vn %(FileName) /Qstrip_reflect /Qstrip_debug /Qstrip_priv /Ges /O3 </Command>
@@ -277,6 +294,7 @@
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)</AdditionalIncludeDirectories>
     </FxCompile>
+
     <FxCompile Include="..\src\shaders\gx_shader_depth_prepass_ps.hlsl">
       <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Pixel</ShaderType>
       <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>

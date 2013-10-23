@@ -30,6 +30,7 @@
 #include <d2d/d2d_helpers.h>
 #include <d2d/dwrite_helpers.h>
 
+#include <gx/gx_compute_resource.h>
 #include <gx/gx_geometry_pass_common.h>
 #include <gx/gx_geometry_helpers.h>
 #include <gx/gx_pinhole_camera.h>
@@ -39,10 +40,13 @@
 #include <gx/shaders/gx_shader_copy_texture.h>
 #include <gx/shaders/gx_shader_full_screen.h>
 
+#include "shaders/gx_global_buffers.h"
+
 #include "shaders/gx_shader_depth_prepass_ps.h"
 #include "shaders/gx_shader_depth_prepass_vs.h"
-#include "shaders/gx_global_buffers.h"
-#include "shaders/gx_shader_copy_texture.h"
+#include "shaders/gx_shader_draw_light_accumulation_ps.h"
+#include "shaders/gx_shader_light_accumulation_cs.h"
+
 
 namespace lscm
 {
@@ -709,9 +713,9 @@ class sample_application2 : public sample_application
     public:
 
     sample_application2( const wchar_t* window_title ) : base(window_title)
-    , m_visibility_buffer  ( gx::create_render_target_resource(m_context.m_device, 8, 8, DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_UINT, DXGI_FORMAT_R32_UINT ) )
-    , m_depth_buffer ( gx::create_depth_resource(m_context.m_device, 8, 8 ) )
-    , m_light_bufer ( gx::create_render_target_resource(m_context.m_device, 8, 8, DXGI_FORMAT_R32G32_TYPELESS, DXGI_FORMAT_R32G32_UINT, DXGI_FORMAT_R32G32_UINT ) )
+    , m_visibility_buffer  ( gx::create_render_target_resource(m_context.m_device, 8, 8, DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_UINT, DXGI_FORMAT_R32_UINT, gx::msaa_8x ) )
+    , m_depth_buffer ( gx::create_depth_resource(m_context.m_device, 8, 8, gx::msaa_8x ) )
+    , m_light_buffer( gx::create_structured_compute_resource(m_context.m_device, 8 * 8, 2 * sizeof(uint32_t) ) )
     , m_depth_less( gx::create_depth_test_less_state(m_context.m_device ) )
     , m_depth_disabled( gx::create_depth_test_disable_state(m_context.m_device))
     , m_depth_prepass_ps_buffer( m_context.m_device )
@@ -721,6 +725,7 @@ class sample_application2 : public sample_application
     , m_depth_prepass_layout( m_context.m_device, m_depth_prepass_vs )
     , m_depth_prepass_buffer( m_context.m_device )
     , m_lighting_cs( m_context.m_device )
+    , m_draw_lighting_ps(m_context.m_device)
     {
         m_camera.set_view_position( math::set(0.0, 0.0f, -15.0f, 0.0f) );
     }
@@ -787,22 +792,22 @@ class sample_application2 : public sample_application
 
         d3d11::clear_state( device_context );
 
-        //compose visibility buffer  over the back buffer by rendering full screen quad that copies one texture onto another with alpha blending
+        //light calculation in the light_buffer_1
         d3d11::cs_set_shader( device_context, m_lighting_cs );
         d3d11::cs_set_shader_resource( device_context, 0, m_visibility_buffer );
-        d3d11::cs_set_unordered_access_view( device_context, 0, m_light_buffer_view );
+        d3d11::cs_set_unordered_access_view(device_context, 0, m_light_buffer );
         d3d11::cs_dispatch ( device_context, 1280, 720 );
         d3d11::clear_state( device_context );
 
-        d3d11::om_set_render_target ( device_context, m_back_buffer_render_target );
-        d3d11::om_set_blend_state( device_context, m_opaque_state );
-        d3d11::om_set_depth_state( device_context, m_depth_disabled );
+        d3d11::om_set_render_target (   device_context, m_back_buffer_render_target );
+        d3d11::om_set_blend_state(  device_context,     m_opaque_state );
+        d3d11::om_set_depth_state(  device_context,     m_depth_disabled );
 
-        d3d11::ps_set_shader_resource(  device_context, m_light_bufer );
-        d3d11::ps_set_shader( device_context, m_copy_texture_ps );
+        //draw on the screen what we have calculated
+        d3d11::ps_set_shader_resource(  device_context, m_light_buffer  );
+        d3d11::ps_set_shader(   device_context, m_draw_lighting_ps  );
         d3d11::ps_set_sampler_state(    device_context, m_point_sampler );
         d3d11::rs_set_state(    device_context, m_cull_none_raster_state );
-
         d3d11::rs_set_view_port(device_context, &v);
 
         m_full_screen_draw.draw(device_context);
@@ -813,12 +818,11 @@ class sample_application2 : public sample_application
     {
         base::on_resize(width, height);
 
-        m_visibility_buffer         =   gx::create_render_target_resource( m_context.m_device, width, height, DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_UINT, DXGI_FORMAT_R32_UINT );
-        m_depth_buffer              =   gx::create_depth_resource( m_context.m_device, width, height );
-        m_light_bufer               =   gx::create_render_target_resource(m_context.m_device, width, height, DXGI_FORMAT_R32G32_TYPELESS, DXGI_FORMAT_R32G32_FLOAT, DXGI_FORMAT_R32G32_FLOAT );
+        m_visibility_buffer         =   gx::create_render_target_resource(m_context.m_device, width, height, DXGI_FORMAT_R32_TYPELESS, DXGI_FORMAT_R32_UINT, DXGI_FORMAT_R32_UINT, gx::msaa_8x);
+        m_depth_buffer              =   gx::create_depth_resource( m_context.m_device, width, height, gx::msaa_8x );
 
-        m_visibility_buffer_view    =   d3d11::create_unordered_access_view_structured( m_context.m_device, m_visibility_buffer, DXGI_FORMAT_R32_UINT );
-        m_light_buffer_view         =   d3d11::create_unordered_access_view_structured( m_context.m_device, m_light_bufer, DXGI_FORMAT_R32G32_UINT );
+        m_light_buffer              =   gx::create_structured_compute_resource(m_context.m_device, width * height, 2 * sizeof(uint32_t));
+
     }
 
     public:
@@ -835,7 +839,7 @@ class sample_application2 : public sample_application
     gx::pinhole_camera                      m_camera;
     gx::depth_resource                      m_depth_buffer;
     gx::render_target_resource              m_visibility_buffer;
-    gx::render_target_resource              m_light_bufer;
+    gx::compute_resource                    m_light_buffer;
     d3d11::idepthstencilstate_ptr           m_depth_less;
     d3d11::idepthstencilstate_ptr           m_depth_disabled;
 
@@ -849,13 +853,13 @@ class sample_application2 : public sample_application
     lscm::visibility_per_pass_buffer        m_depth_prepass_buffer;
 
     //lighting
-    lscm::shader_copy_texture               m_lighting_cs;
+    lscm::shader_light_accumulation_cs      m_lighting_cs;
+    lscm::shader_draw_light_accumulation_ps m_draw_lighting_ps;
 
 
     //debug output
     d3d11::iunordered_access_view_ptr       m_visibility_buffer_view;
     d3d11::iunordered_access_view_ptr       m_back_buffer_view;
-    d3d11::iunordered_access_view_ptr       m_light_buffer_view;
 
     //scene
     std::shared_ptr<lscm::renderable_mesh>  m_mesh;

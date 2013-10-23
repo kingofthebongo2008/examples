@@ -11,8 +11,9 @@ namespace gx
 {
 	 enum cbuffer_frequency : uint8_t
 	 {
-		 slot_per_pass = 0,
-	     slot_per_draw_call = 1
+         slot_per_frame = 0,
+		 slot_per_pass = 1,
+	     slot_per_draw_call = 2
 	 };
 
 	 struct reprojection_params

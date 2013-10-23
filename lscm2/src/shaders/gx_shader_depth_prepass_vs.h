@@ -39,7 +39,7 @@ namespace lscm
 
         void bind_as_vertex(ID3D11DeviceContext* context)
         {
-            context->VSSetConstantBuffers(1, 1, &m_buffer);
+            context->VSSetConstantBuffers(gx::slot_per_draw_call, 1, &m_buffer);
         }
 
         void bind_as_vertex(ID3D11DeviceContext* context, uint32_t slot)

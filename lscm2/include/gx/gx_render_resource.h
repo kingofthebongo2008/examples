@@ -9,6 +9,14 @@
 
 namespace gx
 {
+    enum msaa_samples : uint32_t
+    {
+        msaa_2x = 2,
+        msaa_4x = 4,
+        msaa_8x = 8,
+        msaa_16x = 16
+    };
+
     class render_target_resource
     {
         public:
@@ -107,7 +115,7 @@ namespace gx
 
     };
 
-    inline render_target_resource create_render_target_resource(ID3D11Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format)
+    inline render_target_resource create_render_target_resource(ID3D11Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, msaa_samples msaa_samples)
     {
         D3D11_TEXTURE2D_DESC description = {};
 
@@ -118,7 +126,7 @@ namespace gx
         description.Height = height;
         description.MipLevels = 1;
         description.MiscFlags = 0;
-        description.SampleDesc.Count = 1;
+        description.SampleDesc.Count = msaa_samples;
         description.SampleDesc.Quality = 0;
 
         description.Usage = D3D11_USAGE_DEFAULT;
@@ -129,6 +137,60 @@ namespace gx
         return render_target_resource( texture , d3d11::create_render_target_view( device, texture ),  d3d11::create_shader_resource_view( device, texture ) );
     }
 
+    inline render_target_resource create_render_target_resource(ID3D11Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format)
+    {
+        D3D11_TEXTURE2D_DESC description = {};
+
+        description.ArraySize = 1;
+        description.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+        description.CPUAccessFlags = 0;
+        description.Format = format;
+        description.Height = height;
+        description.MipLevels = 1;
+        description.MiscFlags = 0;
+        description.SampleDesc.Count = 1;
+        description.SampleDesc.Quality = 0;
+
+        description.Usage = D3D11_USAGE_DEFAULT;
+        description.Width = width;
+
+        d3d11::itexture2d_ptr texture = d3d11::create_texture_2d(device, &description);
+
+        return render_target_resource(texture, d3d11::create_render_target_view(device, texture), d3d11::create_shader_resource_view(device, texture));
+    }
+
+    inline render_target_resource create_render_target_resource(ID3D11Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, DXGI_FORMAT target, DXGI_FORMAT view, msaa_samples msaa_samples)
+    {
+        D3D11_TEXTURE2D_DESC description = {};
+
+        description.ArraySize = 1;
+        description.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+        description.CPUAccessFlags = 0;
+        description.Format = format;
+        description.Height = height;
+        description.MipLevels = 1;
+        description.MiscFlags = 0;
+        description.SampleDesc.Count = msaa_samples;
+        description.SampleDesc.Quality = 0;
+
+        description.Usage = D3D11_USAGE_DEFAULT;
+        description.Width = width;
+
+        D3D11_SHADER_RESOURCE_VIEW_DESC view_desc = {};
+        D3D11_RENDER_TARGET_VIEW_DESC   render_desc = {};
+
+        render_desc.Format = target;
+        render_desc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2DMS;
+        
+        view_desc.Format = view;
+        view_desc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+        
+
+        d3d11::itexture2d_ptr texture = d3d11::create_texture_2d(device, &description);
+
+        return render_target_resource(texture, d3d11::create_render_target_view(device, texture, &render_desc), d3d11::create_shader_resource_view(device, texture, &view_desc));
+    }
+
     inline render_target_resource create_render_target_resource(ID3D11Device* device, uint32_t width, uint32_t height, DXGI_FORMAT format, DXGI_FORMAT target, DXGI_FORMAT view)
     {
         D3D11_TEXTURE2D_DESC description = {};
@@ -136,7 +198,7 @@ namespace gx
         description.ArraySize = 1;
         description.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_UNORDERED_ACCESS;
         description.CPUAccessFlags = 0;
-        description.Format = format;    
+        description.Format = format;
         description.Height = height;
         description.MipLevels = 1;
         description.MiscFlags = 0;
@@ -158,29 +220,9 @@ namespace gx
         view_desc.Texture2D.MostDetailedMip = 0;
         view_desc.Texture2D.MipLevels = 1;
 
-        d3d11::itexture2d_ptr texture = d3d11::create_texture_2d( device, &description);
+        d3d11::itexture2d_ptr texture = d3d11::create_texture_2d(device, &description);
 
-        return render_target_resource( texture , d3d11::create_render_target_view( device, texture , &render_desc ),  d3d11::create_shader_resource_view( device, texture, &view_desc ) );
-    }
-
-    inline render_target_resource create_normal_resource(ID3D11Device* device, uint32_t width, uint32_t height)
-    {
-        return create_render_target_resource ( device, width, height, DXGI_FORMAT_R16G16B16A16_FLOAT );
-    }
-
-    inline render_target_resource create_diffuse_resource(ID3D11Device* device, uint32_t width, uint32_t height)
-    {
-        return create_render_target_resource ( device, width, height, DXGI_FORMAT_R8G8B8A8_TYPELESS );
-    }
-
-    inline render_target_resource create_specular_resource(ID3D11Device* device, uint32_t width, uint32_t height)
-    {
-        return create_render_target_resource ( device, width, height, DXGI_FORMAT_R8G8B8A8_TYPELESS );
-    }
-
-    inline render_target_resource create_light_buffer_resource(ID3D11Device* device, uint32_t width, uint32_t height)
-    {
-        return create_render_target_resource ( device, width, height, DXGI_FORMAT_R16G16B16A16_FLOAT );
+        return render_target_resource(texture, d3d11::create_render_target_view(device, texture, &render_desc), d3d11::create_shader_resource_view(device, texture, &view_desc));
     }
 
     inline d3d11::ishaderresourceview_ptr  create_depth_resource_view( ID3D11Device* device, ID3D11Resource* resource )
@@ -194,6 +236,15 @@ namespace gx
         return d3d11::create_shader_resource_view( device, resource, &srv );
     }
 
+    inline d3d11::ishaderresourceview_ptr  create_depth_resource_view(ID3D11Device* device, ID3D11Resource* resource, msaa_samples )
+    {
+        D3D11_SHADER_RESOURCE_VIEW_DESC srv = {};
+        srv.Format = DXGI_FORMAT_R24_UNORM_X8_TYPELESS;
+        srv.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2DMS;
+
+        return d3d11::create_shader_resource_view(device, resource, &srv);
+    }
+
     inline d3d11::idepthstencilview_ptr    create_read_depth_stencil_view( ID3D11Device* device, ID3D11Resource* resource )
     {
         D3D11_DEPTH_STENCIL_VIEW_DESC dsv = {};
@@ -204,6 +255,17 @@ namespace gx
 
         return d3d11::create_depth_stencil_view( device, resource, &dsv );
     }
+
+    inline d3d11::idepthstencilview_ptr    create_read_depth_stencil_view(ID3D11Device* device, ID3D11Resource* resource, msaa_samples)
+    {
+        D3D11_DEPTH_STENCIL_VIEW_DESC dsv = {};
+        dsv.Flags = D3D11_DSV_READ_ONLY_DEPTH;
+        dsv.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+        dsv.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+
+        return d3d11::create_depth_stencil_view(device, resource, &dsv);
+    }
+
 
     inline d3d11::idepthstencilview_ptr    create_write_depth_stencil_view( ID3D11Device* device, ID3D11Resource* resource )
     {
@@ -216,6 +278,19 @@ namespace gx
 
         return d3d11::create_depth_stencil_view( device, resource, &dsv ); 
     }
+
+    inline d3d11::idepthstencilview_ptr    create_write_depth_stencil_view(ID3D11Device* device, ID3D11Resource* resource, msaa_samples samples)
+    {
+        D3D11_DEPTH_STENCIL_VIEW_DESC dsv = {};
+
+        dsv.Flags = 0;
+        dsv.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+        dsv.Texture2D.MipSlice = 0;
+        dsv.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2DMS;
+
+        return d3d11::create_depth_stencil_view(device, resource, &dsv);
+    }
+
 
     inline depth_resource  create_depth_resource(ID3D11Device* device, uint32_t width, uint32_t height)
     {
@@ -236,6 +311,27 @@ namespace gx
         d3d11::itexture2d_ptr texture = d3d11::create_texture_2d( device, &description);
 
         return depth_resource( texture, create_write_depth_stencil_view( device, texture ),  create_depth_resource_view( device, texture ) );
+    }
+
+    inline depth_resource  create_depth_resource(ID3D11Device* device, uint32_t width, uint32_t height, msaa_samples samples)
+    {
+        D3D11_TEXTURE2D_DESC description = {};
+
+        description.ArraySize = 1;
+        description.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+        description.CPUAccessFlags = 0;
+        description.Format = DXGI_FORMAT_R24G8_TYPELESS;
+        description.Height = height;
+        description.MipLevels = 1;
+        description.MiscFlags = 0;
+        description.SampleDesc.Count = samples;
+        description.SampleDesc.Quality = 0;
+        description.Usage = D3D11_USAGE_DEFAULT;
+        description.Width = width;
+
+        d3d11::itexture2d_ptr texture = d3d11::create_texture_2d(device, &description);
+
+        return depth_resource(texture, create_write_depth_stencil_view(device, texture, samples), create_depth_resource_view(device, texture, samples));
     }
 
     inline d3d11::idepthstencilstate_ptr   create_depth_test_less_state( ID3D11Device* device )
