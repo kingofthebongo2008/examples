@@ -14,8 +14,8 @@ cbuffer per_frame : register(SLOT_PER_FRAME)
 
 float4 decode_light ( uint2 r )
 {
-    uint2 a = ( r >> 16 );
-    uint2 b =  r;
+    uint2 a = (r >> 16);
+    uint2 b = r;
     return float4( f16tof32(a), f16tof32(b) );
 }
 
@@ -33,8 +33,8 @@ void write_light ( uint index, float4 r )
 
 void blend_light ( uint index, float4 r )
 {
-    //float4 s = decode_light( light_buffer[index] );
-    float4 s = float4(0.0, 0.0, 0.0, 0.0);
+    float4 s = decode_light( light_buffer[index] );
+    //float4 s = float4(0.0, 0.0, 0.0, 0.0);
     write_light ( index, r + s );
 }
 

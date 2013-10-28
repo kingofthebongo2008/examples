@@ -42,6 +42,7 @@
 
 #include "shaders/gx_global_buffers.h"
 
+#include "shaders/gx_shader_clear_light_accumulation_cs.h"
 #include "shaders/gx_shader_depth_prepass_ps.h"
 #include "shaders/gx_shader_depth_prepass_vs.h"
 #include "shaders/gx_shader_draw_light_accumulation_ps.h"
@@ -726,6 +727,7 @@ class sample_application2 : public sample_application
     , m_depth_prepass_buffer( m_context.m_device )
     , m_global_per_frame_buffer( m_context.m_device )
     , m_lighting_cs( m_context.m_device )
+    , m_clear_lighting_cs(m_context.m_device)
     , m_draw_lighting_ps(m_context.m_device)
     {
         m_camera.set_view_position( math::set(0.0, 0.0f, -15.0f, 0.0f) );
@@ -796,14 +798,21 @@ class sample_application2 : public sample_application
         auto dimensions = m_global_per_frame_buffer.get_light_accumulation_buffer_dimensions();
 
         //light calculation in the light_buffer_1
-        d3d11::cs_set_shader( device_context, m_lighting_cs );
-        d3d11::cs_set_shader_resource( device_context, 0, m_visibility_buffer );
-        d3d11::cs_set_unordered_access_view(device_context, 0, m_light_buffer );
-        
+
+
         m_global_per_frame_buffer.flush(device_context);
         m_global_per_frame_buffer.bind_as_compute(device_context);
 
+        //clear the light buffer
+        d3d11::cs_set_shader(device_context, m_clear_lighting_cs);
+        d3d11::cs_set_unordered_access_view(device_context, 0, m_light_buffer);
+        d3d11::cs_dispatch(device_context, std::get<0>(dimensions), std::get<1>(dimensions));
+
+        //do light accumulation    
+        d3d11::cs_set_shader( device_context, m_lighting_cs );
+        d3d11::cs_set_shader_resource( device_context, 0, m_visibility_buffer );
         d3d11::cs_dispatch(device_context, std::get<0>(dimensions), std::get<1>(dimensions) );
+
         d3d11::clear_state( device_context );
 
         d3d11::om_set_render_target (   device_context, m_back_buffer_render_target );
@@ -865,8 +874,9 @@ class sample_application2 : public sample_application
     lscm::global_per_frame_buffer           m_global_per_frame_buffer;
 
     //lighting
-    lscm::shader_light_accumulation_cs      m_lighting_cs;
-    lscm::shader_draw_light_accumulation_ps m_draw_lighting_ps;
+    lscm::shader_light_accumulation_cs          m_lighting_cs;
+    lscm::shader_clear_light_accumulation_cs    m_clear_lighting_cs;
+    lscm::shader_draw_light_accumulation_ps     m_draw_lighting_ps;
 
 
     //debug output

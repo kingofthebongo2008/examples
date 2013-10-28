@@ -757,6 +757,40 @@ namespace d3d11
         device_context->ClearDepthStencilView( view, D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, depth, stencil );
     }
     //----------------------------------------------------------------------------------------------------------
+    inline void clear_uordered_access_view(ID3D11DeviceContext* device_context, ID3D11UnorderedAccessView * const view, math::float4 value)
+    {
+        //allocate on 16 byte boundary
+        void* v = _alloca(4 * sizeof(float));
+        math::store4(v, value);
+        device_context->ClearUnorderedAccessViewFloat(view, reinterpret_cast<float*> (v));
+    }
+    //----------------------------------------------------------------------------------------------------------
+    inline void clear_uordered_access_view(ID3D11DeviceContext* device_context, ID3D11UnorderedAccessView * const view, float value)
+    {
+        const float v[4] = { value, value, value, value };
+        device_context->ClearUnorderedAccessViewFloat(view, &v[0]);
+    }
+
+    //----------------------------------------------------------------------------------------------------------
+    inline void clear_uordered_access_view(ID3D11DeviceContext* device_context, ID3D11UnorderedAccessView * const view, uint32_t value)
+    {
+        const uint32_t v[4] = { value, value, value, value };
+        device_context->ClearUnorderedAccessViewUint(view, &v[0]);
+    }
+
+    //----------------------------------------------------------------------------------------------------------
+    inline void clear_uordered_access_view(ID3D11DeviceContext* device_context, ID3D11UnorderedAccessView * const view)
+    {
+        clear_uordered_access_view(device_context, view, static_cast<uint32_t> ( 0 ) );
+    }
+
+    //----------------------------------------------------------------------------------------------------------
+    inline void clear_uordered_access_view(ID3D11DeviceContext* device_context, ID3D11UnorderedAccessView * const view, uint32_t value0, uint32_t value1, uint32_t value2, uint32_t value3)
+    {
+        const uint32_t v[4] = { value0, value1, value2, value3 };
+        device_context->ClearUnorderedAccessViewUint(view, &v[0]);
+    }
+    //----------------------------------------------------------------------------------------------------------
     inline void clear_state(ID3D11DeviceContext* device_context)
     {
         device_context->ClearState();

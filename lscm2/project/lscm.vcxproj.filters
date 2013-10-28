@@ -225,6 +225,9 @@
     <ClInclude Include="..\src\shaders\gx_shader_light_accumulation_cs.h">
       <Filter>Source Files\shaders</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\shaders\gx_shader_clear_light_accumulation_cs.h">
+      <Filter>Source Files\shaders</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/lscm.cpp">
@@ -260,6 +263,9 @@
       <Filter>Source Files\shaders</Filter>
     </FxCompile>
     <FxCompile Include="..\src\shaders\gx_shader_light_accumulation_cs.hlsl">
+      <Filter>Source Files\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\shaders\gx_shader_clear_light_accumulation_cs.hlsl">
       <Filter>Source Files\shaders</Filter>
     </FxCompile>
   </ItemGroup>

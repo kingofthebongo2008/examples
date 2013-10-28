@@ -210,6 +210,7 @@
     <ClInclude Include="..\src\shaders\gx_shader_depth_prepass_ps.h" />
     <ClInclude Include="..\src\shaders\gx_shader_depth_prepass_vs.h" />
     <ClInclude Include="..\src\shaders\gx_shader_light_accumulation_cs.h" />
+    <ClInclude Include="..\src\shaders\gx_shader_clear_light_accumulation_cs.h" />
     <ClInclude Include="..\src\shaders\gx_shader_draw_light_accumulation_ps.h" />
   </ItemGroup>
   <ItemGroup>
@@ -277,6 +278,18 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)shaders\%(Filename)_compiled%(Extension)</HeaderFileOutput>
     </FxCompile>
+    
+    <FxCompile Include="..\src\shaders\gx_shader_clear_light_accumulation_cs.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)shaders\%(Filename)_compiled%(Extension)</HeaderFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)shaders\%(Filename)_compiled%(Extension)</HeaderFileOutput>
+    </FxCompile>
+
 
     <FxCompile Include="..\src\shaders\gx_shader_depth_prepass_vs.hlsl">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">"$(WindowsSDKDir)\bin\x64\fxc.exe" "%(FullPath)" /Fh  $(IntDir)shaders\%(Filename)_compiled%(Extension)  /I $(ProjectDir) /T vs_5_0 /Vn %(FileName)</Command>
