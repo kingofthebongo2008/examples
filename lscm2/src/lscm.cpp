@@ -47,6 +47,8 @@
 #include "shaders/gx_shader_depth_prepass_vs.h"
 #include "shaders/gx_shader_draw_light_accumulation_ps.h"
 #include "shaders/gx_shader_light_accumulation_cs.h"
+#include "shaders/gx_shader_work_list_build_cs.h"
+#include "shaders/gx_shader_work_list_sort_cs.h"
 
 
 namespace lscm
@@ -707,6 +709,34 @@ namespace lscm
     }
 }
 
+typedef std::future < d3d11::icomputeshader_ptr >  compute_shader;
+
+std::tuple < compute_shader, compute_shader > create_shaders( ID3D11Device* device )
+{
+    return std::make_tuple(
+                            lscm::create_shader_work_list_build_cs_async(device), 
+                            lscm::create_shader_work_list_sort_cs_async(device)
+                            );
+}
+
+class shader_database
+{
+    public:
+    shader_database( std::tuple < compute_shader, compute_shader >& shaders ) :
+        m_work_list_build( std::get<0>(shaders).get() )
+        , m_work_list_sort( std::get<1>(shaders).get() )
+    {
+
+    }
+
+    public:
+
+    lscm::shader_work_list_build_cs             m_work_list_build;
+    lscm::shader_work_list_sort_cs              m_work_list_sort;
+
+
+};
+
 class sample_application2 : public sample_application
 {
     typedef sample_application base;
@@ -726,9 +756,10 @@ class sample_application2 : public sample_application
     , m_depth_prepass_layout( m_context.m_device, m_depth_prepass_vs )
     , m_depth_prepass_buffer( m_context.m_device )
     , m_global_per_frame_buffer( m_context.m_device )
-    , m_lighting_cs( m_context.m_device )
+    , m_lighting_cs( m_context.m_device.get() )
     , m_clear_lighting_cs(m_context.m_device)
-    , m_draw_lighting_ps(m_context.m_device)
+    , m_draw_lighting_ps( m_context.m_device.get() )
+    , m_shader_database(create_shaders( m_context.m_device ) )
     {
         m_camera.set_view_position( math::set(0.0, 0.0f, -15.0f, 0.0f) );
     }
@@ -789,16 +820,13 @@ class sample_application2 : public sample_application
         
         m_depth_prepass_vs_buffer.bind_as_vertex(device_context);
         m_depth_prepass_ps_buffer.bind_as_pixel(device_context);
-
-        //m_full_screen_draw.draw(device_context);
         m_mesh->draw(device_context);
 
+
+        //light pass
         d3d11::clear_state( device_context );
 
         auto dimensions = m_global_per_frame_buffer.get_light_accumulation_buffer_dimensions();
-
-        //light calculation in the light_buffer_1
-
 
         m_global_per_frame_buffer.flush(device_context);
         m_global_per_frame_buffer.bind_as_compute(device_context);
@@ -877,6 +905,10 @@ class sample_application2 : public sample_application
     lscm::shader_light_accumulation_cs          m_lighting_cs;
     lscm::shader_clear_light_accumulation_cs    m_clear_lighting_cs;
     lscm::shader_draw_light_accumulation_ps     m_draw_lighting_ps;
+
+    shader_database                         m_shader_database;
+    
+    
 
 
     //debug output

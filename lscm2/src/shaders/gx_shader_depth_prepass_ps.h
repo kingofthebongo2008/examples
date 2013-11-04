@@ -2,6 +2,8 @@
 #define __GX_SHADERS_DEPTH_PREPASS_PS_H__
 
 #include <cstdint>
+#include <future>
+
 #include <d3d11/d3d11_error.h>
 #include <d3d11/d3d11_pointers.h>
 #include <gx/gx_constant_buffer_helper.h>
@@ -64,20 +66,31 @@ namespace lscm
         uint32_t            m_instance_id;
     };
 
+    inline d3d11::ipixelshader_ptr   create_shader_depth_prepass_ps(ID3D11Device* device)
+    {
+        d3d11::ipixelshader_ptr   shader;
+
+        using namespace os::windows;
+
+        static
+        #include "gx_shader_depth_prepass_ps_compiled.hlsl"
+
+        throw_if_failed<d3d11::create_pixel_shader>(device->CreatePixelShader(gx_shader_depth_prepass_ps, sizeof(gx_shader_depth_prepass_ps), nullptr, &shader));
+
+        return shader;
+    }
+
+    std::future< d3d11::ipixelshader_ptr> create_shader_depth_prepass_ps_async(ID3D11Device* device)
+    {
+        return std::async(std::launch::async, create_shader_depth_prepass_ps, device);
+    }
 
     class shader_depth_prepass_ps final
     {
         public:
-        explicit shader_depth_prepass_ps(ID3D11Device* device)
+        explicit shader_depth_prepass_ps(ID3D11Device* device) : m_shader(create_shader_depth_prepass_ps( device ) )
         {
-            using namespace os::windows;
-
-            static
-            #include "gx_shader_depth_prepass_ps_compiled.hlsl"
-
-            throw_if_failed<d3d11::create_pixel_shader>(device->CreatePixelShader(gx_shader_depth_prepass_ps, sizeof(gx_shader_depth_prepass_ps), nullptr, &m_shader));
-            m_code = &gx_shader_depth_prepass_ps[0];
-            m_code_size = sizeof(gx_shader_depth_prepass_ps);
+        
         }
 
         operator ID3D11PixelShader* const() const
@@ -86,8 +99,6 @@ namespace lscm
         }
 
         d3d11::ipixelshader_ptr     m_shader;
-        const void*                 m_code;
-        uint32_t                    m_code_size;
     };
 }
 

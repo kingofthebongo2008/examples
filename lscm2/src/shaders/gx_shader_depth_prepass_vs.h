@@ -2,6 +2,9 @@
 #define __GX_SHADERS_DEPTH_PREPASS_VS_H__
 
 #include <cstdint>
+#include <future>
+#include <tuple>
+
 #include <d3d11/d3d11_error.h>
 #include <d3d11/d3d11_pointers.h>
 #include <d3d11/d3d11_helpers.h>
@@ -68,20 +71,41 @@ namespace lscm
         math::float4x4		m_w;
     };
 
+    typedef std::tuple< d3d11::ivertexshader_ptr, const void*, uint32_t> vertex_shader_create_info;
+
+    inline vertex_shader_create_info  create_shader_depth_prepass_vs(ID3D11Device* device)
+    {
+        d3d11::ivertexshader_ptr   shader;
+
+        using namespace os::windows;
+
+        static
+        #include "gx_shader_depth_prepass_vs_compiled.hlsl"
+
+        throw_if_failed<d3d11::create_vertex_shader>(device->CreateVertexShader(gx_shader_depth_prepass_vs, sizeof(gx_shader_depth_prepass_vs), nullptr, &shader));
+
+        return std::make_tuple(shader, &gx_shader_depth_prepass_vs[0], static_cast<uint32_t> ( sizeof(gx_shader_depth_prepass_vs) ) ) ;
+    }
+
+    std::future< vertex_shader_create_info > create_screate_shader_depth_prepass_vs_async(ID3D11Device* device)
+    {
+        return std::async(std::launch::async, create_shader_depth_prepass_vs, device);
+    }
+
     class shader_depth_prepass_vs final
     {
-        public:
+    public:
 
-        explicit shader_depth_prepass_vs(ID3D11Device* device)
+        explicit shader_depth_prepass_vs(ID3D11Device* device) : shader_depth_prepass_vs ( create_shader_depth_prepass_vs(device) )
         {
-            using namespace os::windows;
 
-            static 
-            #include "gx_shader_depth_prepass_vs_compiled.hlsl"
+        }
 
-            throw_if_failed<d3d11::create_vertex_shader>(device->CreateVertexShader(gx_shader_depth_prepass_vs, sizeof(gx_shader_depth_prepass_vs), nullptr, &m_shader));
-            m_code = &gx_shader_depth_prepass_vs[0];
-            m_code_size = sizeof(gx_shader_depth_prepass_vs);
+        explicit shader_depth_prepass_vs( vertex_shader_create_info info ) :
+            m_shader(std::get<0>(info) )
+            , m_code(std::get<1>(info) )
+            , m_code_size( std::get<2> ( info ) )
+        {
         }
 
         operator ID3D11VertexShader* const () const

@@ -212,6 +212,8 @@
     <ClInclude Include="..\src\shaders\gx_shader_light_accumulation_cs.h" />
     <ClInclude Include="..\src\shaders\gx_shader_clear_light_accumulation_cs.h" />
     <ClInclude Include="..\src\shaders\gx_shader_draw_light_accumulation_ps.h" />
+    <ClInclude Include="..\src\shaders\gx_shader_work_list_build_cs.h" />
+    <ClInclude Include="..\src\shaders\gx_shader_work_list_sort_cs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/lscm.cpp" />
@@ -289,6 +291,30 @@
       <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</VariableName>
       <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)shaders\%(Filename)_compiled%(Extension)</HeaderFileOutput>
     </FxCompile>
+ 
+    <FxCompile Include="..\src\shaders\gx_shader_work_list_build_cs.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)shaders\%(Filename)_compiled%(Extension)</HeaderFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)shaders\%(Filename)_compiled%(Extension)</HeaderFileOutput>
+    </FxCompile>
+
+    <FxCompile Include="..\src\shaders\gx_shader_work_list_sort_cs.hlsl">
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">5.0</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(IntDir)shaders\%(Filename)_compiled%(Extension)</HeaderFileOutput>
+      <ShaderType Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Compute</ShaderType>
+      <ShaderModel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">5.0</ShaderModel>
+      <VariableName Condition="'$(Configuration)|$(Platform)'=='Release|x64'">%(Filename)</VariableName>
+      <HeaderFileOutput Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(IntDir)shaders\%(Filename)_compiled%(Extension)</HeaderFileOutput>
+    </FxCompile>
+
+
 
 
     <FxCompile Include="..\src\shaders\gx_shader_depth_prepass_vs.hlsl">
