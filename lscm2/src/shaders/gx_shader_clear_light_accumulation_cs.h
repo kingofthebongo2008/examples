@@ -33,7 +33,7 @@ namespace lscm
     class shader_clear_light_accumulation_cs final
     {
         public:
-        explicit shader_clear_light_accumulation_cs(ID3D11Device* device) : m_shader(create_shader_clear_light_accumulation_cs( device) )
+        explicit shader_clear_light_accumulation_cs( d3d11::icomputeshader_ptr shader ) : m_shader( shader )
         {
         }
 

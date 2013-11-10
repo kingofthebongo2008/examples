@@ -19,7 +19,7 @@ namespace gx
         public:
 
         full_screen_draw ( ID3D11Device* device ) : 
-            m_shader(device)
+            m_shader( create_shader_depth_prepass_vs(device) )
             , m_input_layout (device, m_shader)
         {
             using namespace math;

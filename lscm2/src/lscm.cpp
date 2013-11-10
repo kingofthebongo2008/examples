@@ -493,7 +493,7 @@ class sample_application : public gx::default_application
         , m_dwrite_factory( dwrite::create_dwrite_factory() )
         , m_text_format ( dwrite::create_text_format(m_dwrite_factory) )
         , m_full_screen_draw( m_context.m_device )
-        , m_copy_texture_ps(m_context.m_device )
+        , m_copy_texture_ps( gx::create_shader_copy_texture_ps ( m_context.m_device ) )
         , m_d2d_resource ( gx::create_render_target_resource( m_context.m_device, 8, 8, DXGI_FORMAT_R8G8B8A8_UNORM ) )
         , m_opaque_state ( gx::create_opaque_blend_state( m_context.m_device ) )
         , m_premultiplied_alpha_state(gx::create_premultiplied_alpha_blend_state(m_context.m_device))
@@ -637,7 +637,7 @@ class sample_application : public gx::default_application
     dwrite::itextformat_ptr                 m_text_format;
     
     gx::full_screen_draw                    m_full_screen_draw;
-    gx::shader_copy_texture                 m_copy_texture_ps;
+    gx::shader_copy_texture_ps              m_copy_texture_ps;
     d3d11::id3d11rendertargetview_ptr       m_back_buffer_render_target;
 
     d3d11::iblendstate_ptr                  m_opaque_state;
@@ -709,22 +709,35 @@ namespace lscm
     }
 }
 
-typedef std::future < d3d11::icomputeshader_ptr >  compute_shader;
+typedef std::future < d3d11::icomputeshader_ptr >   compute_shader;
+typedef std::future < d3d11::ipixelshader_ptr >     pixel_shader;
 
-std::tuple < compute_shader, compute_shader > create_shaders( ID3D11Device* device )
+typedef std::tuple < compute_shader, compute_shader, compute_shader, compute_shader, pixel_shader, pixel_shader, std::future< lscm::shader_depth_prepass_vs > > shader_database_create_info;
+
+shader_database_create_info create_shaders(ID3D11Device* device)
 {
     return std::make_tuple(
-                            lscm::create_shader_work_list_build_cs_async(device), 
-                            lscm::create_shader_work_list_sort_cs_async(device)
+                            lscm::create_shader_work_list_build_cs_async(device) 
+                            , lscm::create_shader_work_list_sort_cs_async(device)
+                            , lscm::create_shader_light_accumulation_cs_async(device)
+                            , lscm::create_shader_clear_light_accumulation_cs_async(device)
+                            , lscm::create_shader_draw_light_accumulation_ps_async(device)
+                            , lscm::create_shader_depth_prepass_ps_async(device)
+                            , lscm::create_shader_depth_prepass_vs_async(device)
                             );
 }
 
 class shader_database
 {
     public:
-    shader_database( std::tuple < compute_shader, compute_shader >& shaders ) :
-        m_work_list_build( std::get<0>(shaders).get() )
-        , m_work_list_sort( std::get<1>(shaders).get() )
+        shader_database(shader_database_create_info& shaders) :
+          m_work_list_build(std::get<0>(shaders).get() )
+          , m_work_list_sort(std::get<1>(shaders).get() )
+          , m_lighting_cs(std::get<2>(shaders).get() )
+          , m_clear_lighting_cs( std::get<3>(shaders).get() )
+          , m_draw_lighting_ps( std::get<4>(shaders).get() )
+          , m_depth_prepass_ps( std::get<5>(shaders).get() )
+          , m_depth_prepass_vs(std::get<6>(shaders).get())
     {
 
     }
@@ -734,7 +747,16 @@ class shader_database
     lscm::shader_work_list_build_cs             m_work_list_build;
     lscm::shader_work_list_sort_cs              m_work_list_sort;
 
+    //lighting
+    lscm::shader_light_accumulation_cs          m_lighting_cs;
+    lscm::shader_clear_light_accumulation_cs    m_clear_lighting_cs;
 
+    lscm::shader_draw_light_accumulation_ps     m_draw_lighting_ps;
+
+
+    //visibility buffer generation
+    lscm::shader_depth_prepass_ps               m_depth_prepass_ps;
+    lscm::shader_depth_prepass_vs               m_depth_prepass_vs;
 };
 
 class sample_application2 : public sample_application
@@ -751,15 +773,10 @@ class sample_application2 : public sample_application
     , m_depth_disabled( gx::create_depth_test_disable_state(m_context.m_device))
     , m_depth_prepass_ps_buffer( m_context.m_device )
     , m_depth_prepass_vs_buffer(m_context.m_device)
-    , m_depth_prepass_ps(m_context.m_device)
-    , m_depth_prepass_vs(m_context.m_device)
-    , m_depth_prepass_layout( m_context.m_device, m_depth_prepass_vs )
     , m_depth_prepass_buffer( m_context.m_device )
     , m_global_per_frame_buffer( m_context.m_device )
-    , m_lighting_cs( m_context.m_device.get() )
-    , m_clear_lighting_cs(m_context.m_device)
-    , m_draw_lighting_ps( m_context.m_device.get() )
     , m_shader_database(create_shaders( m_context.m_device ) )
+    , m_depth_prepass_layout(m_context.m_device, m_shader_database.m_depth_prepass_vs)
     {
         m_camera.set_view_position( math::set(0.0, 0.0f, -15.0f, 0.0f) );
     }
@@ -798,8 +815,8 @@ class sample_application2 : public sample_application
 
         d3d11::ia_set_input_layout(device_context, m_depth_prepass_layout);
 
-        d3d11::vs_set_shader( device_context, m_depth_prepass_vs );
-        d3d11::ps_set_shader( device_context, m_depth_prepass_ps );
+        d3d11::vs_set_shader(device_context, m_shader_database.m_depth_prepass_vs);
+        d3d11::ps_set_shader( device_context, m_shader_database.m_depth_prepass_ps );
 
         auto scale = math::scaling( math::set( 20.0f, 20.0f, 20.0f, 1.0f) );
         auto w = math::mul(scale, math::identity_matrix());
@@ -832,12 +849,12 @@ class sample_application2 : public sample_application
         m_global_per_frame_buffer.bind_as_compute(device_context);
 
         //clear the light buffer
-        d3d11::cs_set_shader(device_context, m_clear_lighting_cs);
+        d3d11::cs_set_shader(device_context, m_shader_database.m_clear_lighting_cs);
         d3d11::cs_set_unordered_access_view(device_context, 0, m_light_buffer);
         d3d11::cs_dispatch(device_context, std::get<0>(dimensions), std::get<1>(dimensions));
 
         //do light accumulation    
-        d3d11::cs_set_shader( device_context, m_lighting_cs );
+        d3d11::cs_set_shader( device_context, m_shader_database.m_lighting_cs );
         d3d11::cs_set_shader_resource( device_context, 0, m_visibility_buffer );
         d3d11::cs_dispatch(device_context, std::get<0>(dimensions), std::get<1>(dimensions) );
 
@@ -849,7 +866,7 @@ class sample_application2 : public sample_application
 
         //draw on the screen what we have calculated
         d3d11::ps_set_shader_resource(  device_context, m_light_buffer  );
-        d3d11::ps_set_shader(   device_context, m_draw_lighting_ps  );
+        d3d11::ps_set_shader(   device_context, m_shader_database.m_draw_lighting_ps  );
         d3d11::ps_set_sampler_state(    device_context, m_point_sampler );
         d3d11::rs_set_state(    device_context, m_cull_none_raster_state );
         d3d11::rs_set_view_port(device_context, &v);
@@ -857,7 +874,6 @@ class sample_application2 : public sample_application
         m_global_per_frame_buffer.bind_as_pixel(device_context);
 
         m_full_screen_draw.draw(device_context);
-
     }
 
     void    on_resize(uint32_t width, uint32_t height) override
@@ -894,22 +910,12 @@ class sample_application2 : public sample_application
     lscm::shader_depth_prepass_ps_buffer    m_depth_prepass_ps_buffer;
     lscm::shader_depth_prepass_vs_buffer    m_depth_prepass_vs_buffer;
 
-    lscm::shader_depth_prepass_ps           m_depth_prepass_ps;
-    lscm::shader_depth_prepass_vs           m_depth_prepass_vs;
+    shader_database                         m_shader_database;
+
     lscm::shader_depth_prepass_layout       m_depth_prepass_layout;
     lscm::visibility_per_pass_buffer        m_depth_prepass_buffer;
 
     lscm::global_per_frame_buffer           m_global_per_frame_buffer;
-
-    //lighting
-    lscm::shader_light_accumulation_cs          m_lighting_cs;
-    lscm::shader_clear_light_accumulation_cs    m_clear_lighting_cs;
-    lscm::shader_draw_light_accumulation_ps     m_draw_lighting_ps;
-
-    shader_database                         m_shader_database;
-    
-    
-
 
     //debug output
     d3d11::iunordered_access_view_ptr       m_visibility_buffer_view;

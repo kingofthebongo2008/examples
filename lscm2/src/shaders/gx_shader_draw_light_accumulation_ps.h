@@ -33,12 +33,8 @@ namespace lscm
     class shader_draw_light_accumulation_ps final
     {
         public:
-        explicit shader_draw_light_accumulation_ps(ID3D11Device* device) : m_shader( create_shader_draw_light_accumulation_ps(device) )
-        {
-         
-        }
 
-            explicit shader_draw_light_accumulation_ps(d3d11::ipixelshader_ptr shader) : m_shader(shader)
+        explicit shader_draw_light_accumulation_ps(d3d11::ipixelshader_ptr shader) : m_shader(shader)
         {
 
         }

@@ -88,7 +88,7 @@ namespace lscm
     class shader_depth_prepass_ps final
     {
         public:
-        explicit shader_depth_prepass_ps(ID3D11Device* device) : m_shader(create_shader_depth_prepass_ps( device ) )
+        explicit shader_depth_prepass_ps(d3d11::ipixelshader_ptr shader) : m_shader(shader)
         {
         
         }

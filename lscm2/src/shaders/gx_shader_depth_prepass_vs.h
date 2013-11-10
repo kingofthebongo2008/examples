@@ -73,30 +73,28 @@ namespace lscm
 
     typedef std::tuple< d3d11::ivertexshader_ptr, const void*, uint32_t> vertex_shader_create_info;
 
-    inline vertex_shader_create_info  create_shader_depth_prepass_vs(ID3D11Device* device)
+    namespace details
     {
-        d3d11::ivertexshader_ptr   shader;
+        inline vertex_shader_create_info  create_shader_depth_prepass_vs(ID3D11Device* device)
+        {
+            d3d11::ivertexshader_ptr   shader;
 
-        using namespace os::windows;
+            using namespace os::windows;
 
-        static
-        #include "gx_shader_depth_prepass_vs_compiled.hlsl"
+            static
+            #include "gx_shader_depth_prepass_vs_compiled.hlsl"
 
-        throw_if_failed<d3d11::create_vertex_shader>(device->CreateVertexShader(gx_shader_depth_prepass_vs, sizeof(gx_shader_depth_prepass_vs), nullptr, &shader));
+            throw_if_failed<d3d11::create_vertex_shader>(device->CreateVertexShader(gx_shader_depth_prepass_vs, sizeof(gx_shader_depth_prepass_vs), nullptr, &shader));
 
-        return std::make_tuple(shader, &gx_shader_depth_prepass_vs[0], static_cast<uint32_t> ( sizeof(gx_shader_depth_prepass_vs) ) ) ;
-    }
-
-    std::future< vertex_shader_create_info > create_screate_shader_depth_prepass_vs_async(ID3D11Device* device)
-    {
-        return std::async(std::launch::async, create_shader_depth_prepass_vs, device);
+            return std::make_tuple(shader, &gx_shader_depth_prepass_vs[0], static_cast<uint32_t> (sizeof(gx_shader_depth_prepass_vs)));
+        }
     }
 
     class shader_depth_prepass_vs final
     {
     public:
 
-        explicit shader_depth_prepass_vs(ID3D11Device* device) : shader_depth_prepass_vs ( create_shader_depth_prepass_vs(device) )
+        shader_depth_prepass_vs()
         {
 
         }
@@ -117,6 +115,17 @@ namespace lscm
         const void*                 m_code;
         uint32_t                    m_code_size;
     };
+
+    shader_depth_prepass_vs create_shader_depth_prepass_vs(ID3D11Device* device)
+    {
+        return shader_depth_prepass_vs(details::create_shader_depth_prepass_vs(device));
+
+    }
+
+    std::future< shader_depth_prepass_vs > create_shader_depth_prepass_vs_async(ID3D11Device* device)
+    {
+        return std::async(std::launch::async, create_shader_depth_prepass_vs, device);
+    }
 
     class shader_depth_prepass_layout final
     {
