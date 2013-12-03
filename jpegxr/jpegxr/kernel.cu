@@ -69,14 +69,14 @@ namespace cuda
         cudaFree( pointer );
     }
 
-    class int_array
+    class memory_buffer
     {
         private:
 
-        typedef int_array   this_type;
+        typedef memory_buffer   this_type;
         int*    m_value;
 
-        void swap(int_array & rhs)
+        void swap(memory_buffer & rhs)
         {
             int* tmp = m_value;
             m_value = rhs.m_value;
@@ -85,43 +85,53 @@ namespace cuda
 
         public:
 
-        int_array ( int size ) :
+        memory_buffer ( int size ) :
         m_value( allocate<int>(size) )
         {
 
         }
 
-        int_array ( int_array&& rhs ) : m_value(rhs.m_value)
+        memory_buffer ( memory_buffer&& rhs ) : m_value(rhs.m_value)
         {
             rhs.m_value = nullptr;
         }
 
-        int_array & operator=(int_array && rhs)
+        memory_buffer & operator=(memory_buffer && rhs)
         {
-            this_type( static_cast< int_array && >( rhs ) ).swap(*this);
+            this_type( static_cast< memory_buffer && >( rhs ) ).swap(*this);
             return *this;
         }
 
 
-        ~int_array()
+        ~memory_buffer()
         {
             free(m_value);
         }
 
-        const int*    get() const
+        const void*    get() const
         {
             return m_value;
         }
 
-        int*    get()
+        void*    get()
         {
             return m_value;
+        }
+
+        template <typename t> operator t*()
+        {
+            return reinterpret_cast<t*> (m_value);
+        }
+
+        template <typename t> operator const t*() const
+        {
+            return reinterpret_cast<t*> (m_value);
         }
 
         private:
 
-        int_array( const int_array& );
-        int_array& operator=(const int_array&);
+        memory_buffer( const memory_buffer& );
+        memory_buffer& operator=(const memory_buffer&);
     };
 }
 
@@ -144,7 +154,7 @@ int main()
     // Add vectors in parallel.
     cuda::throw_if_failed<cuda::exception> ( addWithCuda(c, a, b, arraySize) );
 
-    std::cout << "{1,2,3,4,5} + {10,20,30,40,50} = {%d,%d,%d,%d,%d}" << std::endl << c[0] << c[1] << c[2] << c[3] << c[4];
+    std::cout << "{1,2,3,4,5} + {10,20,30,40,50} = "<< std::endl << c[0] << c[1] << c[2] << c[3] << c[4];
 
     // cudaDeviceReset must be called before exiting in order for profiling and
     // tracing tools such as Nsight and Visual Profiler to show complete traces.
@@ -160,16 +170,16 @@ cudaError_t addWithCuda(int *c, const int *a, const int *b, unsigned int size)
     cuda::throw_if_failed<cuda::exception> (  cudaSetDevice(0) );
 
     // Allocate GPU buffers for three vectors (two input, one output)    .
-    auto dev_a = std::make_shared< cuda::int_array > ( size * sizeof( int )  );
-    auto dev_b = std::make_shared< cuda::int_array > ( size * sizeof( int )  );
-    auto dev_c = std::make_shared< cuda::int_array > ( size * sizeof( int )  );
+    auto dev_a = std::make_shared< cuda::memory_buffer > ( size * sizeof( int )  );
+    auto dev_b = std::make_shared< cuda::memory_buffer > ( size * sizeof( int )  );
+    auto dev_c = std::make_shared< cuda::memory_buffer > ( size * sizeof( int )  );
 
     // Copy input vectors from host memory to GPU buffers.
     cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(dev_a->get(), a, size * sizeof(int), cudaMemcpyHostToDevice) );
     cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(dev_b->get(), b, size * sizeof(int), cudaMemcpyHostToDevice) );
 
     // Launch a kernel on the GPU with one thread for each element.
-    addKernel<<<1, size>>>(dev_c->get(), dev_a->get(), dev_b->get());
+    addKernel<<<1, size>>>( *dev_c, *dev_a, *dev_b );
 
     // Check for any errors launching the kernel
     cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
