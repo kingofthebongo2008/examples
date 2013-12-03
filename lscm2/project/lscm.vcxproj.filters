@@ -16,9 +16,6 @@
     <Filter Include="Source Files\mem">
       <UniqueIdentifier>{84da2c3d-5c7d-4c85-bf4c-28ece53ef5b2}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\d3d11">
-      <UniqueIdentifier>{9d68f812-3373-45d9-9544-ac050a78dc75}</UniqueIdentifier>
-    </Filter>
     <Filter Include="include">
       <UniqueIdentifier>{b9c3e0d7-05f2-4aac-a9a1-62988a6a1cc1}</UniqueIdentifier>
     </Filter>

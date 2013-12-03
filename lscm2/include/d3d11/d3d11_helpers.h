@@ -124,6 +124,7 @@ namespace d3d11
         os::windows::throw_if_failed<d3d11::create_buffer_exception> (device->CreateBuffer(&desc, nullptr, &result ));
         return result;
     }
+
     //----------------------------------------------------------------------------------------------------------
     inline d3d11::ibuffer_ptr create_unordered_access_structured_buffer(ID3D11Device* device, size_t structure_count, size_t structure_size)
     {
@@ -138,6 +139,25 @@ namespace d3d11
         os::windows::throw_if_failed<d3d11::create_buffer_exception>(device->CreateBuffer(&desc, nullptr, &result));
         return result;
     }
+
+    //----------------------------------------------------------------------------------------------------------
+    inline d3d11::ibuffer_ptr create_unordered_access_structured_buffer(ID3D11Device* device, size_t structure_count, size_t structure_size, const void* initial_data)
+    {
+        D3D11_BUFFER_DESC desc = {};
+        d3d11::ibuffer_ptr result;
+
+        desc.ByteWidth = static_cast<uint32_t> (structure_count * structure_size);
+        desc.BindFlags = D3D11_BIND_UNORDERED_ACCESS | D3D11_BIND_SHADER_RESOURCE;
+        desc.Usage = D3D11_USAGE_DEFAULT;
+        desc.MiscFlags = D3D11_RESOURCE_MISC_BUFFER_STRUCTURED;
+        desc.StructureByteStride = static_cast<uint32_t> (structure_size);
+
+        D3D11_SUBRESOURCE_DATA initial_data_dx = { initial_data, 0, 0 };
+
+        os::windows::throw_if_failed<d3d11::create_buffer_exception>(device->CreateBuffer(&desc, &initial_data_dx, &result));
+        return result;
+    }
+
     //----------------------------------------------------------------------------------------------------------
     inline d3d11::ibuffer_ptr create_default_vertex_buffer(ID3D11Device* device, const void* initial_data, size_t size )
     {

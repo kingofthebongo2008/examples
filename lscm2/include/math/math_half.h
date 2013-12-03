@@ -163,7 +163,7 @@ namespace math
             }
             else                        // The value is zero
             {
-                Exponent = (UINT)-112;
+                Exponent = (uint32_t)-112;
             }
 
             Result = ((Value & 0x8000) << 16) | // Sign

@@ -57,7 +57,7 @@ void main( uint3 dispatch_thread_id : SV_DispatchThreadID )
         uint    instance_id = s & mask;
         float   o = 0.0f;
 
-        float4 r = float4( (instance_id / (float)mask), o, o, 1.0f );
+        float4 r = float4( ( instance_id / (float)mask ), o, o, 1.0f );
 
         light += r;
     }

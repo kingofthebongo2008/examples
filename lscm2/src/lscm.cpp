@@ -759,6 +759,31 @@ class shader_database
     lscm::shader_depth_prepass_vs               m_depth_prepass_vs;
 };
 
+class draw_instance_info
+{
+    public:
+    draw_instance_info( uint32_t closure_id, uint32_t vertex_offset, uint32_t index_offset ) : 
+        m_closure_id(0)
+        , m_vertex_offset( vertex_offset )
+        , m_index_offset( index_offset )
+    {}
+
+    explicit draw_instance_info(uint32_t closure_id) : draw_instance_info( closure_id, 0, 0)
+    {}
+
+    uint32_t m_closure_id;      //shader 
+    uint32_t m_vertex_offset;   //offset into a big vertex buffer with geometry
+    uint32_t m_index_offset;    //offset into a big index buffer with geometry
+};
+
+
+template <typename const_iterator>
+gx::compute_resource create_draw_instance_info_compute_resource(ID3D11Device* device, const_iterator begin, const_iterator end )
+{
+    return gx::create_structured_compute_resource(device, static_cast<uint32_t> (end - begin), static_cast<uint32_t> (sizeof(draw_instance_info)), begin);
+}
+
+
 class sample_application2 : public sample_application
 {
     typedef sample_application base;
@@ -792,7 +817,7 @@ class sample_application2 : public sample_application
     {
         auto device_context = this->m_context.m_immediate_context.get();
 
-        device_context->ClearState();
+        d3d11::clear_state(device_context);
 
         gx::reset_render_targets( device_context );
         gx::reset_shader_resources( device_context );
@@ -803,19 +828,18 @@ class sample_application2 : public sample_application
         D3D11_VIEWPORT v = m_view_port;
         d3d11::rs_set_view_port(device_context, &v);
 
-        //cull all back facing triangles
         d3d11::rs_set_state(device_context, m_cull_back_raster_state);
 
         d3d11::om_set_render_target( device_context, m_visibility_buffer, m_depth_buffer );
         d3d11::om_set_blend_state( device_context, m_opaque_state );
         d3d11::om_set_depth_state( device_context, m_depth_less );
 
-        d3d11::clear_render_target_view(device_context, m_visibility_buffer, math::one());
-        d3d11::clear_depth_stencil_view(device_context, m_depth_buffer);
+        d3d11::clear_render_target_view( device_context, m_visibility_buffer, math::one() );
+        d3d11::clear_depth_stencil_view( device_context, m_depth_buffer );
 
-        d3d11::ia_set_input_layout(device_context, m_depth_prepass_layout);
+        d3d11::ia_set_input_layout( device_context, m_depth_prepass_layout );
 
-        d3d11::vs_set_shader(device_context, m_shader_database.m_depth_prepass_vs);
+        d3d11::vs_set_shader( device_context, m_shader_database.m_depth_prepass_vs );
         d3d11::ps_set_shader( device_context, m_shader_database.m_depth_prepass_ps );
 
         auto scale = math::scaling( math::set( 20.0f, 20.0f, 20.0f, 1.0f) );
@@ -839,7 +863,6 @@ class sample_application2 : public sample_application
         m_depth_prepass_ps_buffer.bind_as_pixel(device_context);
         m_mesh->draw(device_context);
 
-
         //light pass
         d3d11::clear_state( device_context );
 
@@ -852,6 +875,9 @@ class sample_application2 : public sample_application
         d3d11::cs_set_shader(device_context, m_shader_database.m_clear_lighting_cs);
         d3d11::cs_set_unordered_access_view(device_context, 0, m_light_buffer);
         d3d11::cs_dispatch(device_context, std::get<0>(dimensions), std::get<1>(dimensions));
+
+        draw_instance_info instance_info( 1, 0, 0 );
+        auto info = create_draw_instance_info_compute_resource<draw_instance_info*>( this->m_context.m_device, &instance_info, &instance_info + 1);
 
         //do light accumulation    
         d3d11::cs_set_shader( device_context, m_shader_database.m_lighting_cs );
@@ -931,8 +957,36 @@ class sample_application2 : public sample_application
 
 DEFINE_GUID(DXGI_DEBUG_ALL, 0xe48ae283, 0xda80, 0x490b, 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8);
 
+
+static uint8_t vmulub(uint8_t a, uint8_t b)
+{
+    uint8_t r = 0;
+
+    //while ( a != 0 )
+    for ( uint32_t i = 0; i < 8; ++i )
+    {
+        if ( a & 0x1 )
+        {
+            r = r + b;
+        }
+            
+        b = b << 1;
+        a = a >> 1;
+    }
+
+    return r;
+}
+
 int _tmain(int argc, _TCHAR* argv[])
 {
+    auto r = vmulub( 254, 255 );// , 1);
+
+    auto k = (uint8_t) ( (uint8_t)(254) * (uint8_t)(255) );
+
+    auto    l = (254) * (255);
+    uint8_t k1 = static_cast<uint32_t>  ( l );
+
+
     using namespace lscm::indexed_face_set;
 
     std::shared_ptr<mesh> m;

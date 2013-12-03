@@ -64,6 +64,13 @@ namespace gx
 
         return compute_resource(resource, d3d11::create_unordered_access_view_structured(device, resource), d3d11::create_shader_resource_view(device, resource));
     }
+
+    inline compute_resource create_structured_compute_resource(ID3D11Device* device, uint32_t structure_count, uint32_t structure_size, const void* initial_data)
+    {
+        auto resource = d3d11::create_unordered_access_structured_buffer(device, structure_count, structure_size, initial_data);
+
+        return compute_resource(resource, d3d11::create_unordered_access_view_structured(device, resource), d3d11::create_shader_resource_view(device, resource));
+    }
 }
 
 
