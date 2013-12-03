@@ -72,7 +72,16 @@ namespace cuda
     class int_array
     {
         private:
+
+        typedef int_array   this_type;
         int*    m_value;
+
+        void swap(int_array & rhs)
+        {
+            int* tmp = m_value;
+            m_value = rhs.m_value;
+            rhs.m_value = tmp;
+        }
 
         public:
 
@@ -81,6 +90,18 @@ namespace cuda
         {
 
         }
+
+        int_array ( int_array&& rhs ) : m_value(rhs.m_value)
+        {
+            rhs.m_value = nullptr;
+        }
+
+        int_array & operator=(int_array && rhs)
+        {
+            this_type( static_cast< int_array && >( rhs ) ).swap(*this);
+            return *this;
+        }
+
 
         ~int_array()
         {
