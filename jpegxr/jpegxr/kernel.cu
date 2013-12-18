@@ -686,8 +686,7 @@ namespace jpegxr
 
 namespace example
 {
-	void addWithCuda(int32_t * c, const int32_t * a, const int32_t * b, uint32_t size);
-
+	void add_with_cuda(int32_t * c, const int32_t * a, uint32_t size);
 }
 
 int32_t main()
@@ -700,42 +699,23 @@ int32_t main()
 		1, 1, 1, 1
 	};
 
-    
     jpegxr::transforms::analysis::pct4x4(test);
-    jpegxr::transforms::synthesis::pct4x4(test);
-
-    jpegxr::transforms::pixel test1 [4] =
-	{
-		0, 1, 2, 3
-	};
-
-    jpegxr::transforms::analysis::prefilter4(test1 + 0, test1 + 1, test1 + 2, test1 + 3);
-    jpegxr::transforms::synthesis::overlapfilter4(test1 + 0, test1 + 1, test1 + 2, test1 + 3);
-
-    jpegxr::transforms::analysis::prefilter2x2(test1 + 0, test1 + 1, test1 + 2, test1 + 3);
-    jpegxr::transforms::synthesis::overlapfilter2x2(test1 + 0, test1 + 1, test1 + 2, test1 + 3);
-
-    jpegxr::transforms::analysis::prefilter4x4( test );
-    jpegxr::transforms::synthesis::overlapfilter4x4(test );
-
-    jpegxr::transforms::pixel color [4] =
-	{
-		15423, 2, 3, 0
-	};
-
-    jpegxr::transforms::rgb_2_ycocg ( color + 0, color + 1, color + 2);
-    jpegxr::transforms::ycocg_2_rgb ( color + 0, color + 1, color + 2);
     
+    const int32_t arraySize = 16;
+    const jpegxr::transforms::pixel a[arraySize] = 
+    { 
+        0, 0, 0, 0,
+		1, 1, 1, 1,
+		1, 5, 1, 1,
+		1, 1, 1, 1
+    };
 
-    const int32_t arraySize = 5;
-    const int32_t a[arraySize] = { 1, 2, 3, 4, 5 };
-    const int32_t b[arraySize] = { 10, 20, 30, 40, 50 };
-    int c[arraySize] = { 0 };
+    jpegxr::transforms::pixel c[arraySize] = { 0 };
 
     // Add vectors in parallel.
-    example::addWithCuda(c, a, b, arraySize);
+    example::add_with_cuda(c, a, arraySize);
 
-    std::cout << "{1,2,3,4,5} + {10,20,30,40,50} = "<< std::endl << c[0] << c[1] << c[2] << c[3] << c[4];
+    std::cout << std::endl << c[0] << ", " << c[1] << ", " << c[2] << ", " << c[3] << ", " << std::endl <<  c[4] << ", " << c[5] << ", " << c[6] << ", " << c[7] << ", " << std::endl << c[8] << ", " << c[9] << ", " << c[10] << ", "  << c[11] << ", " << std::endl << c[12] << ", " << c[13] << ", " << c[14] << ", " << c[15] << std::endl;
 
     // cudaDeviceReset must be called before exiting in order for profiling and
     // tracing tools such as Nsight and Visual Profiler to show complete traces.
@@ -746,8 +726,7 @@ int32_t main()
 
 namespace example
 {
-
-	__global__ void addKernel(int32_t * c, const int32_t * a, const int32_t * b)
+	__global__ void addKernel( int32_t * c, const int32_t * a )
 	{
 		int i = threadIdx.x;
 
@@ -759,9 +738,7 @@ namespace example
             a[12], a[13], a[14], a[15]
         };
 
-        //jpegxr::transforms::forward::pct4x4(v);
-
-        jpegxr::transforms::analysis::prefilter4x4
+        jpegxr::transforms::analysis::pct4x4
             (
                v
             );
@@ -788,22 +765,20 @@ namespace example
 	}
 
 	// Helper function for using CUDA to add vectors in parallel.
-	void addWithCuda(int *c, const int *a, const int *b, unsigned int size)
+	void add_with_cuda(int *c, const int *a, uint32_t size)
 	{
 		// Choose which GPU to run on, change this on a multi-GPU system.
 		cuda::throw_if_failed<cuda::exception> (  cudaSetDevice(0) );
 
 		// Allocate GPU buffers for three vectors (two input, one output)    .
 		auto dev_a = std::make_shared< cuda::memory_buffer > ( size * sizeof( int32_t )  );
-		auto dev_b = std::make_shared< cuda::memory_buffer > ( size * sizeof( int32_t )  );
 		auto dev_c = std::make_shared< cuda::memory_buffer > ( size * sizeof( int32_t )  );
 
 		// Copy input vectors from host memory to GPU buffers.
 		cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(*dev_a, a, size * sizeof(int32_t), cudaMemcpyHostToDevice) );
-		cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(*dev_b, b, size * sizeof(int32_t), cudaMemcpyHostToDevice) );
 
-		// Launch a kernel on the GPU with one thread for each element.
-		addKernel<<<1, size>>>( *dev_c, *dev_a, *dev_b );
+        // Launch a kernel on the GPU with one thread for each element.
+		addKernel<<<1, 1>>>( *dev_c, *dev_a );
 
 		// Check for any errors launching the kernel
 		cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
