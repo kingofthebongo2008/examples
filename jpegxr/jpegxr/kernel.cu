@@ -13,7 +13,7 @@ namespace jpegxr
 {
 	namespace transforms
 	{
-        typedef int16_t pixel;
+        typedef int32_t pixel;
 
 		enum mode : uint32_t
 		{
@@ -87,6 +87,45 @@ namespace jpegxr
             *a -= *d;
             *b += *c;
 
+        }
+
+        //better decorelates the signal than yuv
+        __host__ __device__ inline void rgb_2_ycocg(pixel* __restrict r_y, pixel* __restrict  g_co, pixel* __restrict b_cg )
+        {
+            auto co = *r_y - *b_cg;
+            auto t = *b_cg + (co >> 1);
+
+            auto cg = *g_co - t;
+
+            auto y = t + (cg >> 1);
+
+            *r_y = y;
+            *g_co = co;
+            *b_cg = cg;
+        }
+
+        __host__ __device__ inline void rgb_2_yuv(pixel* __restrict r_y, pixel* __restrict  g_u, pixel* __restrict b_v )
+        {
+          auto y = *g_u + ( *r_y - *g_u  + (  (*b_v  + 1 ) >> 1 ) ) >> 1 ;
+          auto u = *g_u - *r_y - ( (*b_v + 1) >> 1);
+          auto v = *b_v - *r_y;
+
+          *r_y = y;
+          *g_u = u;
+          *b_v = v;
+        }
+
+        //better decorelates the signal than yuv
+        __host__ __device__ inline void ycocg_2_rgb(pixel* __restrict r_y, pixel* __restrict  g_co, pixel* __restrict b_cg )
+        {
+            auto t = *r_y - (*b_cg >> 1);
+            auto g = *b_cg + t;
+            auto b = t - (*g_co >> 1);
+            auto r = b + *g_co;
+
+            *r_y = r;
+            *g_co = g;
+            *b_cg = b;
         }
 
 		namespace analysis
@@ -678,6 +717,14 @@ int32_t main()
 
     jpegxr::transforms::analysis::prefilter4x4( test );
     jpegxr::transforms::synthesis::overlapfilter4x4(test );
+
+    jpegxr::transforms::pixel color [4] =
+	{
+		15423, 2, 3, 0
+	};
+
+    jpegxr::transforms::rgb_2_ycocg ( color + 0, color + 1, color + 2);
+    jpegxr::transforms::ycocg_2_rgb ( color + 0, color + 1, color + 2);
     
 
     const int32_t arraySize = 5;
