@@ -84,7 +84,7 @@ namespace cuda
 
         public:
 
-        memory_buffer ( int size ) :
+        memory_buffer ( size_t size ) :
         m_value( allocate<int>(size) )
         {
 
