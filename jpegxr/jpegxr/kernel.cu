@@ -13,170 +13,27 @@ namespace jpegxr
 {
 	namespace transforms
 	{
-		struct pixel4
-		{
-			struct names
-			{
-				int32_t a;
-				int32_t b;
-				int32_t c;
-				int32_t d;
-			};
+        typedef int16_t pixel;
 
-			struct dimensions
-			{
-				int32_t v[4];
-			};
-
-			union
-			{
-				names n;
-				dimensions v;
-			} u;
-
-			__device__ __host__ pixel4( int32_t a1, int32_t b1, int32_t c1, int32_t d1 )
-			{
-				u.n.a = a1;
-				u.n.b = b1;
-				u.n.c = c1;
-				u.n.d = d1;
-			}
-
-		};
-		
-
-		struct pixel2
-		{
-			int32_t a;
-			int32_t b;
-
-			__device__ __host__ pixel2( int32_t a1, int32_t b1) :
-			a(a1), b(b1) {}
-		};
-
-		struct block
-		{
-			struct names
-			{
-				int32_t a;	//0
-				int32_t b;	//1
-				int32_t c;	//2
-				int32_t d;	//3
-				
-				int32_t e;	//4
-				int32_t f;	//5
-				int32_t g;	//6
-				int32_t h;	//7
-
-				int32_t i;	//8
-				int32_t j;	//9
-				int32_t k;	//10
-				int32_t l;	//11
-
-				int32_t m;	//12
-				int32_t n;	//13
-				int32_t o;	//14
-				int32_t p;	//15
-			};
-
-			struct dimensions
-			{
-				int32_t v[16];
-			};
-
-			union
-			{
-				names	   n;
-				dimensions p;
-			} u;
-
-			__device__ __host__ block( pixel4 r1, pixel4 r2, pixel4 r3, pixel4 r4 )
-			{
-				u.n.a = r1.u.n.a;
-				u.n.b = r1.u.n.b;
-				u.n.c = r1.u.n.c;
-				u.n.d = r1.u.n.d;
-
-				u.n.e = r2.u.n.a;
-				u.n.f = r2.u.n.b;
-				u.n.g = r2.u.n.c;
-				u.n.h = r2.u.n.d;
-
-				u.n.i = r3.u.n.a;
-				u.n.j = r3.u.n.b;
-				u.n.k = r3.u.n.c;
-				u.n.l = r3.u.n.d;
-
-				u.n.m = r4.u.n.a;
-				u.n.n = r4.u.n.b;
-				u.n.o = r4.u.n.c;
-				u.n.p = r4.u.n.d;
-			}
-
-			__device__ __host__ block( const int32_t v[16] )
-			{
-				u.n.a = v[0];
-				u.n.b = v[1];
-				u.n.c = v[2];
-				u.n.d = v[3];
-
-				u.n.e = v[4];
-				u.n.f = v[5];
-				u.n.g = v[6];
-				u.n.h = v[7];
-
-				u.n.i = v[8];
-				u.n.j = v[9];
-				u.n.k = v[10];
-				u.n.l = v[11];
-
-				u.n.m = v[12];
-				u.n.n = v[13];
-				u.n.o = v[14];
-				u.n.p = v[15];
-			}
-		};
-
-		struct macro_block
-		{
-			block a;
-			block b;
-			block c;
-			block d;
-
-			block e;
-			block f;
-			block g;
-			block h;
-
-			block i;
-			block j;
-			block k;
-			block l;
-
-			block m;
-			block n;
-			block o;
-			block p;
-		};
-
-		enum mode
+		enum mode : uint32_t
 		{
 			truncate = 0,
 			round = 1
 		};
 
+        enum indexer : uint32_t
+        {
+            indexer_a = 0,      indexer_b = 1,    indexer_c = 2,      indexer_d = 3,
+            indexer_e = 4,      indexer_f = 5,    indexer_g = 6,      indexer_h = 7,
+            indexer_i = 8,      indexer_j = 9,    indexer_k = 10,     indexer_l = 11,
+            indexer_m = 12,     indexer_n = 13,   indexer_o = 14,     indexer_p = 15
+        };
 
 		template <int32_t mode> 			
-		__device__ __host__ pixel4 t2x2h( const pixel4 in )
+		__host__ __device__ inline void t2x2h( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d)
 		{
-			auto a = in.u.n.a;
-			auto b = in.u.n.b;
-			auto c = in.u.n.c;
-			auto d = in.u.n.d;
-
-			a += d;
-			b -= c;
+			*a += *d;
+			*b -= *c;
 
 			int32_t val_round = 0;
 
@@ -189,104 +46,130 @@ namespace jpegxr
 				val_round = 0;
 			}
 
-			auto val_t1 = ( ( a - b ) + val_round ) >> 1;
-			auto val_t2 = c;
+			auto val_t1 = ( ( *a - *b ) + val_round ) >> 1;
+			auto val_t2 = *c;
 			
-			c = val_t1 - d;
-			d = val_t1 - val_t2;
+			*c = val_t1 - *d;
+			*d = val_t1 - val_t2;
 
-			a -= d;
-			b += c;
-
-			return pixel4( a, b, c, d  );
+			*a -= *d;
+			*b += *c;
 		}
 
-		namespace forward
+        //analysis stage
+        __host__ __device__ void t2x2h_pre( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
+		{
+            *a += *d;
+            *b -= *c;
+
+            auto t1 = *d;
+            auto t2 = *c;
+
+            *c = ((*a - *b) >> 1) - t1;
+            *d = t2 + (*b >> 1);
+            *b += *c;
+            *a -= (*d * 3 + 4) >> 3;
+
+        }
+
+        //synthesis stage
+        __host__ __device__ void t2x2h_post( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
+		{
+            *a += (*d * 3 + 4) >> 3;
+            *b -= *c;
+
+            *d -= *b >> 1;
+
+            auto t1 = ((*a - *b) >> 1) - *c;
+
+            *c = *d;
+            *d = t1;
+            *a -= *d;
+            *b += *c;
+
+        }
+
+		namespace analysis
 		{	
-
-			__device__ __host__ pixel4 todd( const pixel4 in )
+			__host__ __device__ inline void scale( pixel* __restrict a, pixel* __restrict b )
 			{
-				auto a = in.u.n.a;
-				auto b = in.u.n.b;
-				auto c = in.u.n.c;
-				auto d = in.u.n.d;
-
-				b -= c;
-				a += d;
-				c += (b + 1) >> 1;
-				d = ((a + 1) >> 1) - d;
-
-				b -= (a * 3 + 4) >> 3;
-				a += (b * 3 + 4) >> 3;
-				d -= (c * 3 + 4) >> 3;
-				c += (d * 3 + 4) >> 3;
-
-				d += b >> 1;
-				c -= (a + 1) >> 1;
-				b -= d;
-				a += c;
-
-				return pixel4( a, b, c, d  );
+				*b -= (*a * 3 + 0) >> 4;
+				*b -= *a >> 7;
+				*b += *a >> 10;
+				*a -= (*b * 3 + 0) >> 3;
+				*b = (*a >> 1) - *b;
+				*a -= *b;
 			}
 
-			__device__ __host__ pixel4 todd_odd( const pixel4 in )
+			__host__ __device__ inline void rotate( pixel* __restrict a, pixel* __restrict b )
 			{
-				auto a = in.u.n.a;
-				auto b = in.u.n.b;
-				auto c = in.u.n.c;
-				auto d = in.u.n.d;
+				*b -= (*a + 1) >> 1;
+				*a += (*b + 1) >> 1;
+			}
 
-				b = -b;
-				c = -c;
+			__host__ __device__ inline void todd( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
+			{
+				*b -= *c;
+				*a += *d;
+				*c += (*b + 1) >> 1;
+				*d = ((*a + 1) >> 1) - *d;
 
-				d += a;
-				c -= b;
+				*b -= (*a * 3 + 4) >> 3;
+				*a += (*b * 3 + 4) >> 3;
+				*d -= (*c * 3 + 4) >> 3;
+				*c += (*d * 3 + 4) >> 3;
 
-				int32_t t1 = d >> 1;
-				int32_t t2 = c >> 1;
-				a -= t1;
-				b += t2;
+				*d += *b >> 1;
+				*c -= (*a + 1) >> 1;
+				*b -= *d;
+				*a += *c;
+			}
+
+			__host__ __device__ inline void todd_odd( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
+			{
+				*b = -*b;
+				*c = -*c;
+
+				*d += *a;
+				*c -= *b;
+
+				auto t1 = *d >> 1;
+				auto t2 = *c >> 1;
+				*a -= t1;
+				*b += t2;
     
-				a += (b * 3 + 4) >> 3;
-				b -= (a * 3 + 3) >> 2;
+				*a += (*b * 3 + 4) >> 3;
+				*b -= (*a * 3 + 3) >> 2;
 
-				a += (b * 3 + 3) >> 3;
-				b -= t2;
+				*a += (*b * 3 + 3) >> 3;
+				*b -= t2;
 
-				a += t1;
-				c += b;
-				d -= a;
-
-				return pixel4( a, b, c, d  );
+				*a += t1;
+				*c += *b;
+				*d -= *a;
 			}
 
-			__host__ __device__ pixel2 scale( const pixel2 in)
+            __host__ __device__ inline void prefilter_todd_odd( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
 			{
-				auto a = in.a;
-				auto b = in.b;
+                *d += *a;
+                *c -= *b;
+                auto t1 = *d >> 1;
+                auto t2 = *c >> 1;
+                *a -= t1;
+                *b += t2;
+                
+                *a += (*b * 3 + 4) >> 3;
+                *b -= (*a * 3 + 2) >> 2;
+                
+                *a += (*b * 3 + 6) >> 3;
+                *b -= t2;
+                
+                *a += t1;
+                *c += *b;
+                *d -= *a;
+            }
 
-				b -= (a * 3 + 0) >> 4;
-				b -= a >> 7;
-				b += a >> 10;
-				a -= (b * 3 + 0) >> 3;
-				b = (a >> 1) - b;
-				a -= b;
-
-				return pixel2( a, b );
-			}
-
-			__host__ __device__ pixel2 rotate( const pixel2 in)
-			{
-				auto a = in.a;
-				auto b = in.b;
-
-				b -= (a + 1) >> 1;
-				a += (b + 1) >> 1;
-
-				return pixel2( a, b );
-			}
-
-			__host__ __device__ block permute( const block in )
+			__host__ __device__ inline void permute( pixel* in )
 			{
 				const int32_t fwd[16] = 
 				{
@@ -298,135 +181,276 @@ namespace jpegxr
 
 				int32_t t[16];
 
-				t[ fwd [ 0 ]  ] = in.u.p.v[0];
-				t[ fwd [ 1 ]  ] = in.u.p.v[1];
-				t[ fwd [ 2 ]  ] = in.u.p.v[2];
-				t[ fwd [ 3 ]  ] = in.u.p.v[3];
+				t[ fwd [ 0 ]  ] = in[0];
+				t[ fwd [ 1 ]  ] = in[1];
+				t[ fwd [ 2 ]  ] = in[2];
+				t[ fwd [ 3 ]  ] = in[3];
 
-				t[ fwd [ 4 ]  ] = in.u.p.v[4];
-				t[ fwd [ 5 ]  ] = in.u.p.v[5];
-				t[ fwd [ 6 ]  ] = in.u.p.v[6];
-				t[ fwd [ 7 ]  ] = in.u.p.v[7];
+				t[ fwd [ 4 ]  ] = in[4];
+				t[ fwd [ 5 ]  ] = in[5];
+				t[ fwd [ 6 ]  ] = in[6];
+				t[ fwd [ 7 ]  ] = in[7];
 
-				t[ fwd [ 8 ]  ] = in.u.p.v[8];
-				t[ fwd [ 9 ]  ] = in.u.p.v[9];
-				t[ fwd [ 10 ]  ] = in.u.p.v[10];
-				t[ fwd [ 11 ]  ] = in.u.p.v[11];
+				t[ fwd [ 8 ]  ] = in[8];
+				t[ fwd [ 9 ]  ] = in[9];
+				t[ fwd [ 10 ]  ] = in[10];
+				t[ fwd [ 11 ]  ] = in[11];
 
-				t[ fwd [ 12 ]  ] = in.u.p.v[12];
-				t[ fwd [ 13 ]  ] = in.u.p.v[13];
-				t[ fwd [ 14 ]  ] = in.u.p.v[14];
-				t[ fwd [ 15 ]  ] = in.u.p.v[15];
+				t[ fwd [ 12 ]  ] = in[12];
+				t[ fwd [ 13 ]  ] = in[13];
+				t[ fwd [ 14 ]  ] = in[14];
+				t[ fwd [ 15 ]  ] = in[15];
 
-				return block ( t );
+                in[0] = t[0];
+                in[1] = t[1];
+                in[2] = t[2];
+                in[3] = t[3];
+
+                in[4] = t[4];
+                in[5] = t[5];
+                in[6] = t[6];
+                in[7] = t[7];
+
+                in[8] = t[8];
+                in[9] = t[9];
+                in[10] = t[10];
+                in[11] = t[11];
+
+                in[12] = t[12];
+                in[13] = t[13];
+                in[14] = t[14];
+                in[15] = t[15];
 			}
 
-			__host__ __device__ block fct4x4 ( const block in )
+            __host__ __device__ inline void prefilter2( pixel* __restrict a, pixel* __restrict b  )
+            {
+                *b -= ((*a + 2) >> 2);
+                *a -= (*b >> 13);
+            
+                *a -= (*b >> 9);
+            
+                *a -= (*b >> 5);
+            
+                *a -= ((*b + 1) >> 1);
+                *b -= ((*a + 2) >> 2);
+            }
+
+            __host__ __device__ inline void prefilter2x2( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
 			{
-				auto r1 = t2x2h<truncate> ( pixel4( in.u.n.a, in.u.n.d, in.u.n.m, in.u.n.p  ) );
-				auto r2 = t2x2h<truncate> ( pixel4( in.u.n.b, in.u.n.c, in.u.n.n, in.u.n.o  ) );
-				auto r3 = t2x2h<truncate> ( pixel4( in.u.n.e, in.u.n.h, in.u.n.i, in.u.n.l  ) );
-				auto r4 = t2x2h<truncate> ( pixel4( in.u.n.f, in.u.n.g, in.u.n.j, in.u.n.k  ) );
+                *a += *d;
+                *b += *c;
+                *d -= ((*a + 1) >> 1);
+                *c -= ((*b + 1) >> 1);
 
-				auto r5 = t2x2h< round >	( pixel4( r1.u.n.a, r1.u.n.b, r2.u.n.a, r2.u.n.b ) );
-				auto r6 = todd				( pixel4( r1.u.n.c, r1.u.n.d, r2.u.n.c, r2.u.n.d ) );
-				auto r7 = todd				( pixel4( r3.u.n.a, r4.u.n.a, r3.u.n.b, r4.u.n.b ) );
-				auto r8 = todd_odd			( pixel4( r3.u.n.c, r3.u.n.d, r4.u.n.c, r4.u.n.d ) );
+                *b -= ((*a + 2) >> 2);
+                *a -= (*b >> 5);
 
-				auto b  = block(r5, r6, r7, r8 );
+                *a -= (*b >> 9);
 
-				return permute( b );
+                *a -= (*b >> 13);
+
+                *a -= ((*b + 1) >> 1);
+                *b -= ((*a + 2) >> 2);
+                *d += ((*a + 1) >> 1);
+                *c += ((*b + 1) >> 1);
+
+                *a -= *d;
+                *b -= *c;
+            }
+
+            __host__ __device__ inline void prefilter4( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
+			{
+                *a += *d;
+                *b += *c;
+                *d -= ((*a + 1) >> 1);
+                *c -= ((*b + 1) >> 1);
+                
+                rotate(c, d );
+
+                *d *= -1;
+                *c *= -1;
+                *a -= *d;
+                *b -= *c;
+                
+                *d += (*a >> 1);
+                *c += (*b >> 1);
+                *a -= ((*d * 3 + 4) >> 3);
+                *b -= ((*c * 3 + 4) >> 3);
+                
+                scale( a, d );
+                scale( b, c );
+
+                *d += ((*a + 1) >> 1);
+                *c += ((*b + 1) >> 1);
+                *a -= *d;
+                *b -= *c;
+            }
+
+            /*
+                a b c d 
+                e f g h
+                i j k l
+                m n o p
+            */
+
+            __host__ __device__ inline void prefilter4x4
+                ( 
+                       pixel * __restrict a, pixel * __restrict b, pixel * __restrict c, pixel * __restrict d,
+                       pixel * __restrict e, pixel * __restrict f, pixel * __restrict g, pixel * __restrict h,
+                       pixel * __restrict i, pixel * __restrict j, pixel * __restrict k, pixel * __restrict l,
+                       pixel * __restrict m, pixel * __restrict n, pixel * __restrict o, pixel * __restrict p                
+                )
+			{
+                t2x2h_pre ( a, d, m, p);
+                t2x2h_pre ( b, c, n, o);
+                t2x2h_pre ( e, h, i, l);
+                t2x2h_pre ( f, g, j, k);
+
+                scale ( a, p );
+                scale ( b, o );
+                scale ( e, l );
+                scale ( f, k );
+                
+                rotate ( n, m );
+                rotate ( j, i );
+                rotate ( h, d );
+                rotate ( g, c );
+
+                prefilter_todd_odd( k, l, o, p);
+
+                t2x2h<truncate> ( a, m, d, p );
+                t2x2h<truncate> ( b, c, n, o );
+                t2x2h<truncate> ( e, h, i, l );
+                t2x2h<truncate> ( f, g, j, k );
+            }
+
+            __host__ __device__ inline void prefilter4x4 ( pixel* pixels)
+            {
+                    prefilter4x4
+                    ( 
+                        pixels + 0,     pixels + 1,     pixels + 2,     pixels + 3,
+                        pixels + 4,     pixels + 5,     pixels + 6,     pixels + 7,
+                        pixels + 8,     pixels + 9,     pixels + 10,    pixels + 11,
+                        pixels + 12,    pixels + 13,    pixels + 14,    pixels + 15
+                    );
+            }
+
+            /*
+                a b c d     0   1   2   3
+                e f g h     4   5   6   7
+                i j k l     8   9   10  11  
+                m n o p     12  13  14  15
+            */
+			__host__ __device__ inline void pct4x4 ( pixel* in )
+			{
+                t2x2h<truncate> ( in + indexer_a, in + indexer_d, in + indexer_m, in + indexer_p  );
+                t2x2h<truncate> ( in + indexer_f, in + indexer_g, in + indexer_j, in + indexer_k  );
+                t2x2h<truncate> ( in + indexer_b, in + indexer_c, in + indexer_n, in + indexer_o  );
+                t2x2h<truncate> ( in + indexer_e, in + indexer_h, in + indexer_i, in + indexer_l  );
+
+				t2x2h< round >	( in + indexer_a, in + indexer_b, in + indexer_e, in + indexer_f  );
+				todd			( in + indexer_c, in + indexer_d, in + indexer_g, in + indexer_h  );
+				todd			( in + indexer_i, in + indexer_m, in + indexer_j, in + indexer_n  );
+				todd_odd		( in + indexer_k, in + indexer_l, in + indexer_o, in + indexer_p  );
+
+				permute( in );
 			}
-		}
 
-		namespace inverse
+            __host__ __device__ inline void pct2x2 ( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
+            {
+                return t2x2h<truncate>(a, b, c, d);
+            }
+
+            __host__ __device__ inline void pt2 ( pixel* __restrict a, pixel* __restrict b )
+            {
+                *b -= *a;
+                *a += (*b + 1) >> 1;
+            }
+        }
+
+		namespace synthesis
 		{
-			__device__ __host__ pixel4 todd( const pixel4 in )
+			__host__ __device__ inline void todd( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
 			{
-				auto a = in.u.n.a;
-				auto b = in.u.n.b;
-				auto c = in.u.n.c;
-				auto d = in.u.n.d;
+				*a -= *c;
+				*b += *d;
+				*c += (*a + 1) >> 1;
+				*d -= *b >> 1;
 
-				a -= c;
-				b += d;
-				c += (a + 1) >> 1;
-				d -= b >> 1;
-
-				c -= (d * 3 + 4) >> 3;
-				d += (c * 3 + 4) >> 3;
-				a -= (b * 3 + 4) >> 3;
-				b += (a * 3 + 4) >> 3;
+				*c -= (*d * 3 + 4) >> 3;
+				*d += (*c * 3 + 4) >> 3;
+				*a -= (*b * 3 + 4) >> 3;
+				*b += (*a * 3 + 4) >> 3;
 				
-				d = ((a + 1) >> 1) - d;
-				c -= (b + 1) >> 1;
-				a -= d;
-				b += c;
-
-				return pixel4( a, b, c, d  );
+				*d = ((*a + 1) >> 1) - *d;
+				*c -= (*b + 1) >> 1;
+				*a -= *d;
+				*b += *c;
 			}
 
-			__device__ __host__ pixel4 todd_odd( const pixel4 in )
+			__host__ __device__ inline void todd_odd( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
 			{
-				auto a = in.u.n.a;
-				auto b = in.u.n.b;
-				auto c = in.u.n.c;
-				auto d = in.u.n.d;
+				*d += *a;
+				*c -= *b;
 
+				auto t1 = *d >> 1;
+				auto t2 = *c >> 1;
 
-				d += a;
-				c -= b;
+				*a -= t1;
+				*b += t2;
 
-				int32_t t1 = d >> 1;
-				int32_t t2 = c >> 1;
+				*a -= (*b * 3 + 3) >> 3;
+				*b += (*a * 3 + 3) >> 2;
+				*a -= (*b * 3 + 4) >> 3;
 
-				a -= t1;
-				b += t2;
+				*b -= t2;
+				*a += t1;
 
-				a -= (b * 3 + 3) >> 3;
-				b += (a * 3 + 3) >> 2;
-				a -= (b * 3 + 4) >> 3;
+				*c += *b;
+				*d -= *a;
 
-				b -= t2;
-				a += t1;
-
-				c += b;
-				d -= a;
-
-				c = -c;
-				b = -b;
-
-				return pixel4( a, b, c, d  );
+				*c = -*c;
+				*b = -*b;
 			}
 
-			__host__ __device__ pixel2 scale( const pixel2 in)
+            __host__ __device__ inline void overlap_todd_odd( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
 			{
+                *d += *a;
+                *c -= *b;
+                auto t1 = *d >> 1;
+                auto t2 = *c >> 1;
+                *a -= t1;
+                *b += t2;
+                
+                *a -= (*b * 3 + 6) >> 3;
+                *b += (*a * 3 + 2) >> 2;
+                *a -= (*b * 3 + 4) >> 3;
+                
 
-				auto a = in.a;
-				auto b = in.b;
+                *b -= t2;
+                
+                *a += t1;
+                *c += *b;
+                *d -= *a;
+            }
 
-				a += b;
-				b = (a >> 1) - b;
-				a += (b * 3 + 0) >> 3;
-				b -= a >> 10;
-				b += a >> 7;
-				b += (a * 3 + 0) >> 4;
-				
-				return pixel2( a, b );
-			}
-
-			__host__ __device__ pixel2 rotate( const pixel2 in)
+			__host__ __device__ inline void scale( pixel* __restrict a, pixel* __restrict b  )
 			{
-				auto a = in.a;
-				auto b = in.b;
-
-				a -= (b + 1) >> 1;
-				b += (a + 1) >> 1;
-			
-				return pixel2( a, b );
+				*a += *b;
+				*b = (*a >> 1) - *b;
+				*a += (*b * 3 + 0) >> 3;
+				*b -= *a >> 10;
+				*b += *a >> 7;
+				*b += (*a * 3 + 0) >> 4;
 			}
 
-			__host__ __device__ block permute( const block in )
+			__host__ __device__ inline void rotate( pixel* __restrict a, pixel* __restrict b  )
+			{
+				*a -= (*b + 1) >> 1;
+				*b += (*a + 1) >> 1;
+			}
+
+			__host__ __device__ inline void permute( pixel* in )
 			{
 				const int32_t inverse[16] = 
 				{
@@ -438,91 +462,227 @@ namespace jpegxr
 
 				int32_t t[16];
 
-				t[ inverse [ 0 ]  ] = in.u.p.v[0];
-				t[ inverse [ 1 ]  ] = in.u.p.v[1];
-				t[ inverse [ 2 ]  ] = in.u.p.v[2];
-				t[ inverse [ 3 ]  ] = in.u.p.v[3];
+				t[ inverse [ 0 ]  ] = in[0];
+				t[ inverse [ 1 ]  ] = in[1];
+				t[ inverse [ 2 ]  ] = in[2];
+				t[ inverse [ 3 ]  ] = in[3];
 
-				t[ inverse [ 4 ]  ] = in.u.p.v[4];
-				t[ inverse [ 5 ]  ] = in.u.p.v[5];
-				t[ inverse [ 6 ]  ] = in.u.p.v[6];
-				t[ inverse [ 7 ]  ] = in.u.p.v[7];
+				t[ inverse [ 4 ]  ] = in[4];
+				t[ inverse [ 5 ]  ] = in[5];
+				t[ inverse [ 6 ]  ] = in[6];
+				t[ inverse [ 7 ]  ] = in[7];
 
-				t[ inverse [ 8 ]  ] = in.u.p.v[8];
-				t[ inverse [ 9 ]  ] = in.u.p.v[9];
-				t[ inverse [ 10 ]  ] = in.u.p.v[10];
-				t[ inverse [ 11 ]  ] = in.u.p.v[11];
+				t[ inverse [ 8 ]  ] = in[8];
+				t[ inverse [ 9 ]  ] = in[9];
+				t[ inverse [ 10 ]  ] = in[10];
+				t[ inverse [ 11 ]  ] = in[11];
 
-				t[ inverse [ 12 ]  ] = in.u.p.v[12];
-				t[ inverse [ 13 ]  ] = in.u.p.v[13];
-				t[ inverse [ 14 ]  ] = in.u.p.v[14];
-				t[ inverse [ 15 ]  ] = in.u.p.v[15];
+				t[ inverse [ 12 ]  ] = in[12];
+				t[ inverse [ 13 ]  ] = in[13];
+				t[ inverse [ 14 ]  ] = in[14];
+				t[ inverse [ 15 ]  ] = in[15];
 
-				return block ( t );
+                in[0] = t[0];
+                in[1] = t[1];
+                in[2] = t[2];
+                in[3] = t[3];
+
+                in[4] = t[4];
+                in[5] = t[5];
+                in[6] = t[6];
+                in[7] = t[7];
+
+                in[8] = t[8];
+                in[9] = t[9];
+                in[10] = t[10];
+                in[11] = t[11];
+
+                in[12] = t[12];
+                in[13] = t[13];
+                in[14] = t[14];
+                in[15] = t[15];
+
 			}
 
-			/*
-			0	1	2	3 
-			4	5	6	7
-			8	9	10	11
-			12	13	14	15
-			*/
 
-			__host__ __device__ block fct4x4 ( const block in )
+            /*
+                a b c d     0   1   2   3
+                e f g h     4   5   6   7
+                i j k l     8   9   10  11  
+                m n o p     12  13  14  15
+            */
+
+			__host__ __device__ inline void pct4x4 ( pixel* in )
 			{
-				auto b = permute( in );
+				permute( in );
 
-				auto r1 = t2x2h< round >	( pixel4( b.u.p.v[0], b.u.p.v[1], b.u.p.v[4], b.u.p.v[5] ) );
-				auto r2 = todd				( pixel4( b.u.p.v[2], b.u.p.v[3], b.u.p.v[6], b.u.p.v[7] ) );
-				auto r3 = todd				( pixel4( b.u.p.v[8], b.u.p.v[12], b.u.p.v[9], b.u.p.v[13] ) );
-				auto r4 = todd_odd			( pixel4( b.u.p.v[10], b.u.p.v[11], b.u.p.v[14], b.u.p.v[15] ) );
+				t2x2h< round >	( in + indexer_a, in + indexer_b, in + indexer_e, in + indexer_f  );
+				todd			( in + indexer_c, in + indexer_d, in + indexer_g, in + indexer_h  );
+				todd			( in + indexer_i, in + indexer_m, in + indexer_j, in + indexer_n  );
+				todd_odd		( in + indexer_k, in + indexer_l, in + indexer_o, in + indexer_p  );
 
-				auto r5 = t2x2h<truncate> ( pixel4( r1.u.n.a, r1.u.n.d, r4.u.n.a, r4.u.n.d ) );
-				auto r6 = t2x2h<truncate> ( pixel4( r2.u.n.b, r2.u.n.c, r3.u.n.b, r3.u.n.c ) );
-				auto r7 = t2x2h<truncate> ( pixel4( r1.u.n.b, r1.u.n.c, r4.u.n.b, r4.u.n.c ) );
-				auto r8 = t2x2h<truncate> ( pixel4( r2.u.n.a, r2.u.n.d, r3.u.n.a, r3.u.n.d ) );
-
-				return block ( r5, r6, r7, r8 );
+				t2x2h<truncate> ( in + indexer_a, in + indexer_d, in + indexer_m, in + indexer_p  );
+                t2x2h<truncate> ( in + indexer_f, in + indexer_g, in + indexer_j, in + indexer_k  );
+                t2x2h<truncate> ( in + indexer_b, in + indexer_c, in + indexer_n, in + indexer_o  );
+                t2x2h<truncate> ( in + indexer_e, in + indexer_h, in + indexer_i, in + indexer_l  );                
 			}
+
+            __host__ __device__ inline void pct2x2 ( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
+            {
+                return t2x2h<truncate>(a, b, c, d);
+            }
+
+            __host__ __device__ inline void pt2 ( pixel* __restrict a, pixel* __restrict b  )
+            {
+                *a -= (*b + 1) >> 1;
+                *b += *a;
+            }
+
+            __host__ __device__ inline void overlapfilter2 ( pixel* __restrict a, pixel* __restrict b  )
+            {
+                *b += ((*a + 2) >> 2);
+                *a += ((*b + 1) >> 1);
+                *a += (*b >> 5);
+                *a += (*b >> 9);
+
+                *a += (*b >> 13);
+                *b += ((*a + 2) >> 2);
+            }
+
+            __host__ __device__ inline void overlapfilter2x2( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
+			{
+                *a += *d;
+                *b += *c;
+                *d -= (*a + 1) >> 1;
+                *c -= (*b + 1) >> 1;
+
+                *b += (*a + 2) >> 2;
+                *a += (*b + 1) >> 1;
+
+                *a += (*b >> 5);
+                *a += (*b >> 9);
+                *a += (*b >> 13);
+
+                *b += (*a + 2) >> 2;
+
+                *d += (*a + 1) >> 1;
+                *c += (*b + 1) >> 1;
+                *a -= *d;
+
+                *b -= *c;
+            }
+
+            __host__ __device__ inline void overlapfilter4( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c, pixel* __restrict d )
+			{
+                *a += *d;
+                *b += *c;
+                *d -= ((*a + 1) >> 1);
+                *c -= ((*b + 1) >> 1);
+
+                scale( a, d );
+                scale( b, c );
+
+                *a += ((*d * 3 + 4) >> 3);
+                *b += ((*c * 3 + 4) >> 3);
+                *d -= (*a >> 1);
+                *c -= (*b >> 1);
+
+                *a += *d;
+                *b += *c;
+                *d *= -1;
+                *c *= -1;
+
+                rotate( c, d );
+
+                *d += ((*a + 1) >> 1);
+                *c += ((*b + 1) >> 1);
+                *a -= *d;
+                *b -= *c;
+            }
+
+            __host__ __device__ inline void overlapfilter4x4
+                ( 
+                       pixel * __restrict a, pixel * __restrict b, pixel * __restrict c, pixel * __restrict d,
+                       pixel * __restrict e, pixel * __restrict f, pixel * __restrict g, pixel * __restrict h,
+                       pixel * __restrict i, pixel * __restrict j, pixel * __restrict k, pixel * __restrict l,
+                       pixel * __restrict m, pixel * __restrict n, pixel * __restrict o, pixel * __restrict p                
+                )
+			{
+                t2x2h<truncate> ( a, m, d, p );
+                t2x2h<truncate> ( b, c, n, o );
+                t2x2h<truncate> ( e, h, i, l );
+                t2x2h<truncate> ( f, g, j, k );
+
+                overlap_todd_odd ( k, l, o, p );
+
+                rotate ( n, m );
+                rotate ( j, i );
+                rotate ( h, d );
+                rotate ( g, c );
+
+                scale ( a, p );
+                scale ( b, o );
+                scale ( e, l );
+                scale ( f, k );
+
+                jpegxr::transforms::t2x2h_post( a, m, d, p );
+                jpegxr::transforms::t2x2h_post( b, c, n, o );
+                jpegxr::transforms::t2x2h_post( e, h, i, l );
+                jpegxr::transforms::t2x2h_post( f, g, j, k );
+            }
+
+            __host__ __device__ inline void overlapfilter4x4 (  pixel* pixels )
+            {
+                overlapfilter4x4
+                    ( 
+                        pixels + 0,     pixels + 1,     pixels + 2,     pixels + 3,
+                        pixels + 4,     pixels + 5,     pixels + 6,     pixels + 7,
+                        pixels + 8,     pixels + 9,     pixels + 10,    pixels + 11,
+                        pixels + 12,    pixels + 13,    pixels + 14,    pixels + 15
+                    );
+            }
 		}
 	}
 }
 
 namespace example
 {
-	void addWithCuda(int *c, const int *a, const int *b, unsigned int size);
+	void addWithCuda(int32_t * c, const int32_t * a, const int32_t * b, uint32_t size);
 
 }
 
-int main()
+int32_t main()
 {
-	int32_t test [16] =
+	jpegxr::transforms::pixel test [16] =
 	{
-		255, 1, 2, 3,
-		4, 5, 6, 7,
-		13, 9, 127, 11,
-		12, 13, 14, 15
+		0, 0, 0, 0,
+		1, 1, 1, 1,
+		1, 5, 1, 1,
+		1, 1, 1, 1
 	};
 
-	auto p1 = jpegxr::transforms::pixel4(0,1,2,3);
-	
-	auto p2 = jpegxr::transforms::forward::todd(p1);
-	auto p3 = jpegxr::transforms::inverse::todd(p2);
+    
+    jpegxr::transforms::analysis::pct4x4(test);
+    jpegxr::transforms::synthesis::pct4x4(test);
 
-	auto p4 = jpegxr::transforms::forward::todd_odd(p1);
-	auto p5 = jpegxr::transforms::inverse::todd_odd(p4);
+    jpegxr::transforms::pixel test1 [4] =
+	{
+		0, 1, 2, 3
+	};
 
-	auto b1 = jpegxr::transforms::block( test );
-	auto b2 = jpegxr::transforms::forward::permute(b1);
-	auto b3 = jpegxr::transforms::inverse::permute(b2);
+    jpegxr::transforms::analysis::prefilter4(test1 + 0, test1 + 1, test1 + 2, test1 + 3);
+    jpegxr::transforms::synthesis::overlapfilter4(test1 + 0, test1 + 1, test1 + 2, test1 + 3);
 
+    jpegxr::transforms::analysis::prefilter2x2(test1 + 0, test1 + 1, test1 + 2, test1 + 3);
+    jpegxr::transforms::synthesis::overlapfilter2x2(test1 + 0, test1 + 1, test1 + 2, test1 + 3);
 
-	jpegxr::transforms::pixel2 p ( 5, 5 );
-    auto r1 = jpegxr::transforms::forward::scale(p);
+    jpegxr::transforms::analysis::prefilter4x4( test );
+    jpegxr::transforms::synthesis::overlapfilter4x4(test );
+    
 
-    const int arraySize = 5;
-    const int a[arraySize] = { 1, 2, 3, 4, 5 };
-    const int b[arraySize] = { 10, 20, 30, 40, 50 };
+    const int32_t arraySize = 5;
+    const int32_t a[arraySize] = { 1, 2, 3, 4, 5 };
+    const int32_t b[arraySize] = { 10, 20, 30, 40, 50 };
     int c[arraySize] = { 0 };
 
     // Add vectors in parallel.
@@ -537,23 +697,47 @@ int main()
     return 0;
 }
 
-static const uint32_t macro_block_in [] =
-{
-    0, 1, 2, 3,
-    4, 5, 6, 7,
-    8, 9, 10, 11, 
-    12, 13,14, 15
-};
-
-
-
 namespace example
 {
 
-	__global__ void addKernel(int *c, const int *a, const int *b)
+	__global__ void addKernel(int32_t * c, const int32_t * a, const int32_t * b)
 	{
 		int i = threadIdx.x;
-		c[i] = a[i] + b[i];
+
+        jpegxr::transforms::pixel v[16] =
+        { 
+            a[0], a[1], a[2], a[3],
+            a[4], a[5], a[6], a[7],
+            a[8], a[9], a[10], a[11],
+            a[12], a[13], a[14], a[15]
+        };
+
+        //jpegxr::transforms::forward::pct4x4(v);
+
+        jpegxr::transforms::analysis::prefilter4x4
+            (
+               v
+            );
+
+		c[i]   = v[0];
+        c[i+1] = v[1];
+        c[i+2] = v[2];
+        c[i+3] = v[3];
+
+        c[i+4] = v[4];
+        c[i+5] = v[5];
+        c[i+6] = v[6];
+        c[i+7] = v[7];
+
+        c[i+8] = v[8];
+        c[i+9] = v[9];
+        c[i+10] = v[10];
+        c[i+11] = v[11];
+
+        c[i+12] = v[12];
+        c[i+13] = v[13];
+        c[i+14] = v[14];
+        c[i+15] = v[15];
 	}
 
 	// Helper function for using CUDA to add vectors in parallel.
@@ -563,13 +747,13 @@ namespace example
 		cuda::throw_if_failed<cuda::exception> (  cudaSetDevice(0) );
 
 		// Allocate GPU buffers for three vectors (two input, one output)    .
-		auto dev_a = std::make_shared< cuda::memory_buffer > ( size * sizeof( int )  );
-		auto dev_b = std::make_shared< cuda::memory_buffer > ( size * sizeof( int )  );
-		auto dev_c = std::make_shared< cuda::memory_buffer > ( size * sizeof( int )  );
+		auto dev_a = std::make_shared< cuda::memory_buffer > ( size * sizeof( int32_t )  );
+		auto dev_b = std::make_shared< cuda::memory_buffer > ( size * sizeof( int32_t )  );
+		auto dev_c = std::make_shared< cuda::memory_buffer > ( size * sizeof( int32_t )  );
 
 		// Copy input vectors from host memory to GPU buffers.
-		cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(*dev_a, a, size * sizeof(int), cudaMemcpyHostToDevice) );
-		cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(*dev_b, b, size * sizeof(int), cudaMemcpyHostToDevice) );
+		cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(*dev_a, a, size * sizeof(int32_t), cudaMemcpyHostToDevice) );
+		cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(*dev_b, b, size * sizeof(int32_t), cudaMemcpyHostToDevice) );
 
 		// Launch a kernel on the GPU with one thread for each element.
 		addKernel<<<1, size>>>( *dev_c, *dev_a, *dev_b );
@@ -582,6 +766,6 @@ namespace example
 		cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
 
 		// Copy output vector from GPU buffer to host memory.
-		cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(c, dev_c->get(), size * sizeof(int), cudaMemcpyDeviceToHost) );
+		cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(c, dev_c->get(), size * sizeof(int32_t), cudaMemcpyDeviceToHost) );
 	}
 }
