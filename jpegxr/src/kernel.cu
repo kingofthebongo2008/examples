@@ -6,7 +6,7 @@
 #include <device_launch_parameters.h>
 #include <vector_types.h>
 
-#include "cuda_helper.h"
+#include <jxr/cuda_helper.h>
 
 
 namespace jpegxr
@@ -691,35 +691,56 @@ namespace example
 
 int32_t main()
 {
-	jpegxr::transforms::pixel test [16] =
-	{
-		0, 0, 0, 0,
-		1, 1, 1, 1,
-		1, 5, 1, 1,
-		1, 1, 1, 1
-	};
+    try
+    {
+	    jpegxr::transforms::pixel test [16] =
+	    {
+		    0, 0, 0, 0,
+            0, 0, 0, 0,
+		    1, 1, 1, 1,
+		    2, 2, 2, 2
+	    };
 
-    jpegxr::transforms::analysis::pct4x4(test);
+        jpegxr::transforms::pixel test1[16] =
+	    {
+		    0, 0, 0, 0,
+            0, 0, 0, 0,
+		    1, 1, 1, 1,
+		    2, 2, 2, 2
+	    };
+
+        jpegxr::transforms::analysis::prefilter4x4(test);
+        jpegxr::transforms::analysis::prefilter4( &test1[8] + 0, &test1[8] + 1, &test1[8] + 2, &test1[8] + 3 );
+        jpegxr::transforms::analysis::prefilter4( &test1[12] + 0, &test1[12] + 1, &test1[12] + 2, &test1[12] + 3 );
+
+        jpegxr::transforms::synthesis::overlapfilter4( &test1[8] + 0, &test1[8] + 1, &test1[8] + 2, &test1[8] + 3 );
+        jpegxr::transforms::synthesis::overlapfilter4( &test1[12] + 0, &test1[12] + 1, &test1[12] + 2, &test1[12] + 3 );
     
-    const int32_t arraySize = 16;
-    const jpegxr::transforms::pixel a[arraySize] = 
-    { 
-        0, 0, 0, 0,
-		1, 1, 1, 1,
-		1, 5, 1, 1,
-		1, 1, 1, 1
-    };
+        const int32_t arraySize = 16;
+        const jpegxr::transforms::pixel a[arraySize] = 
+        { 
+            0, 0, 0, 0,
+		    1, 1, 1, 1,
+		    1, 1, 1, 1,
+		    1, 1, 1, 1
+        };
 
-    jpegxr::transforms::pixel c[arraySize] = { 0 };
+        jpegxr::transforms::pixel c[arraySize] = { 0 };
 
-    // Add vectors in parallel.
-    example::add_with_cuda(c, a, arraySize);
+        // Add vectors in parallel.
+        example::add_with_cuda(c, a, arraySize);
 
-    std::cout << std::endl << c[0] << ", " << c[1] << ", " << c[2] << ", " << c[3] << ", " << std::endl <<  c[4] << ", " << c[5] << ", " << c[6] << ", " << c[7] << ", " << std::endl << c[8] << ", " << c[9] << ", " << c[10] << ", "  << c[11] << ", " << std::endl << c[12] << ", " << c[13] << ", " << c[14] << ", " << c[15] << std::endl;
+        std::cout << std::endl << c[0] << ", " << c[1] << ", " << c[2] << ", " << c[3] << ", " << std::endl <<  c[4] << ", " << c[5] << ", " << c[6] << ", " << c[7] << ", " << std::endl << c[8] << ", " << c[9] << ", " << c[10] << ", "  << c[11] << ", " << std::endl << c[12] << ", " << c[13] << ", " << c[14] << ", " << c[15] << std::endl;
 
-    // cudaDeviceReset must be called before exiting in order for profiling and
-    // tracing tools such as Nsight and Visual Profiler to show complete traces.
-    cuda::throw_if_failed<cuda::exception> ( cudaDeviceReset() );
+        // cudaDeviceReset must be called before exiting in order for profiling and
+        // tracing tools such as Nsight and Visual Profiler to show complete traces.
+        cuda::throw_if_failed<cuda::exception> ( cudaDeviceReset() );
+    }
+    catch (const cuda::exception& e)
+    {
+        std::cerr<<e.what()<<std::endl;
+        return 1;
+    }
 
     return 0;
 }
