@@ -3,7 +3,7 @@
 
 #include <os/windows/com_ptr.h>
 
-#include <combaseapi.h>
+#include <windows.h>
 
 inline void com_ptr_release( IUnknown* px )
 {

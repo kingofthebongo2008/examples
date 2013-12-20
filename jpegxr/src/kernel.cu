@@ -7,6 +7,9 @@
 #include <vector_types.h>
 
 #include <jxr/cuda_helper.h>
+#include <os/windows/com_initializer.h>
+
+#include "img_loader.h"
 
 
 namespace jpegxr
@@ -693,6 +696,25 @@ int32_t main()
 {
     try
     {
+        auto initializer =  os::windows::com_initializer();
+        
+        auto image  =  example::create_image ( L"test.png" );
+
+        cuda::memory_buffer m1(12);
+        cuda::memory_buffer m2(12);
+
+        std::unique_ptr< cuda::memory_buffer > b1 ( new cuda::memory_buffer(5) );
+        std::unique_ptr< cuda::memory_buffer > b2 ( new cuda::memory_buffer(5) );
+
+        b1 = std::move(b2);
+
+
+        auto image1 =   example::image ( example::image::format_24bpp_rgb, 18, 18, 18, std::move(m1) );
+        auto image2 =   example::image ( example::image::format_24bpp_rgb, 18, 19, 19, std::move(m2) );
+
+        image1 = std::move(image2);
+
+
 	    jpegxr::transforms::pixel test [16] =
 	    {
 		    0, 0, 0, 0,

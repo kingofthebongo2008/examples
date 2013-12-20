@@ -34,10 +34,24 @@ namespace cuda
         }
     }
 
-    void* malloc( std::size_t size )
+    inline void* malloc( std::size_t size )
     {
         void* r = nullptr;
         auto status = cudaMalloc( &r, size );
+        if ( status == cudaSuccess )
+        {
+            return r;
+        }
+        else
+        {
+            return nullptr;
+        }
+    }
+
+    inline void* malloc_pitch( std::size_t* pitch, size_t width, size_t height )
+    {
+        void* r = nullptr;
+        auto status = cudaMallocPitch( &r, pitch, width, height );
         if ( status == cudaSuccess )
         {
             return r;
@@ -63,48 +77,90 @@ namespace cuda
         return reinterpret_cast<t*>(allocate(size, nullptr));
     }
 
-    void  free( void* pointer )
+    inline void* allocate_pitch( std::size_t* pitch, size_t width, size_t height, void* p )
+    {
+        auto r = malloc_pitch(pitch, width, height);
+        if ( r == nullptr )
+        {
+            throw std::bad_alloc();
+        }
+        return r;
+    }
+
+    template <typename t> inline t* allocate_pitch( std::size_t* pitch, size_t width, size_t height)
+    {
+        return reinterpret_cast<t*>( allocate_pitch( pitch, width, height, nullptr) );
+    }
+
+    inline void  free( void* pointer )
     {
         cudaFree( pointer );
     }
 
-    class memory_buffer
+    class default_cuda_allocator
     {
+        public:
+
+        void* allocate( std::size_t size )
+        {
+            return cuda::allocate<void*>( size );
+        }
+
+        void free ( void* pointer )
+        {
+            cuda::free ( pointer );
+        }
+    };
+
+    template < class allocator >
+    class memory_buffer_
+    {
+        public:
+
+        typedef memory_buffer_<allocator>    this_type;
+
         private:
 
-        typedef memory_buffer   this_type;
-        int*    m_value;
+        typedef allocator                   allocator_type;
+        void*                               m_value;
+        allocator_type                      m_allocator;
 
-        void swap(memory_buffer & rhs)
+
+        void swap(this_type & rhs)
         {
-            int* tmp = m_value;
-            m_value = rhs.m_value;
-            rhs.m_value = tmp;
+            std::swap ( m_allocator, rhs.m_allocator );
+            std::swap ( m_value, rhs.m_value );
         }
 
         public:
 
-        memory_buffer ( size_t size ) :
-        m_value( allocate<int>(size) )
+        this_type ( size_t size , allocator_type alloc = allocator_type() ) :
+        m_allocator( alloc )
+        {
+            m_value = m_allocator.allocate(size);
+        }
+
+        this_type( void* value ) :
+        m_value ( reinterpret_cast<int*> ( value ) )
         {
 
         }
 
-        memory_buffer ( memory_buffer&& rhs ) : m_value(rhs.m_value)
+        this_type ( this_type&& rhs ) : m_value(rhs.m_value), m_allocator( std::move(rhs.m_allocator) )
         {
             rhs.m_value = nullptr;
         }
 
-        memory_buffer & operator=(memory_buffer && rhs)
+        this_type & operator=(this_type && rhs)
         {
-            this_type( static_cast< memory_buffer && >( rhs ) ).swap(*this);
+            this_type( static_cast< this_type && >( rhs ) ).swap(*this);
             return *this;
         }
 
 
-        ~memory_buffer()
+        ~memory_buffer_()
         {
-            free(m_value);
+            m_allocator.free( m_value );
         }
 
         const void*    get() const
@@ -129,9 +185,47 @@ namespace cuda
 
         private:
 
-        memory_buffer( const memory_buffer& );
-        memory_buffer& operator=(const memory_buffer&);
+        this_type( const this_type& );
+        this_type& operator=(const this_type&);
     };
+
+    class memory_buffer : public memory_buffer_<default_cuda_allocator>
+    {
+        typedef memory_buffer_<default_cuda_allocator>  base;
+        typedef memory_buffer                           this_type;
+
+        public:
+
+
+        memory_buffer( size_t size, default_cuda_allocator alloc = default_cuda_allocator() ) :
+        base ( size, alloc )
+        {
+
+        }
+
+        memory_buffer( void* pointer ) :
+        base ( pointer )
+        {
+
+        }
+
+        this_type ( this_type&& rhs ) : base( std::move ( rhs ) )
+        {
+
+        }
+
+        this_type & operator=(this_type && rhs)
+        {
+            base::operator=( std::move (rhs ) );
+            return *this;
+        }
+
+        private:
+
+        this_type( const this_type& );
+        this_type& operator=(const this_type&);
+    };
+
 }
 
 #endif
