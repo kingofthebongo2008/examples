@@ -85,7 +85,7 @@ namespace example
 
         template <typename t> operator const t*() const
         {
-            return reinterpret_cast<t*> (m_data.get());
+            return reinterpret_cast<const t*> (m_data.get());
         }
 
         uint32_t get_width() const

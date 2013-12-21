@@ -690,82 +690,26 @@ namespace jpegxr
 namespace example
 {
 	void add_with_cuda(int32_t * c, const int32_t * a, uint32_t size);
+
+    class cuda_initializer
+    {
+        public:
+        cuda_initializer()
+        {
+            // Choose which GPU to run on, change this on a multi-GPU system.
+		    cuda::throw_if_failed<cuda::exception> (  cudaSetDevice(0) );
+
+        }
+
+        ~cuda_initializer()
+        {
+            // cudaDeviceReset must be called before exiting in order for profiling and
+            // tracing tools such as Nsight and Visual Profiler to show complete traces.
+            cuda::throw_if_failed<cuda::exception> ( cudaDeviceReset() );
+        }
+    };
 }
 
-int32_t main()
-{
-    try
-    {
-        auto initializer =  os::windows::com_initializer();
-        
-        auto image  =  example::create_image ( L"test.png" );
-
-        cuda::memory_buffer m1(12);
-        cuda::memory_buffer m2(12);
-
-        std::unique_ptr< cuda::memory_buffer > b1 ( new cuda::memory_buffer(5) );
-        std::unique_ptr< cuda::memory_buffer > b2 ( new cuda::memory_buffer(5) );
-
-        b1 = std::move(b2);
-
-
-        auto image1 =   example::image ( example::image::format_24bpp_rgb, 18, 18, 18, std::move(m1) );
-        auto image2 =   example::image ( example::image::format_24bpp_rgb, 18, 19, 19, std::move(m2) );
-
-        image1 = std::move(image2);
-
-
-	    jpegxr::transforms::pixel test [16] =
-	    {
-		    0, 0, 0, 0,
-            0, 0, 0, 0,
-		    1, 1, 1, 1,
-		    2, 2, 2, 2
-	    };
-
-        jpegxr::transforms::pixel test1[16] =
-	    {
-		    0, 0, 0, 0,
-            0, 0, 0, 0,
-		    1, 1, 1, 1,
-		    2, 2, 2, 2
-	    };
-
-        jpegxr::transforms::analysis::prefilter4x4(test);
-        jpegxr::transforms::analysis::prefilter4( &test1[8] + 0, &test1[8] + 1, &test1[8] + 2, &test1[8] + 3 );
-        jpegxr::transforms::analysis::prefilter4( &test1[12] + 0, &test1[12] + 1, &test1[12] + 2, &test1[12] + 3 );
-
-        jpegxr::transforms::synthesis::overlapfilter4( &test1[8] + 0, &test1[8] + 1, &test1[8] + 2, &test1[8] + 3 );
-        jpegxr::transforms::synthesis::overlapfilter4( &test1[12] + 0, &test1[12] + 1, &test1[12] + 2, &test1[12] + 3 );
-    
-        const int32_t arraySize = 16;
-        const jpegxr::transforms::pixel a[arraySize] = 
-        { 
-            0, 0, 0, 0,
-		    1, 1, 1, 1,
-		    1, 1, 1, 1,
-		    1, 1, 1, 1
-        };
-
-        jpegxr::transforms::pixel c[arraySize] = { 0 };
-
-        // Add vectors in parallel.
-        example::add_with_cuda(c, a, arraySize);
-
-        std::cout << std::endl << c[0] << ", " << c[1] << ", " << c[2] << ", " << c[3] << ", " << std::endl <<  c[4] << ", " << c[5] << ", " << c[6] << ", " << c[7] << ", " << std::endl << c[8] << ", " << c[9] << ", " << c[10] << ", "  << c[11] << ", " << std::endl << c[12] << ", " << c[13] << ", " << c[14] << ", " << c[15] << std::endl;
-
-        // cudaDeviceReset must be called before exiting in order for profiling and
-        // tracing tools such as Nsight and Visual Profiler to show complete traces.
-        cuda::throw_if_failed<cuda::exception> ( cudaDeviceReset() );
-    }
-    catch (const cuda::exception& e)
-    {
-        std::cerr<<e.what()<<std::endl;
-        return 1;
-    }
-
-    return 0;
-}
 
 namespace example
 {
@@ -810,9 +754,6 @@ namespace example
 	// Helper function for using CUDA to add vectors in parallel.
 	void add_with_cuda(int *c, const int *a, uint32_t size)
 	{
-		// Choose which GPU to run on, change this on a multi-GPU system.
-		cuda::throw_if_failed<cuda::exception> (  cudaSetDevice(0) );
-
 		// Allocate GPU buffers for three vectors (two input, one output)    .
 		auto dev_a = std::make_shared< cuda::memory_buffer > ( size * sizeof( int32_t )  );
 		auto dev_c = std::make_shared< cuda::memory_buffer > ( size * sizeof( int32_t )  );
@@ -833,4 +774,90 @@ namespace example
 		// Copy output vector from GPU buffer to host memory.
 		cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(c, dev_c->get(), size * sizeof(int32_t), cudaMemcpyDeviceToHost) );
 	}
+
+    struct rgb 
+    {
+        uint8_t color[3];
+    };
+
+    __global__ void decompose_kernel( const rgb* in, uint32_t* y_color, uint32_t* co_color, uint32_t* cg_color, uint32_t read_pitch, uint32_t write_pitch )
+    {
+        auto x = blockIdx.x * blockDim.x + threadIdx.x;
+        auto y = blockIdx.y * blockDim.y + threadIdx.y;
+
+        auto row = y;
+        auto col = x;
+        
+        auto element = reinterpret_cast<const rgb*> (  (char*) in + ( row * read_pitch )  + sizeof(rgb) * col ); 
+
+        y_color [ row * write_pitch + col ] = element->color[0]; 
+        co_color[ row * write_pitch + col ] = element->color[1]; 
+        cg_color[ row * write_pitch + col ] = element->color[2]; 
+    }
+
+    void decompose ( const image& image ) 
+    {
+
+        auto w      = image.get_width();
+        auto h      = image.get_height();
+        auto size   = w *  h * sizeof(int32_t) ;
+        
+        auto y_buffer  = std::make_shared < cuda::memory_buffer > ( cuda::allocate<void*> ( size ) );
+        auto co_buffer = std::make_shared < cuda::memory_buffer > ( cuda::allocate<void*> ( size ) );
+        auto cg_buffer = std::make_shared < cuda::memory_buffer > ( cuda::allocate<void*> ( size ) );
+
+        auto blocks = 1;
+        auto threads_per_block = dim3( w, h );
+
+        decompose_kernel<<<blocks, threads_per_block>>>( image, *y_buffer, *co_buffer, *cg_buffer, image.get_pitch(), w );
+
+		cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
+		cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
+
+        auto result = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
+
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( result.get(), y_buffer->get(), size   , cudaMemcpyDeviceToHost) );
+
+        // element access into this image looks like this
+        auto row = 15;
+        auto col = 15;
+        auto res = reinterpret_cast<int32_t*> ( result.get() );
+        auto el1 = res[ row * w + col ];
+        
+    }
+}
+
+int32_t main()
+{
+    try
+    {
+        auto com_initializer =  os::windows::com_initializer();
+        auto cuda_initializer = example::cuda_initializer();
+        auto image  =  example::create_image ( L"test.png" );
+
+        const int32_t arraySize = 16;
+        const jpegxr::transforms::pixel a[arraySize] = 
+        { 
+            0, 0, 0, 0,
+		    1, 1, 1, 1,
+		    1, 1, 1, 1,
+		    1, 1, 1, 1
+        };
+
+        jpegxr::transforms::pixel c[arraySize] = { 0 };
+
+        // Add vectors in parallel.
+        //example::add_with_cuda(c, a, arraySize);
+
+        decompose(*image);
+
+        std::cout << std::endl << c[0] << ", " << c[1] << ", " << c[2] << ", " << c[3] << ", " << std::endl <<  c[4] << ", " << c[5] << ", " << c[6] << ", " << c[7] << ", " << std::endl << c[8] << ", " << c[9] << ", " << c[10] << ", "  << c[11] << ", " << std::endl << c[12] << ", " << c[13] << ", " << c[14] << ", " << c[15] << std::endl;
+    }
+    catch (const cuda::exception& e)
+    {
+        std::cerr<<e.what()<<std::endl;
+        return 1;
+    }
+
+    return 0;
 }
