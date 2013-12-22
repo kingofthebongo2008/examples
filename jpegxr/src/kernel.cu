@@ -280,31 +280,174 @@ namespace example
     }
 
 
-    std::shared_ptr< cuda::memory_buffer > prefilter4x4 (  std::shared_ptr< cuda::memory_buffer > in, uint32_t width, uint32_t height, uint32_t pitch ) 
+    void prefilter4x4 (  std::shared_ptr< cuda::memory_buffer > in, uint32_t width, uint32_t height, uint32_t pitch ) 
     {
         auto w         = width;
         auto h         = height;
         auto size      = w * h * sizeof(int32_t) ;
 
-        auto result = std::make_shared < cuda::memory_buffer > ( cuda::allocate<void*> ( size ) );
-
-        cuda::throw_if_failed<cuda::exception> ( cudaMemset( *result, 0, size ) );
-
         auto blocks = dim3 ( w / 16 , h / 16 , 1 );
         auto threads_per_block = dim3( 3, 3 );
 
-        prefilter4x4_kernel<<<blocks, threads_per_block>>>( *in, *result, pitch );
+        prefilter4x4_kernel<<<blocks, threads_per_block>>>( *in, *in, pitch );
 
         cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
         cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
 
         auto y  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
 
-        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( y.get(), result->get(), size   , cudaMemcpyDeviceToHost) );
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( y.get(), *in, size , cudaMemcpyDeviceToHost) );
+
+        auto res = reinterpret_cast< uint32_t* > ( y.get() );
+        int i  = 0; i++;
+    }
+
+    __global__ void prefilter2x2_kernel( const uint32_t* in, uint32_t* out, const uint32_t pitch )
+    {
+        auto x = blockIdx.x * blockDim.x + threadIdx.x;
+        auto y = blockIdx.y * blockDim.y + threadIdx.y;
+
+        auto row = 14 * y;
+        auto col = 14 * x;
+        
+        auto element_index0  = (row + 0) * pitch + col + 0;
+        auto element_index1  = (row + 0) * pitch + col + 1;
+
+        auto element_index2  = (row + 1) * pitch + col + 0;
+        auto element_index3  = (row + 1) * pitch + col + 1;
+
+        out [ element_index0 ] = 0x1;
+        out [ element_index1 ] = 0x1;
+        out [ element_index2 ] = 0x1;
+        out [ element_index3 ] = 0x1;
+    }
+
+    void prefilter2x2 (  std::shared_ptr< cuda::memory_buffer > in, uint32_t width, uint32_t height, uint32_t pitch ) 
+    {
+        auto w         = width;
+        auto h         = height;
+        auto size      = w * h * sizeof(int32_t) ;
+
+        auto blocks = dim3 ( w / 16 , h / 16 , 1 );
+        auto threads_per_block = dim3( 2, 2 );
+
+        prefilter2x2_kernel<<<blocks, threads_per_block>>>( *in, *in, pitch );
+
+        cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
+        cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
+
+        auto y  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
+
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( y.get(),  *in, size   , cudaMemcpyDeviceToHost) );
 
         auto res = reinterpret_cast< uint32_t* > ( y.get() );
 
-        return result;
+        int i  = 0; i++;
+
+    }
+
+    __global__ void prefilter4_horizontal_kernel( const uint32_t* in, uint32_t* out, const uint32_t pitch )
+    {
+        auto x = blockIdx.x * blockDim.x + threadIdx.x;
+        auto y = blockIdx.y * blockDim.y + threadIdx.y;
+
+        const uint32_t reorder[4] =
+        {
+            0,
+            1,
+            14,
+            15
+        };
+
+        auto row = blockIdx.y * blockDim.y + reorder [ threadIdx.y ] ;
+        auto col = 4 * x + 2;
+        
+        auto element_index0  = (row + 0) * pitch + col + 0;
+        auto element_index1  = (row + 0) * pitch + col + 1;
+
+        auto element_index2  = (row + 0) * pitch + col + 2;
+        auto element_index3  = (row + 0) * pitch + col + 3;
+
+        out [ element_index0 ] = 0x2;
+        out [ element_index1 ] = 0x2;
+        out [ element_index2 ] = 0x2;
+        out [ element_index3 ] = 0x2;
+    }
+
+    void prefilter4_horizontal (  std::shared_ptr< cuda::memory_buffer > in, uint32_t width, uint32_t height, uint32_t pitch ) 
+    {
+        auto w         = width;
+        auto h         = height;
+        auto size      = w * h * sizeof(int32_t) ;
+
+        auto blocks = dim3 ( w / 16 , h / 16 , 1 );
+        auto threads_per_block = dim3( 3, 4 );
+
+        prefilter4_horizontal_kernel<<<blocks, threads_per_block>>>( *in,  *in, pitch );
+
+        cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
+        cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
+
+        auto y  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
+
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( y.get(),  *in, size   , cudaMemcpyDeviceToHost) );
+
+        auto res = reinterpret_cast< uint32_t* > ( y.get() );
+
+        int i  = 0; i++;
+
+    }
+
+    __global__ void prefilter4_vertical_kernel( const uint32_t* in, uint32_t* out, const uint32_t pitch )
+    {
+        auto x = blockIdx.x * blockDim.x + threadIdx.x;
+        auto y = blockIdx.y * blockDim.y + threadIdx.y;
+
+        const uint32_t reorder[4] =
+        {
+            0,
+            1,
+            14,
+            15
+        };
+
+        auto row = 4 * y + 2;
+        auto col = blockIdx.x * blockDim.x + reorder[threadIdx.x];
+        
+        auto element_index0  = (row + 0) * pitch + col + 0;
+        auto element_index1  = (row + 1) * pitch + col + 0;
+
+        auto element_index2  = (row + 2) * pitch + col + 0;
+        auto element_index3  = (row + 3) * pitch + col + 0;
+
+        out [ element_index0 ] = 0x3;
+        out [ element_index1 ] = 0x3;
+        out [ element_index2 ] = 0x3;
+        out [ element_index3 ] = 0x3;
+    }
+
+    void prefilter4_vertical (  std::shared_ptr< cuda::memory_buffer > in, uint32_t width, uint32_t height, uint32_t pitch ) 
+    {
+        auto w         = width;
+        auto h         = height;
+        auto size      = w * h * sizeof(int32_t) ;
+
+        auto blocks = dim3 ( w / 16 , h / 16 , 1 );
+        auto threads_per_block = dim3( 4, 3 );
+
+        prefilter4_vertical_kernel<<<blocks, threads_per_block>>>( *in,  *in, pitch );
+
+        cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
+        cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
+
+        auto y  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
+
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( y.get(), *in, size   , cudaMemcpyDeviceToHost) );
+
+        auto res = reinterpret_cast< uint32_t* > ( y.get() );
+
+        int i  = 0; i++;
+
     }
 }
 
@@ -329,7 +472,13 @@ int32_t main()
 
         auto ycocg = decompose_ycocg(*image);
 
-        auto y_prefilter4x4 = example::prefilter4x4( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
+        example::prefilter4x4( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
+
+        example::prefilter2x2( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
+
+        example::prefilter4_horizontal( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
+
+        example::prefilter4_vertical( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
 
         std::cout << std::endl << c[0] << ", " << c[1] << ", " << c[2] << ", " << c[3] << ", " << std::endl <<  c[4] << ", " << c[5] << ", " << c[6] << ", " << c[7] << ", " << std::endl << c[8] << ", " << c[9] << ", " << c[10] << ", "  << c[11] << ", " << std::endl << c[12] << ", " << c[13] << ", " << c[14] << ", " << c[15] << std::endl;
     }
