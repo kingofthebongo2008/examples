@@ -106,7 +106,7 @@ namespace example
         uint8_t color[3];
     };
 
-    __global__ void decompose_kernel( const rgb* in, uint32_t* y_color, uint32_t* co_color, uint32_t* cg_color, uint32_t read_pitch, uint32_t write_pitch )
+    __global__ void decompose_kernel( const rgb* in, uint32_t* y_color, uint32_t* co_color, uint32_t* cg_color, const uint32_t read_pitch, const uint32_t write_pitch )
     {
         auto x = blockIdx.x * blockDim.x + threadIdx.x;
         auto y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -152,6 +152,37 @@ namespace example
         }
 
 
+        std::shared_ptr< cuda::memory_buffer >  get_y() const
+        {
+            return m_y_buffer;
+        }
+
+        std::shared_ptr< cuda::memory_buffer >  get_co() const
+        {
+            return m_co_buffer;
+        }
+
+        std::shared_ptr< cuda::memory_buffer >  get_cg() const
+        {
+            return m_cg_buffer;
+        }
+
+        uint32_t    get_width() const
+        {
+            return m_width;
+        }
+
+        uint32_t    get_height() const
+        {
+            return m_height;
+        }
+
+        uint32_t    get_pitch() const
+        {
+            return m_pitch;
+        }
+
+        private:
         std::shared_ptr< cuda::memory_buffer >  m_y_buffer;
         std::shared_ptr< cuda::memory_buffer >  m_co_buffer;
         std::shared_ptr< cuda::memory_buffer >  m_cg_buffer;
@@ -184,19 +215,96 @@ namespace example
         auto co = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
         auto cg = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
 
-        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( y.get(), y_buffer->get(), size     , cudaMemcpyDeviceToHost) );
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( y.get(),  y_buffer->get(),  size   , cudaMemcpyDeviceToHost) );
         cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( co.get(), co_buffer->get(), size   , cudaMemcpyDeviceToHost) );
         cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( cg.get(), cg_buffer->get(), size   , cudaMemcpyDeviceToHost) );
 
         // element access into this image looks like this
         auto row = 15;
         auto col = 15;
-        auto res1 = reinterpret_cast<int32_t*> ( y.get() );
+        auto res1 = reinterpret_cast<int32_t*> ( y.get()  );
         auto res2 = reinterpret_cast<int32_t*> ( co.get() );
         auto res3 = reinterpret_cast<int32_t*> ( cg.get() );
         auto el1 = res1[ row * w + col ];
 
         return ycocg_image ( y_buffer, co_buffer, cg_buffer, w, h, w );
+    }
+
+    __global__ void prefilter4x4_kernel( const uint32_t* in, uint32_t* out, const uint32_t pitch )
+    {
+        auto x = blockIdx.x * blockDim.x + threadIdx.x;
+        auto y = blockIdx.y * blockDim.y + threadIdx.y;
+
+        auto row = 4 * y + 2;
+        auto col = 4 * x + 2;
+        
+        auto element_index0  = (row + 0) * pitch + col + 0;
+        auto element_index1  = (row + 0) * pitch + col + 1;
+        auto element_index2  = (row + 0) * pitch + col + 2;
+        auto element_index3  = (row + 0) * pitch + col + 3;
+
+        auto element_index4  = (row + 1) * pitch + col + 0;
+        auto element_index5  = (row + 1) * pitch + col + 1;
+        auto element_index6  = (row + 1) * pitch + col + 2;
+        auto element_index7  = (row + 1) * pitch + col + 3;
+
+        auto element_index8  = (row + 2) * pitch + col + 0;
+        auto element_index9  = (row + 2) * pitch + col + 1;
+        auto element_index10 = (row + 2) * pitch + col + 2;
+        auto element_index11 = (row + 2) * pitch + col + 3;
+
+        auto element_index12 = (row + 3) * pitch + col + 0;
+        auto element_index13 = (row + 3) * pitch + col + 1;
+        auto element_index14 = (row + 3) * pitch + col + 2;
+        auto element_index15 = (row + 3) * pitch + col + 3;
+
+        out [ element_index0 ] = 0xfffffff0;
+        out [ element_index1 ] = 0xfffffff1;
+        out [ element_index2 ] = 0xfffffff2;
+        out [ element_index3 ] = 0xfffffff3;
+
+        out [ element_index4 ] = 0xfffffff4;
+        out [ element_index5 ] = 0xfffffff5;
+        out [ element_index6 ] = 0xfffffff6;
+        out [ element_index7 ] = 0xfffffff7;
+
+        out [ element_index8 ]  = 0xfffffff8;
+        out [ element_index9 ]  = 0xfffffff9;
+        out [ element_index10 ] = 0xfffffffa;
+        out [ element_index11 ] = 0xfffffffb;
+
+        out [ element_index12 ] = 0xfffffffc;
+        out [ element_index13 ] = 0xfffffffd;
+        out [ element_index14 ] = 0xfffffffe;
+        out [ element_index15 ] = 0xffffffff;
+    }
+
+
+    std::shared_ptr< cuda::memory_buffer > prefilter4x4 (  std::shared_ptr< cuda::memory_buffer > in, uint32_t width, uint32_t height, uint32_t pitch ) 
+    {
+        auto w         = width;
+        auto h         = height;
+        auto size      = w * h * sizeof(int32_t) ;
+
+        auto result = std::make_shared < cuda::memory_buffer > ( cuda::allocate<void*> ( size ) );
+
+        cuda::throw_if_failed<cuda::exception> ( cudaMemset( *result, 0, size ) );
+
+        auto blocks = dim3 ( w / 16 , h / 16 , 1 );
+        auto threads_per_block = dim3( 3, 3 );
+
+        prefilter4x4_kernel<<<blocks, threads_per_block>>>( *in, *result, pitch );
+
+        cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
+        cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
+
+        auto y  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
+
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( y.get(), result->get(), size   , cudaMemcpyDeviceToHost) );
+
+        auto res = reinterpret_cast< uint32_t* > ( y.get() );
+
+        return result;
     }
 }
 
@@ -220,6 +328,8 @@ int32_t main()
         jpegxr::transforms::pixel c[arraySize] = { 0 };
 
         auto ycocg = decompose_ycocg(*image);
+
+        auto y_prefilter4x4 = example::prefilter4x4( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
 
         std::cout << std::endl << c[0] << ", " << c[1] << ", " << c[2] << ", " << c[3] << ", " << std::endl <<  c[4] << ", " << c[5] << ", " << c[6] << ", " << c[7] << ", " << std::endl << c[8] << ", " << c[9] << ", " << c[10] << ", "  << c[11] << ", " << std::endl << c[12] << ", " << c[13] << ", " << c[14] << ", " << c[15] << std::endl;
     }
