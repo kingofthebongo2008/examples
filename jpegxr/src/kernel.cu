@@ -13,6 +13,7 @@
 #include <jxr/jxr_filter.h>
 #include <jxr/jxr_prefilter.h>
 #include <jxr/jxr_overlapfilter.h>
+#include <jxr/jxr_pct.h>
 
 #include <os/windows/com_initializer.h>
 
@@ -269,6 +270,9 @@ int32_t main()
         jpegxr::prefilter4_horizontal( ycocg.get_y(), w, h, pitch );
         jpegxr::prefilter4_vertical( ycocg.get_y(), w, h, pitch );
 
+        jpegxr::pct4x4( ycocg.get_y(), w, h, pitch );
+
+        jpegxr::ipct4x4( ycocg.get_y(), w, h, pitch );
         jpegxr::overlapfilter2x2_edge( ycocg.get_y(), w, h, pitch );
         jpegxr::overlapfilter4x4( ycocg.get_y(), w, h, pitch );
         jpegxr::overlapfilter4_horizontal( ycocg.get_y(), w, h, pitch );
