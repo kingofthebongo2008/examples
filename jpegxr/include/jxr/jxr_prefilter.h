@@ -2,12 +2,13 @@
 #define __jxr_prefilter_h__
 
 #include <jxr/jxr_filter.h>
+#include <jxr/jxr_analysis.h>
 
 namespace jpegxr
 {
     namespace cuda
     {
-        __global__ void prefilter_4x4( const uint32_t* in, uint32_t* out, const uint32_t image_pitch, const uint32_t width, const uint32_t height  )
+        __global__ void prefilter_4x4( const transforms::pixel* in, transforms::pixel* out, const uint32_t image_pitch, const uint32_t width, const uint32_t height  )
         {
             auto x = blockIdx.x * blockDim.x + threadIdx.x;
             auto y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -42,29 +43,58 @@ namespace jpegxr
             auto element_index14 = (row + 3) * pitch + col + 2;
             auto element_index15 = (row + 3) * pitch + col + 3;
 
-            out [ element_index0 ] = 0xfffffff0;
-            out [ element_index1 ] = 0xfffffff1;
-            out [ element_index2 ] = 0xfffffff2;
-            out [ element_index3 ] = 0xfffffff3;
+            auto a = in [ element_index0 ];
+            auto b = in [ element_index1 ];
+            auto c = in [ element_index2 ];
+            auto d = in [ element_index3 ];
 
-            out [ element_index4 ] = 0xfffffff4;
-            out [ element_index5 ] = 0xfffffff5;
-            out [ element_index6 ] = 0xfffffff6;
-            out [ element_index7 ] = 0xfffffff7;
+            auto e = in [ element_index4 ];
+            auto f = in [ element_index5 ];
+            auto g = in [ element_index6 ];
+            auto h = in [ element_index7 ];
 
-            out [ element_index8 ]  = 0xfffffff8;
-            out [ element_index9 ]  = 0xfffffff9;
-            out [ element_index10 ] = 0xfffffffa;
-            out [ element_index11 ] = 0xfffffffb;
+            auto i = in [ element_index8 ];
+            auto j = in [ element_index9 ];
+            auto k = in [ element_index10 ];
+            auto l = in [ element_index11 ];
 
-            out [ element_index12 ] = 0xfffffffc;
-            out [ element_index13 ] = 0xfffffffd;
-            out [ element_index14 ] = 0xfffffffe;
-            out [ element_index15 ] = 0xffffffff;
+            auto m = in [ element_index12 ];
+            auto n = in [ element_index13 ];
+            auto o = in [ element_index14 ];
+            auto p = in [ element_index15 ];
+
+            transforms::analysis::prefilter4x4
+                (
+                    &a, &b, &c, &d, 
+                    &e, &f, &g, &h, 
+                    &i, &j, &k, &l,
+                    &m, &n, &o, &p
+                );
+
+
+            out [ element_index0 ] = a;
+            out [ element_index1 ] = b;
+            out [ element_index2 ] = c;
+            out [ element_index3 ] = d;
+
+            out [ element_index4 ] = e;
+            out [ element_index5 ] = f;
+            out [ element_index6 ] = g;
+            out [ element_index7 ] = h;
+
+            out [ element_index8 ]  = i;
+            out [ element_index9 ]  = j;
+            out [ element_index10 ] = k;
+            out [ element_index11 ] = l;
+
+            out [ element_index12 ] = m;
+            out [ element_index13 ] = n;
+            out [ element_index14 ] = o;
+            out [ element_index15 ] = p;
         }
 
 
-        __global__ void prefilter4_vertical( const uint32_t* in, uint32_t* out, const uint32_t pitch, const uint32_t width, const uint32_t height)
+        __global__ void prefilter4_vertical( const transforms::pixel* in, transforms::pixel* out, const uint32_t pitch, const uint32_t width, const uint32_t height)
         {
             auto x = blockIdx.x * blockDim.x + threadIdx.x;
             auto y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -90,13 +120,21 @@ namespace jpegxr
             auto element_index2  = (row + 2) * pitch + col + 0;
             auto element_index3  = (row + 3) * pitch + col + 0;
 
-            out [ element_index0 ] = (col << 16) | row;//0x3;
-            out [ element_index1 ] = (col << 16) | row;//0x3;
-            out [ element_index2 ] = (col << 16) | row;//0x3;
-            out [ element_index3 ] = (col << 16) | row;//0x3;
+            auto a = in [ element_index0 ];
+            auto b = in [ element_index1 ];
+
+            auto c = in [ element_index2 ];
+            auto d = in [ element_index3 ];
+
+            transforms::analysis::prefilter4 ( &a, &b, &c, &d );
+
+            out [ element_index0 ] = a;
+            out [ element_index1 ] = b;
+            out [ element_index2 ] = c;
+            out [ element_index3 ] = d;
         }
 
-        __global__ void prefilter4_horizontal( const uint32_t* in, uint32_t* out, const uint32_t pitch, const uint32_t width, const uint32_t height)
+        __global__ void prefilter4_horizontal( const transforms::pixel* in, transforms::pixel* out, const uint32_t pitch, const uint32_t width, const uint32_t height)
         {
             auto x = blockIdx.x * blockDim.x + threadIdx.x;
             auto y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -122,13 +160,21 @@ namespace jpegxr
             auto element_index2  = (row + 0) * pitch + col + 2;
             auto element_index3  = (row + 0) * pitch + col + 3;
 
-            out [ element_index0 ] = (row << 16) | 0x2;
-            out [ element_index1 ] = (row << 16) | 0x2;
-            out [ element_index2 ] = (row << 16) | 0x2;
-            out [ element_index3 ] = (row << 16) | 0x2;
+            auto a = in [ element_index0 ];
+            auto b = in [ element_index1 ];
+
+            auto c = in [ element_index2 ];
+            auto d = in [ element_index3 ];
+
+            transforms::analysis::prefilter4 ( &a, &b, &c, &d );
+
+            out [ element_index0 ] = a;
+            out [ element_index1 ] = b;
+            out [ element_index2 ] = c;
+            out [ element_index3 ] = d;
         }
 
-        __global__ void prefilter2x2_edge( const uint32_t* in, uint32_t* out, const uint32_t pitch, const uint32_t width, const uint32_t height)
+        __global__ void prefilter2x2_edge( const transforms::pixel* in, transforms::pixel* out, const uint32_t pitch, const uint32_t width, const uint32_t height)
         {
             auto x = blockIdx.x * blockDim.x + threadIdx.x;
             auto y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -156,17 +202,25 @@ namespace jpegxr
             auto element_index2  = (row + 1) * pitch + col + 0;
             auto element_index3  = (row + 1) * pitch + col + 1;
 
-            out [ element_index0 ] = 0x1;
-            out [ element_index1 ] = 0x1;
-            out [ element_index2 ] = 0x1;
-            out [ element_index3 ] = 0x1;
+            auto a = in [ element_index0 ];
+            auto b = in [ element_index1 ];
+
+            auto c = in [ element_index2 ];
+            auto d = in [ element_index3 ];
+
+            transforms::analysis::prefilter2x2( &a, &b, &c, &d );
+
+            out [ element_index0 ] = a;
+            out [ element_index1 ] = b;
+            out [ element_index2 ] = c;
+            out [ element_index3 ] = d;
         }
     }
 
     inline void prefilter4x4 (  std::shared_ptr< ::cuda::memory_buffer > in, uint32_t width, uint32_t height, uint32_t pitch ) 
     {
         filter_image( *in, *in, pitch, width, height, [=] 
-        ( dim3 blocks, dim3 threads_per_block, const uint32_t* in, uint32_t* out, const uint32_t image_pitch, const uint32_t width, const uint32_t height )
+        ( dim3 blocks, dim3 threads_per_block, const transforms::pixel* in, transforms::pixel* out, const uint32_t image_pitch, const uint32_t width, const uint32_t height )
         {
             jpegxr::cuda::prefilter_4x4<<<blocks, threads_per_block>>>( in, out, image_pitch, width, height );
         });
@@ -175,7 +229,7 @@ namespace jpegxr
     inline void prefilter4_vertical(  std::shared_ptr< ::cuda::memory_buffer > in, uint32_t width, uint32_t height, uint32_t pitch ) 
     {
         filter_image( *in, *in, pitch, width, height, [=] 
-        ( dim3 blocks, dim3 threads_per_block, const uint32_t* in, uint32_t* out, const uint32_t image_pitch, const uint32_t width, const uint32_t height )
+        ( dim3 blocks, dim3 threads_per_block, const transforms::pixel* in, transforms::pixel* out, const uint32_t image_pitch, const uint32_t width, const uint32_t height )
         {
             jpegxr::cuda::prefilter4_vertical<<<blocks, threads_per_block>>>( in, out, image_pitch, width, height );
         });
@@ -184,7 +238,7 @@ namespace jpegxr
     inline void prefilter4_horizontal(  std::shared_ptr< ::cuda::memory_buffer > in, uint32_t width, uint32_t height, uint32_t pitch ) 
     {
         filter_image( *in, *in, pitch, width, height, [=] 
-        ( dim3 blocks, dim3 threads_per_block, const uint32_t* in, uint32_t* out, const uint32_t image_pitch, const uint32_t width, const uint32_t height )
+        ( dim3 blocks, dim3 threads_per_block, const transforms::pixel* in, transforms::pixel* out, const uint32_t image_pitch, const uint32_t width, const uint32_t height )
         {
             jpegxr::cuda::prefilter4_horizontal<<<blocks, threads_per_block>>>( in, out, image_pitch, width, height );
         });
@@ -193,7 +247,7 @@ namespace jpegxr
     inline void prefilter2x2_edge (  std::shared_ptr< ::cuda::memory_buffer > in, uint32_t width, uint32_t height, uint32_t pitch ) 
     {
         filter_image( *in, *in, pitch, width, height, [=] 
-        ( dim3 blocks, dim3 threads_per_block, const uint32_t* in, uint32_t* out, const uint32_t image_pitch, const uint32_t width, const uint32_t height )
+        ( dim3 blocks, dim3 threads_per_block, const transforms::pixel* in, transforms::pixel* out, const uint32_t image_pitch, const uint32_t width, const uint32_t height )
         {
             jpegxr::cuda::prefilter2x2_edge<<<blocks, threads_per_block>>>( in, out, image_pitch, width, height );
         });

@@ -5,10 +5,11 @@
 #include <memory>
 
 #include <jxr/cuda_helper.h>
+#include <jxr/jxr_transforms.h>
 
 namespace jpegxr
 {
-    template <typename functor > void filter_image( const uint32_t* in, uint32_t* out, const uint32_t image_pitch, const uint32_t image_width, const uint32_t image_height, functor f )
+    template <typename functor > inline void filter_image( const transforms::pixel* in, transforms::pixel* out, const uint32_t image_pitch, const uint32_t image_width, const uint32_t image_height, functor f )
     {
         auto w                  = image_width;
         auto h                  = image_height;
@@ -18,13 +19,15 @@ namespace jpegxr
         auto blocks             = dim3 ( ( w + 15 )  / 16 , ( h + 15 ) / 16, 1 );
         auto threads_per_block  = dim3 ( 16,  16,  1 );
 
-        ::cuda::throw_if_failed<::cuda::exception> ( cudaMemset( out, 0, size ) );
+        //debug purposes
+        //::cuda::throw_if_failed<::cuda::exception> ( cudaMemset( out, 0, size ) );
 
         f( blocks, threads_per_block, in, out, pitch, w, h ); 
 
         ::cuda::throw_if_failed<::cuda::exception> ( cudaGetLastError() );
         ::cuda::throw_if_failed<::cuda::exception> ( cudaDeviceSynchronize() );
 
+        //debug purposes
         auto y  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
 
         ::cuda::throw_if_failed<::cuda::exception> ( cudaMemcpy( y.get(), in, size , cudaMemcpyDeviceToHost) );

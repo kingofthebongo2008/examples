@@ -213,6 +213,7 @@ namespace example
         cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
         cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
 
+        //debug purposes
         auto y  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
         auto co = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
         auto cg = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
@@ -255,18 +256,10 @@ int32_t main()
         auto ycocg = decompose_ycocg(*image);
 
         jpegxr::prefilter2x2_edge( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
+        jpegxr::prefilter4x4( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
+        jpegxr::prefilter4_horizontal( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
+        jpegxr::prefilter4_vertical( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
 
-        /*
-        example::prefilter4x4_image( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
-
-        example::prefilter4_vertical_image( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
-
-        example::prefilter4_horizontal_image( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
-
-
-        example::prefilter2x2( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
-
-        */
         std::cout << std::endl << c[0] << ", " << c[1] << ", " << c[2] << ", " << c[3] << ", " << std::endl <<  c[4] << ", " << c[5] << ", " << c[6] << ", " << c[7] << ", " << std::endl << c[8] << ", " << c[9] << ", " << c[10] << ", "  << c[11] << ", " << std::endl << c[12] << ", " << c[13] << ", " << c[14] << ", " << c[15] << std::endl;
     }
 
