@@ -12,6 +12,7 @@
 
 #include <jxr/jxr_filter.h>
 #include <jxr/jxr_prefilter.h>
+#include <jxr/jxr_overlapfilter.h>
 
 #include <os/windows/com_initializer.h>
 
@@ -255,12 +256,38 @@ int32_t main()
 
         auto ycocg = decompose_ycocg(*image);
 
-        jpegxr::prefilter2x2_edge( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
-        jpegxr::prefilter4x4( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
-        jpegxr::prefilter4_horizontal( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
-        jpegxr::prefilter4_vertical( ycocg.get_y(), ycocg.get_width(), ycocg.get_height(), ycocg.get_width() );
+        auto w      = ycocg.get_width();
+        auto h      = ycocg.get_height();
+        auto pitch  = ycocg.get_width();
+        auto size   = w * h * sizeof(jpegxr::transforms::pixel) ;
 
-        std::cout << std::endl << c[0] << ", " << c[1] << ", " << c[2] << ", " << c[3] << ", " << std::endl <<  c[4] << ", " << c[5] << ", " << c[6] << ", " << c[7] << ", " << std::endl << c[8] << ", " << c[9] << ", " << c[10] << ", "  << c[11] << ", " << std::endl << c[12] << ", " << c[13] << ", " << c[14] << ", " << c[15] << std::endl;
+        auto copy_of_y_1  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( copy_of_y_1.get(),  *ycocg.get_y(), size   , cudaMemcpyDeviceToHost) );
+
+        jpegxr::prefilter2x2_edge( ycocg.get_y(), w, h, pitch );
+        jpegxr::prefilter4x4( ycocg.get_y(), w, h, pitch );
+        jpegxr::prefilter4_horizontal( ycocg.get_y(), w, h, pitch );
+        jpegxr::prefilter4_vertical( ycocg.get_y(), w, h, pitch );
+
+        jpegxr::overlapfilter2x2_edge( ycocg.get_y(), w, h, pitch );
+        jpegxr::overlapfilter4x4( ycocg.get_y(), w, h, pitch );
+        jpegxr::overlapfilter4_horizontal( ycocg.get_y(), w, h, pitch );
+        jpegxr::overlapfilter4_vertical( ycocg.get_y(), w, h, pitch );
+
+        auto copy_of_y_2  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( copy_of_y_2.get(),  *ycocg.get_y(), size   , cudaMemcpyDeviceToHost) );
+
+        auto result = std::memcmp ( copy_of_y_1.get(), copy_of_y_2.get(), size );
+
+        if (result == 0 )
+        {
+            std::cout <<"Prefect reconstruction." << std::endl;
+        }
+        else
+        {
+            std::cerr <<"Error in reconstruction." << std::endl;
+        }
+
     }
 
     catch (const cuda::exception& e)
