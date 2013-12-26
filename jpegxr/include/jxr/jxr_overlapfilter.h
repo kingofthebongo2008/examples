@@ -208,7 +208,7 @@ namespace jpegxr
             auto c = in [ element_index2 ];
             auto d = in [ element_index3 ];
 
-            transforms::synthesis::overlapfilter2x2( &a, &b, &c, &d );
+            transforms::synthesis::overlapfilter4( &a, &b, &c, &d );
 
             out [ element_index0 ] = a;
             out [ element_index1 ] = b;
