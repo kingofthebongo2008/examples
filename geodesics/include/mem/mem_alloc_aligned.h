@@ -12,30 +12,31 @@ namespace mem
     template <typename derived>
     class alloc_aligned 
     {
-        private:
-
-        static size_t alignment ()
-        {
-            return __alignof(derived);
-        }
-
         public:
 
         //---------------------------------------------------------------------------------------
         void* operator new(std::size_t size)
         {
-            size_t allocate_size = align( size, alignment() );
+			size_t allocate_size = align( size, derived::alignment() );
 
-            void* result = ::operator new( size ) ;
+            void* result = ::operator new( allocate_size ) ;
 
             if (result == nullptr)
             {
                 throw std::bad_alloc();
             }
-
-            return reinterpret_cast<void*> (  align( result, alignment() ) );
+            
+            return reinterpret_cast<void*> (  align( result, derived::alignment() ) );
         }
 
+        //---------------------------------------------------------------------------------------
+        void* operator new(std::size_t size, void* pointer)
+        {
+            size;
+            return pointer;
+        }
+
+        //---------------------------------------------------------------------------------------
         void operator delete(void* pointer) throw()
         {
             ::operator delete(pointer);
@@ -43,13 +44,13 @@ namespace mem
         //---------------------------------------------------------------------------------------
         void* operator new  (std::size_t size, const std::nothrow_t& t) throw()
         {
-            size_t allocate_size = align( size, alignment() );
+            size_t allocate_size = align( size, derived::alignment() );
 
-            void* result = ::operator new( size , t) ;
+            void* result = ::operator new( allocate_size , t) ;
 
             if (result )
             {
-                return reinterpret_cast<void*> (  align( result, alignment() ) );
+                return reinterpret_cast<void*> (  align( result, derived::alignment() ) );
             }
             else
             {
@@ -65,16 +66,16 @@ namespace mem
         //---------------------------------------------------------------------------------------
         void* operator new  [](std::size_t size)
         {
-            size_t allocate_size = align( size, alignment() );
+            size_t allocate_size = align( size, derived::alignment() );
 
-            void* result = ::operator new[]( size ) ;
+            void* result = ::operator new[]( allocate_size ) ;
 
             if (result == nullptr)
             {
                 throw std::bad_alloc();
             }
 
-            return reinterpret_cast<void*> (  align( result, alignment() ) );
+            return reinterpret_cast<void*> (  align( result, derived::alignment() ) );
         }
 
         void operator delete[](void* pointer) throw()
@@ -85,13 +86,13 @@ namespace mem
         //---------------------------------------------------------------------------------------
         void* operator new  [](std::size_t size, const std::nothrow_t& t) throw()
         {
-            size_t allocate_size = align( size, alignment() );
+            size_t allocate_size = align( size, derived::alignment() );
 
-            void* result = ::operator new[]( size , t) ;
+            void* result = ::operator new[]( allocate_size , t) ;
 
             if (result )
             {
-                return reinterpret_cast<void*> (  align( result, alignment() ) );
+                return reinterpret_cast<void*> (  align( result, derived::alignment() ) );
             }
             else
             {
