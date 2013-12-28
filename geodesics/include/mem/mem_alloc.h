@@ -14,6 +14,11 @@ namespace mem
         return size + (alignment - 1)  & ~(alignment - 1);
     }
 
+	inline void* align( void* pointer, size_t alignment) throw()
+	{
+		return reinterpret_cast<void*>( align(reinterpret_cast<uintptr_t> ( pointer), alignment ) );
+	}
+
     inline bool is_aligned(uintptr_t size, size_t alignment) throw()
     {
         //static_assert(alignment is power of two)
