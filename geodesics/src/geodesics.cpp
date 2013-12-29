@@ -8,10 +8,15 @@
 
 
 #include <iostream>
+#include <iterator>
 #include <memory>
 #include <string>
-#include <vector>
+#include <map>
+#include <unordered_map>
 #include <unordered_set>
+#include <vector>
+
+
 
 #include <utility>
 
@@ -85,26 +90,17 @@ namespace geodesics
 				{}
             };
 
-            struct face
+            struct face : public mem::alloc_aligned< face >
             {
                 pointer v0;
                 pointer v1;
                 pointer v2;
-            };
 
-            struct winged_edge
-            {
-                pointer v0; //start vertex
-                pointer v1; //end   vertex
-
-                pointer f0; // left face
-                pointer f1; // right face
-
-                pointer l_p; // left predeccesor
-                pointer r_p; // right predeccesor
-
-                pointer l_s; // left successor
-                pointer r_s; // right successor
+				face() :
+				v0(0)
+				, v1(0)
+				, v2(0)
+				{}
             };
 
             struct progress_notifier
@@ -114,11 +110,12 @@ namespace geodesics
 
 			typedef std::vector< vertex, mem::allocator<vertex> > vertex_container;
 			typedef std::vector< normal, mem::allocator<normal> > normal_container;
+			typedef std::vector< face, mem::allocator<face> >	  face_container;
 
             mesh (
                     const vertex_container&			vertices,
                     const normal_container&			normals,
-                    const std::vector< face >&		faces,
+                    const face_container&			faces,
                     const progress_notifier&		notifier
                  )  : m_vertices(vertices)
                     , m_normals(normals)
@@ -129,10 +126,10 @@ namespace geodesics
             }
 
             mesh (
-                    vertex_container &&     vertices,
-                    normal_container &&     normals,
-                    std::vector< face >   &&     faces,
-                    progress_notifier     &&    notifier
+                    vertex_container &&       vertices,
+                    normal_container &&       normals,
+                    face_container   &&		  faces,
+                    progress_notifier	&&    notifier
                  ) : 
                       m_vertices(std::move( vertices ) ) 
                     , m_normals(std::move (normals ) )
@@ -162,23 +159,32 @@ namespace geodesics
                 return &m_faces[ static_cast<uint32_t> ( p ) ];
             }
 
-            winged_edge*   get_edge( pointer p )
-            {
-                return &m_edges[ static_cast<uint32_t> ( p ) ];
-            }
+			vertex_container::const_iterator vertices_begin() const
+			{
+				return m_vertices.begin();
+			}
 
-            const winged_edge*   get_edge( pointer p ) const
-            {
-                return &m_edges[ static_cast<uint32_t> ( p                     ) ];
-            }
+			vertex_container::const_iterator vertices_end() const
+			{
+				return m_vertices.end();
+			}
+
+			face_container::const_iterator faces_begin() const
+			{
+				return m_faces.begin();
+			}
+
+			face_container::const_iterator faces_end() const
+			{
+				return m_faces.end();
+			}
 
             private:
 
             vertex_container			m_vertices;
             normal_container			m_normals;
-            std::vector< face >			m_faces;
+            face_container				m_faces;
             normal_container			m_face_normals;
-            std::vector< winged_edge >	m_edges;
             progress_notifier           m_notifier;
 
             void initialize()
@@ -200,10 +206,7 @@ namespace geodesics
 
                 for (uint32_t i = 0; i < face_normals.size(); ++i)
                 {
-					auto address = &m_vertices[ m_faces[i].v0 ] ;
-					auto address1 = &m_vertices[ 0 ] ;
-
-                    math::float4 v0 = math::load4( address );
+                    math::float4 v0 = math::load4(&m_vertices[ m_faces[i].v0 ] );
                     math::float4 v1 = math::load4(&m_vertices[ m_faces[i].v1 ] );
                     math::float4 v2 = math::load4(&m_vertices[ m_faces[i].v2 ] );
 
@@ -224,7 +227,7 @@ namespace geodesics
                 double sum2 = 0.0;
                 double sum3 = 0.0;
 
-                std::for_each ( m_vertices.begin(), m_vertices.end(), [&] ( const vertex& v )
+                std::for_each ( m_vertices.begin(), m_vertices.end(), [&] ( const vertex& v ) -> void
                 {
                     sum0 += v.x;
                     sum1 += v.y;
@@ -237,7 +240,6 @@ namespace geodesics
                 sum1 /= vertex_size;
                 sum2 /= vertex_size;
                 sum3  = 0.0;
-
 
                 std::transform ( m_vertices.begin(), m_vertices.end(), vertices.begin(),    [&] ( const vertex& v ) -> vertex
                 {
@@ -273,7 +275,7 @@ namespace geodesics
         {
             mesh::vertex_container   vertices;
             mesh::normal_container   normals;
-            std::vector< mesh::face >     faces;
+            mesh::face_container     faces;
 
             mesh::progress_notifier       notifier;
 
@@ -321,27 +323,210 @@ namespace geodesics
             return std::shared_ptr<mesh> ( new mesh( std::move(vertices), std::move(normals), std::move( faces ), std::move(notifier) ) );
         };
 
-
         bool mesh_is_manifold( std::shared_ptr<mesh> mesh )
         {
             return false;
         }
     }
+	
+	class half_vertex;
+	class half_edge;
+	class half_face;
 
-    class half_vertex
+	class half_vertex : public mem::alloc_aligned< half_vertex >
     {
+		public:
 
-    };
+		half_vertex( ) :
+		m_x(0.0f)
+		, m_y(0.0f)
+		, m_z(0.0f)
+		, m_w(1.0f)
+		{}
 
-    class half_edge
-    {
+		half_vertex( float x, float y, float z, float w ) :
+		 m_x(x)
+		,m_y(y)
+		,m_z(z)
+		,m_w(w)
+		{ }
+		
+		float	   m_x;
+		float	   m_y;
+		float	   m_z;
+		float	   m_w;
 
+		std::shared_ptr<half_edge> m_edge;
     };
 
     class half_face
     {
+		public:
 
+		half_face( ) :
+		m_edge(nullptr)
+		{}
+
+		std::shared_ptr<half_edge> m_edge;
     };
+
+	class half_edge
+    {
+		public:
+
+		half_edge()
+		{}
+
+		std::shared_ptr<half_edge>		m_next;
+		std::shared_ptr<half_edge>		m_previous;
+
+		std::shared_ptr<half_edge>		m_opposite;
+
+		std::shared_ptr<half_face>		m_face;
+		std::shared_ptr<half_vertex>	m_vertex;
+    };
+
+	class half_mesh
+	{
+		public:
+
+		typedef std::vector< std::shared_ptr<half_edge> >	edges_container;
+		typedef std::vector< std::shared_ptr<half_vertex> >	vertex_container;
+		typedef std::vector< std::shared_ptr<half_face> >	faces_container;
+
+		half_mesh ( 
+					const edges_container& edges,
+					const vertex_container& vertices,
+					const faces_container& faces
+				) :
+		m_edges(edges)
+		, m_vertices(vertices)
+		, m_faces(faces)
+		{}
+
+		half_mesh ( 
+					edges_container&& edges,
+					vertex_container&& vertices,
+					faces_container&& faces
+				) :
+		m_edges( std::move(edges) )
+		, m_vertices(std::move ( vertices ))
+		, m_faces(std::move( faces ) )
+		{}
+
+
+		edges_container		m_edges;
+		vertex_container	m_vertices;
+		faces_container		m_faces;
+
+	};
+
+	std::shared_ptr< half_mesh > create_half_mesh ( std::shared_ptr<indexed_face_set::mesh> mesh )
+	{
+		using namespace geodesics::indexed_face_set;
+
+		half_mesh::edges_container		edges;
+		half_mesh::vertex_container		vertices;
+		half_mesh::faces_container		faces;
+
+		auto vertex_count = mesh->vertices_end() - mesh->vertices_begin();
+		
+		edges.reserve ( vertex_count * 3);
+		vertices.reserve( vertex_count  );
+		faces.reserve( vertex_count * 2  );
+		
+		std::map < std::pair < mesh::pointer , mesh::pointer >, std::shared_ptr<half_edge> > half_edges;
+
+		std::unordered_map < mesh::pointer, std::shared_ptr<half_vertex> > half_vertices_set;
+
+		std::for_each ( mesh->faces_begin(), mesh->faces_end(), [&] ( const indexed_face_set::mesh::face& face ) -> void
+		{
+			auto h_face = std::make_shared<half_face>();
+
+			faces.push_back( h_face );
+
+			auto edge01 = std::make_pair( face.v0, face.v1 );
+			auto edge12 = std::make_pair( face.v1, face.v2 );
+			auto edge20 = std::make_pair( face.v2, face.v0 );
+
+			auto edge10 = std::make_pair( face.v1, face.v0 );
+			auto edge21 = std::make_pair( face.v2, face.v1 );
+			auto edge02 = std::make_pair( face.v0, face.v2 );
+
+			auto half_edge_01 = std::make_shared<half_edge>();
+			auto half_edge_12 = std::make_shared<half_edge>();
+			auto half_edge_20 = std::make_shared<half_edge>();
+			
+			half_edges[ edge01 ] = half_edge_01;
+			half_edges[ edge01 ]-> m_face = h_face;
+
+			half_edges[ edge12 ] = half_edge_12;
+			half_edges[ edge12 ]-> m_face = h_face;
+
+			half_edges[ edge20 ] = half_edge_20;
+			half_edges[ edge20 ]-> m_face = h_face;
+
+			//next edges
+			half_edges[ edge01 ]->m_next = half_edges[ edge12 ];
+			half_edges[ edge12 ]->m_next = half_edges[ edge20 ];
+			half_edges[ edge20 ]->m_next = half_edges[ edge01 ];
+
+			//previous edges
+			half_edges[ edge01 ]->m_previous = half_edges[ edge20 ];
+			half_edges[ edge12 ]->m_previous = half_edges[ edge01 ];
+			half_edges[ edge20 ]->m_previous = half_edges[ edge12 ];
+
+			//opposite edges
+			if ( half_edges.find( edge10 ) != half_edges.end() )
+			{
+				half_edges[ edge10 ]->m_opposite = half_edges[ edge01 ];
+			}
+
+			//opposite edges
+			if ( half_edges.find( edge21 ) != half_edges.end() )
+			{
+				half_edges[ edge21 ]->m_opposite = half_edges[ edge12 ];
+			}
+
+			//opposite edges
+			if ( half_edges.find( edge02 ) != half_edges.end() )
+			{
+				half_edges[ edge02 ]->m_opposite = half_edges[ edge20 ];
+			}
+
+			h_face->m_edge = half_edge_01;
+
+			edges.push_back(half_edge_01);
+			edges.push_back(half_edge_12);
+			edges.push_back(half_edge_20);
+
+			//connect to the vertex the half edge with the second vertex
+			if ( half_vertices_set.find( face.v1 ) == half_vertices_set.end() )
+			{
+				half_vertices_set[face.v1] = std::make_shared<half_vertex>();
+				half_vertices_set[face.v1]->m_edge = half_edge_01;
+			}
+
+			if ( half_vertices_set.find( face.v2 ) == half_vertices_set.end() )
+			{
+				half_vertices_set[face.v2] = std::make_shared<half_vertex>();
+				half_vertices_set[face.v2]->m_edge = half_edge_12;
+			}
+
+			if ( half_vertices_set.find( face.v0 ) == half_vertices_set.end() )
+			{
+				half_vertices_set[face.v0] = std::make_shared<half_vertex>();
+				half_vertices_set[face.v0]->m_edge = half_edge_20;
+			}
+		});
+
+		std::for_each( half_vertices_set.begin(), half_vertices_set.end(), [&] ( const std::pair< mesh::pointer, std::shared_ptr<half_vertex> > & pair ) -> void
+		{
+			vertices.push_back( pair.second );
+		});
+
+		return std::make_shared<half_mesh> (std::move( edges), std::move(vertices), std::move(faces) );
+	}
 }
 
 int wmain(int argc, wchar_t* argv[])
@@ -351,6 +536,8 @@ int wmain(int argc, wchar_t* argv[])
 	using namespace geodesics::indexed_face_set;
 
 	auto m = create_from_noff_file(L"../media/meshes/bunny_nf4000.noff");
+
+	auto h = geodesics::create_half_mesh( m );
 
 	
     
