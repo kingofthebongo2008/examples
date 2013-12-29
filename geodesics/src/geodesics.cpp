@@ -20,6 +20,8 @@
 
 #include <utility>
 
+#include <sys/sys_profile_timer.h>
+
 #include <mem/mem_alloc_aligned.h>
 #include <mem/mem_alloc_std.h>
 #include <math/math_vector.h>
@@ -431,7 +433,7 @@ namespace geodesics
 
 		auto vertex_count = mesh->vertices_end() - mesh->vertices_begin();
 		
-		edges.reserve ( vertex_count * 3);
+		edges.reserve ( vertex_count * 3 *2);
 		vertices.reserve( vertex_count  );
 		faces.reserve( vertex_count * 2  );
 		
@@ -503,20 +505,29 @@ namespace geodesics
 			//connect to the vertex the half edge with the second vertex
 			if ( half_vertices_set.find( face.v1 ) == half_vertices_set.end() )
 			{
-				half_vertices_set[face.v1] = std::make_shared<half_vertex>();
+				auto vertex = mesh->get_vertex( face.v1 );
+				auto h_vertex = std::make_shared<half_vertex>( vertex->x, vertex->y, vertex->z, vertex->w );
+				half_vertices_set[face.v1] = h_vertex;
 				half_vertices_set[face.v1]->m_edge = half_edge_01;
+				half_edge_01->m_vertex = h_vertex;
 			}
 
 			if ( half_vertices_set.find( face.v2 ) == half_vertices_set.end() )
 			{
-				half_vertices_set[face.v2] = std::make_shared<half_vertex>();
+				auto vertex = mesh->get_vertex( face.v2 );
+				auto h_vertex = std::make_shared<half_vertex>( vertex->x, vertex->y, vertex->z, vertex->w );
+				half_vertices_set[face.v2] = h_vertex;
 				half_vertices_set[face.v2]->m_edge = half_edge_12;
+				half_edge_12->m_vertex = h_vertex;
 			}
 
 			if ( half_vertices_set.find( face.v0 ) == half_vertices_set.end() )
 			{
-				half_vertices_set[face.v0] = std::make_shared<half_vertex>();
+				auto vertex = mesh->get_vertex( face.v0 );
+				auto h_vertex = std::make_shared<half_vertex>( vertex->x, vertex->y, vertex->z, vertex->w );
+				half_vertices_set[face.v0] = h_vertex;
 				half_vertices_set[face.v0]->m_edge = half_edge_20;
+				half_edge_20->m_vertex = h_vertex;
 			}
 		});
 
@@ -535,10 +546,18 @@ int wmain(int argc, wchar_t* argv[])
 	argv;
 	using namespace geodesics::indexed_face_set;
 
+	sys::profile_timer timer;
 	auto m = create_from_noff_file(L"../media/meshes/bunny_nf4000.noff");
+	
+	auto seconds_loaded_elapsed = timer.seconds();
+	timer.reset();
 
 	auto h = geodesics::create_half_mesh( m );
 
+	auto seconds_created_elapsed = timer.seconds();
+
+	std::cout<<"mesh loaded for "<< seconds_loaded_elapsed <<" seconds" << std::endl;
+	std::cout<<"half_mesh created for "<< seconds_created_elapsed <<" seconds" << std::endl;
 	
     
 	return 0;
