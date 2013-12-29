@@ -28,14 +28,6 @@ namespace mem
             
             return reinterpret_cast<void*> (  align( result, derived::alignment() ) );
         }
-
-        //---------------------------------------------------------------------------------------
-        void* operator new(std::size_t size, void* pointer)
-        {
-            size;
-            return pointer;
-        }
-
         //---------------------------------------------------------------------------------------
         void operator delete(void* pointer) throw()
         {
@@ -104,6 +96,18 @@ namespace mem
         {
             ::operator delete[]( pointer, t );
         }
+        //---------------------------------------------------------------------------------------
+        void* operator new(std::size_t size, void* pointer) throw()
+        {
+            size;
+            return pointer;
+        }
+
+		void operator delete(void *p, void * pointer) throw()
+		{
+			p;
+			pointer;
+		}
     };
 }
 
