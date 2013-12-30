@@ -396,6 +396,14 @@ namespace geodesics
 		typedef std::vector< std::shared_ptr<half_vertex> >	vertex_container;
 		typedef std::vector< std::shared_ptr<half_face> >	faces_container;
 
+		typedef vertex_container::iterator			vertex_iterator;
+		typedef faces_container::iterator			face_iterator;
+		typedef edges_container::iterator			half_edge_iterator;
+
+		typedef vertex_container::const_iterator	const_vertex_iterator;
+		typedef faces_container::const_iterator		const_face_iterator;
+		typedef edges_container::const_iterator		const_half_edge_iterator;
+
 		half_mesh ( 
 					const edges_container& edges,
 					const vertex_container& vertices,
@@ -417,15 +425,120 @@ namespace geodesics
 		{}
 
 
+		vertex_iterator vertices_begin()
+		{
+			return m_vertices.begin();
+		}
+
+		vertex_iterator vertices_end()
+		{
+			return m_vertices.end();
+		}
+
+		const_vertex_iterator vertices_begin() const
+		{
+			return m_vertices.begin();
+		}
+
+		const_vertex_iterator vertices_end() const
+		{
+			return m_vertices.end();
+		}
+
+		face_iterator faces_begin()
+		{
+			return m_faces.begin();
+		}
+
+		face_iterator faces_end()
+		{
+			return m_faces.end();
+		}
+
+		const_face_iterator faces_begin() const
+		{
+			return m_faces.begin();
+		}
+
+		const_face_iterator faces_end() const
+		{
+			return m_faces.end();
+		}
+
+		half_edge_iterator edges_begin()
+		{
+			return m_edges.begin();
+		}
+
+		half_edge_iterator edges_end()
+		{
+			return m_edges.end();
+		}
+
+		const_half_edge_iterator edges_begin() const
+		{
+			return m_edges.begin();
+		}
+
+		const_half_edge_iterator edges_end() const
+		{
+			return m_edges.end();
+		}
+
+
+		void check_invariants() const
+		{
+			std::for_each( edges_begin(), edges_end(), [] ( const std::shared_ptr<half_edge>& he ) -> void
+			{
+				if (he->m_opposite)
+				{
+					if (he->m_opposite->m_opposite != he)
+					{
+						throw std::exception("validation check");
+					}
+				}
+
+				if (he->m_next->m_previous != he )
+				{
+					throw std::exception("validation check");
+				}
+
+				if (he->m_previous->m_next != he )
+				{
+					throw std::exception("validation check");
+				}
+
+				if (he->m_face != he->m_next->m_face)
+				{
+					throw std::exception("validation check");
+				}
+			});
+
+			std::for_each( vertices_begin(), vertices_end(), [] ( const std::shared_ptr<half_vertex>& vertex ) -> void
+			{
+				if (vertex->m_edge->m_vertex != vertex)
+				{
+					throw std::exception("validation check");
+				}
+			});
+
+			std::for_each( faces_begin(), faces_end(), [] ( const std::shared_ptr<half_face>& face ) -> void
+			{
+				if (face->m_edge->m_face != face)
+				{
+					throw std::exception("validation check");
+				}
+			});
+		}
+
 		edges_container		m_edges;
 		vertex_container	m_vertices;
 		faces_container		m_faces;
-
 	};
 
 	std::shared_ptr< half_mesh > create_half_mesh ( std::shared_ptr<indexed_face_set::mesh> mesh )
 	{
-		using namespace geodesics::indexed_face_set;
+		using namespace geodesics::indexed_face_set;	
 
 		half_mesh::edges_container		edges;
 		half_mesh::vertex_container		vertices;
@@ -482,18 +595,21 @@ namespace geodesics
 			if ( half_edges.find( edge10 ) != half_edges.end() )
 			{
 				half_edges[ edge10 ]->m_opposite = half_edges[ edge01 ];
+				half_edges[ edge01 ]->m_opposite = half_edges[ edge10 ];
 			}
 
 			//opposite edges
 			if ( half_edges.find( edge21 ) != half_edges.end() )
 			{
 				half_edges[ edge21 ]->m_opposite = half_edges[ edge12 ];
+				half_edges[ edge12 ]->m_opposite = half_edges[ edge21 ];
 			}
 
 			//opposite edges
 			if ( half_edges.find( edge02 ) != half_edges.end() )
 			{
 				half_edges[ edge02 ]->m_opposite = half_edges[ edge20 ];
+				half_edges[ edge20 ]->m_opposite = half_edges[ edge02 ];
 			}
 
 			h_face->m_edge = half_edge_01;
@@ -502,7 +618,7 @@ namespace geodesics
 			edges.push_back(half_edge_12);
 			edges.push_back(half_edge_20);
 
-			//connect to the vertex the half edge with the second vertex
+			//connect to the vertex the half edge with the second vertex, also called incident vertex
 			if ( half_vertices_set.find( face.v1 ) == half_vertices_set.end() )
 			{
 				auto vertex = mesh->get_vertex( face.v1 );
@@ -537,7 +653,7 @@ namespace geodesics
 		});
 
 		return std::make_shared<half_mesh> (std::move( edges), std::move(vertices), std::move(faces) );
-	}
+	}	
 }
 
 int wmain(int argc, wchar_t* argv[])
@@ -559,6 +675,7 @@ int wmain(int argc, wchar_t* argv[])
 	std::cout<<"mesh loaded for "<< seconds_loaded_elapsed <<" seconds" << std::endl;
 	std::cout<<"half_mesh created for "<< seconds_created_elapsed <<" seconds" << std::endl;
 	
+	h->check_invariants();
     
 	return 0;
 }
