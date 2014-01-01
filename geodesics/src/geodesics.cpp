@@ -488,12 +488,14 @@ namespace geodesics
 		{
 			std::for_each( edges_begin(), edges_end(), [] ( const std::shared_ptr<half_edge>& he ) -> void
 			{
-				if (he->m_opposite)
+				if (he->m_opposite == he )
 				{
-					if (he->m_opposite->m_opposite != he)
-					{
-						throw std::exception("validation check");
-					}
+					throw std::exception("validation check");
+				}
+
+				if (he->m_opposite->m_opposite != he)
+				{
+					throw std::exception("validation check");
 				}
 
 				if (he->m_next->m_previous != he )
@@ -631,43 +633,47 @@ namespace geodesics
 			auto half_edge_20 = std::make_shared<half_edge>();
 			
 			half_edges[ edge01 ] = half_edge_01;
-			half_edges[ edge01 ]-> m_face = h_face;
+			half_edge_01-> m_face = h_face;
 
 			half_edges[ edge12 ] = half_edge_12;
-			half_edges[ edge12 ]-> m_face = h_face;
+			half_edge_12-> m_face = h_face;
 
 			half_edges[ edge20 ] = half_edge_20;
-			half_edges[ edge20 ]-> m_face = h_face;
+			half_edge_20-> m_face = h_face;
 
 			//next edges
-			half_edges[ edge01 ]->m_next = half_edges[ edge12 ];
-			half_edges[ edge12 ]->m_next = half_edges[ edge20 ];
-			half_edges[ edge20 ]->m_next = half_edges[ edge01 ];
+			half_edge_01->m_next = half_edges[ edge12 ];
+			half_edge_12->m_next = half_edges[ edge20 ];
+			half_edge_20->m_next = half_edges[ edge01 ];
 
 			//previous edges
-			half_edges[ edge01 ]->m_previous = half_edges[ edge20 ];
-			half_edges[ edge12 ]->m_previous = half_edges[ edge01 ];
-			half_edges[ edge20 ]->m_previous = half_edges[ edge12 ];
+			half_edge_01->m_previous = half_edges[ edge20 ];
+			half_edge_12->m_previous = half_edges[ edge01 ];
+			half_edge_20->m_previous = half_edges[ edge12 ];
+
+			auto half_edge_10 = half_edges.find( edge10 );
+			auto half_edge_21 = half_edges.find( edge21 );
+			auto half_edge_02 = half_edges.find( edge02 );
 
 			//opposite edges
-			if ( half_edges.find( edge10 ) != half_edges.end() )
+			if ( half_edge_10  != half_edges.end() )
 			{
-				half_edges[ edge10 ]->m_opposite = half_edges[ edge01 ];
-				half_edges[ edge01 ]->m_opposite = half_edges[ edge10 ];
+				half_edge_10->second->m_opposite = half_edge_01;
+				half_edge_01->m_opposite = half_edge_10->second;
 			}
 
 			//opposite edges
-			if ( half_edges.find( edge21 ) != half_edges.end() )
+			if ( half_edge_21 != half_edges.end() )
 			{
-				half_edges[ edge21 ]->m_opposite = half_edges[ edge12 ];
-				half_edges[ edge12 ]->m_opposite = half_edges[ edge21 ];
+				half_edge_21->second->m_opposite = half_edge_12;
+				half_edge_12->m_opposite = half_edge_21->second;
 			}
 
 			//opposite edges
-			if ( half_edges.find( edge02 ) != half_edges.end() )
+			if ( half_edge_02 != half_edges.end() )
 			{
-				half_edges[ edge02 ]->m_opposite = half_edges[ edge20 ];
-				half_edges[ edge20 ]->m_opposite = half_edges[ edge02 ];
+				half_edge_02->second->m_opposite = half_edge_20;
+				half_edge_20->m_opposite = half_edge_02->second;
 			}
 
 			h_face->m_edge = half_edge_01;
@@ -691,7 +697,7 @@ namespace geodesics
 				auto vertex = mesh->get_vertex( face.v2 );
 				auto h_vertex = std::make_shared<half_vertex>( vertex->x, vertex->y, vertex->z, vertex->w );
 				half_vertices_set[face.v2] = h_vertex;
-				half_vertices_set[face.v2]->m_edge = half_edge_12;
+				h_vertex->m_edge = half_edge_12;
 				half_edge_12->m_vertex = h_vertex;
 			}
 
@@ -700,7 +706,7 @@ namespace geodesics
 				auto vertex = mesh->get_vertex( face.v0 );
 				auto h_vertex = std::make_shared<half_vertex>( vertex->x, vertex->y, vertex->z, vertex->w );
 				half_vertices_set[face.v0] = h_vertex;
-				half_vertices_set[face.v0]->m_edge = half_edge_20;
+				h_vertex->m_edge = half_edge_20;
 				half_edge_20->m_vertex = h_vertex;
 			}
 		});
@@ -728,8 +734,10 @@ namespace geodesics
 			if ( half_edges.find( edge10 ) == half_edges.end() )
 			{
 				auto half_edge_10 = std::make_shared<half_edge>();
-				half_edge_10->m_opposite = half_edges [ edge01 ];
-				half_edges [ edge01 ]->m_opposite = half_edge_10;
+				auto half_edge_01 = half_edges[edge01];
+
+				half_edge_10->m_opposite = half_edge_01;
+				half_edge_01->m_opposite = half_edge_10;
 				boundary_start_edges[ face.v1 ] = half_edge_10;
 				boundary_end_edges  [ face.v0 ] = half_edge_10;
 			}
@@ -737,19 +745,21 @@ namespace geodesics
 			if ( half_edges.find( edge21 ) == half_edges.end() )
 			{
 				auto half_edge_21 = std::make_shared<half_edge>();
-				half_edge_21->m_opposite = half_edges [ edge12 ];
-				half_edges [ edge12 ]->m_opposite = half_edge_21;
+				auto half_edge_12 = half_edges[edge12];
+				half_edge_21->m_opposite = half_edge_12;
+				half_edge_12->m_opposite = half_edge_21;
 				boundary_start_edges[ face.v2 ] = half_edge_21;
-				boundary_end_edges[ face.v1 ] = half_edge_21;
+				boundary_end_edges	[ face.v1 ] = half_edge_21;
 			}
 
 			if ( half_edges.find( edge02 ) == half_edges.end() )
 			{
 				auto half_edge_02 = std::make_shared<half_edge>();
-				half_edge_02->m_opposite = half_edges [ edge20 ];
-				half_edges [ edge20 ]->m_opposite = half_edge_02;
-				boundary_start_edges[ face.v0 ] = half_edge_02;
-				boundary_end_edges[ face.v2   ] = half_edge_02;
+				auto half_edge_20 = half_edges[edge20];
+				half_edge_02->m_opposite = half_edge_20;
+				half_edge_20->m_opposite = half_edge_02;
+				boundary_start_edges[ face.v0 ]   = half_edge_02;
+				boundary_end_edges	[ face.v2   ] = half_edge_02;
 			}
 		});
 
@@ -772,8 +782,6 @@ namespace geodesics
 			edges.push_back(he.second);	
 		});
 
-		
-
 		return std::make_shared<half_mesh> (std::move( edges), std::move(vertices), std::move(faces) );
 	}	
 }
@@ -794,15 +802,28 @@ int wmain(int argc, wchar_t* argv[])
 	mesh::normal_container   normals;
     mesh::face_container     faces;
 
+	
+	vertices.push_back ( mesh::vertex( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	vertices.push_back ( mesh::vertex( 1.0f, 0.0f, 0.0f, 1.0f ) );
-	vertices.push_back ( mesh::vertex( 0.0f, 1.0f, 0.0f, 1.0f ) );
 	vertices.push_back ( mesh::vertex( 1.0f, 1.0f, 0.0f, 1.0f ) );
+	vertices.push_back ( mesh::vertex( 0.0f, 1.0f, 0.0f, 1.0f ) );
+	vertices.push_back ( mesh::vertex( 0.75f, 0.25f, 0.0f, 1.0f ) );
+	vertices.push_back ( mesh::vertex( 0.25f, 0.75f, 0.0f, 1.0f ) );
 
 	normals.push_back( mesh::normal( 0.0f, -1.0f, 0.0f, 0.0f ) );
 	normals.push_back( mesh::normal( 0.0f, -1.0f, 0.0f, 0.0f ) );
 	normals.push_back( mesh::normal( 0.0f, -1.0f, 0.0f, 0.0f ) );
+	normals.push_back( mesh::normal( 0.0f, -1.0f, 0.0f, 0.0f ) );
+	normals.push_back( mesh::normal( 0.0f, -1.0f, 0.0f, 0.0f ) );
+	normals.push_back( mesh::normal( 0.0f, -1.0f, 0.0f, 0.0f ) );
 
-	faces.push_back ( mesh::face( 0, 1, 2 ) );
+	faces.push_back ( mesh::face( 0, 1, 4 ) );
+	faces.push_back ( mesh::face( 1, 2, 4 ) );
+	faces.push_back ( mesh::face( 0, 4, 2 ) );
+
+	faces.push_back ( mesh::face( 0, 2, 5 ) );
+	//faces.push_back ( mesh::face( 0, 5, 3 ) );
+	faces.push_back ( mesh::face( 5, 2, 3 ) );
 
 	auto m1 = std::make_shared<mesh> ( vertices, normals, faces );
 
