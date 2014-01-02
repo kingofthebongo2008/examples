@@ -352,7 +352,7 @@ namespace geodesics
 		float	   m_z;
 		float	   m_w;
 
-		std::shared_ptr<half_edge> m_edge;
+		std::shared_ptr<half_edge> m_incident_edge;
     };
 
     class half_face
@@ -360,10 +360,10 @@ namespace geodesics
 		public:
 
 		half_face( ) :
-		m_edge(nullptr)
+		m_incident_edge(nullptr)
 		{}
 
-		std::shared_ptr<half_edge> m_edge;
+		std::shared_ptr<half_edge> m_incident_edge;
     };
 
 	class half_edge
@@ -374,14 +374,14 @@ namespace geodesics
 		{}
 
 		std::shared_ptr<half_edge>		m_next;
-		std::shared_ptr<half_edge>		m_opposite;	
+		std::shared_ptr<half_edge>		m_twin;	
 
-		std::shared_ptr<half_face>		m_face;
-		std::shared_ptr<half_vertex>	m_vertex;
+		std::shared_ptr<half_face>		m_incident_face;
+		std::shared_ptr<half_vertex>	m_incident_vertex;
 
 		bool is_boundary() const
 		{
-			return !m_face;
+			return !m_incident_face;
 		}
     };
 
@@ -406,9 +406,9 @@ namespace geodesics
 					const vertex_container& vertices,
 					const faces_container& faces
 				) :
-		m_edges(edges)
+		m_incident_edges(edges)
 		, m_vertices(vertices)
-		, m_faces(faces)
+		, m_incident_faces(faces)
 		{}
 
 		half_mesh ( 
@@ -416,9 +416,9 @@ namespace geodesics
 					vertex_container&& vertices,
 					faces_container&& faces
 				) :
-		m_edges( std::move(edges) )
+		m_incident_edges( std::move(edges) )
 		, m_vertices(std::move ( vertices ))
-		, m_faces(std::move( faces ) )
+		, m_incident_faces(std::move( faces ) )
 		{}
 
 
@@ -444,49 +444,49 @@ namespace geodesics
 
 		face_iterator faces_begin()
 		{
-			return m_faces.begin();
+			return m_incident_faces.begin();
 		}
 
 		face_iterator faces_end()
 		{
-			return m_faces.end();
+			return m_incident_faces.end();
 		}
 
 		const_face_iterator faces_begin() const
 		{
-			return m_faces.begin();
+			return m_incident_faces.begin();
 		}
 
 		const_face_iterator faces_end() const
 		{
-			return m_faces.end();
+			return m_incident_faces.end();
 		}
 
 		half_edge_iterator edges_begin()
 		{
-			return m_edges.begin();
+			return m_incident_edges.begin();
 		}
 
 		half_edge_iterator edges_end()
 		{
-			return m_edges.end();
+			return m_incident_edges.end();
 		}
 
 		const_half_edge_iterator edges_begin() const
 		{
-			return m_edges.begin();
+			return m_incident_edges.begin();
 		}
 
 		const_half_edge_iterator edges_end() const
 		{
-			return m_edges.end();
+			return m_incident_edges.end();
 		}
 
 		void check_invariants() const
 		{
 			std::for_each( edges_begin(), edges_end(), [] ( const std::shared_ptr<half_edge>& he ) -> void
 			{
-				if (!he->m_opposite)
+				if (!he->m_twin)
 				{
 					throw std::exception("validation check");
 				}
@@ -496,12 +496,12 @@ namespace geodesics
 					throw std::exception("validation check");
 				}
 
-				if (he->m_opposite == he )
+				if (he->m_twin == he )
 				{
 					throw std::exception("validation check");
 				}
 
-				if (he->m_opposite->m_opposite != he)
+				if (he->m_twin->m_twin != he)
 				{
 					throw std::exception("validation check");
 				}
@@ -511,12 +511,12 @@ namespace geodesics
 					throw std::exception("validation check");
 				}
 
-				if (!he->is_boundary() && he->m_face != he->m_next->m_face)
+				if (!he->is_boundary() && he->m_incident_face != he->m_next->m_incident_face)
 				{
 					throw std::exception("validation check");
 				}
 
-				if (!he->m_vertex)
+				if (!he->m_incident_vertex)
 				{
 					throw std::exception("validation check");
 				}
@@ -524,7 +524,7 @@ namespace geodesics
 
 			std::for_each( faces_begin(), faces_end(), [] ( const std::shared_ptr<half_face>& face ) -> void
 			{
-				if (face->m_edge->m_face != face)
+				if (face->m_incident_edge->m_incident_face != face)
 				{
 					throw std::exception("validation check");
 				}
@@ -540,11 +540,27 @@ namespace geodesics
 			typedef vertex_half_edge_iterator this_type;
 
 			explicit vertex_half_edge_iterator ( std::shared_ptr<half_vertex> vertex ) :
-			m_vertex( vertex )
-			, m_current( vertex->m_edge )
+			m_incident_vertex( vertex )
+			, m_current( vertex->m_incident_edge )
 			, m_loop_counter(0)
 			{
 				
+			}
+
+			vertex_half_edge_iterator( vertex_half_edge_iterator&& o ) :
+			m_incident_vertex(std::move(o.m_incident_vertex))
+			, m_current(std::move(o.m_current))
+			, m_loop_counter(std::move(o.m_loop_counter))
+			{
+
+			}
+
+			vertex_half_edge_iterator& operator=(vertex_half_edge_iterator&& o)
+			{
+				m_incident_vertex = std::move(o.m_incident_vertex);
+				m_current = std::move(o.m_current);
+				m_loop_counter = std::move(o.m_loop_counter);
+				return *this;
 			}
 
 			reference operator*() const
@@ -562,9 +578,9 @@ namespace geodesics
 			this_type& operator++()
 			{
 				// preincrement
-				m_current = m_current->m_opposite->m_next;
+				m_current = m_current->m_twin->m_next;
 
-				if ( m_current == m_vertex->m_edge )
+				if ( m_current == m_incident_vertex->m_incident_edge )
 				{
 					++m_loop_counter;
 				}
@@ -582,11 +598,21 @@ namespace geodesics
 
 			bool is_valid() const
 			{
-				return  (m_loop_counter == 0 || m_current != m_vertex->m_edge );
+				return  (m_loop_counter == 0 || m_current != m_incident_vertex->m_incident_edge );
+			}
+
+			bool operator==(const vertex_half_edge_iterator& o ) const
+			{
+				return (m_current == o.m_current && m_incident_vertex == o.m_incident_vertex && m_loop_counter == o.m_loop_counter);
+			}
+
+			bool operator !=(const vertex_half_edge_iterator& o ) const
+			{
+				return ! this->operator==(o);
 			}
 
 		private:
-			std::shared_ptr<half_vertex>	m_vertex;
+			std::shared_ptr<half_vertex>	m_incident_vertex;
 			std::shared_ptr<half_edge>		m_current;
 			uint32_t						m_loop_counter;
 		};
@@ -597,9 +623,9 @@ namespace geodesics
 		}
 
 		public:
-		edges_container		m_edges;
+		edges_container		m_incident_edges;
 		vertex_container	m_vertices;
-		faces_container		m_faces;
+		faces_container		m_incident_faces;
 	};
 
 	std::shared_ptr< half_mesh > create_half_mesh ( std::shared_ptr<indexed_face_set::mesh> mesh )
@@ -655,38 +681,38 @@ namespace geodesics
 			auto h_face = std::make_shared<half_face>();
 			faces.push_back(h_face);
 
-			h_face->m_edge = half_edge_01;
+			h_face->m_incident_edge = half_edge_01;
 
 			auto vertex_0 = vertices[face.v0];
 			auto vertex_1 = vertices[face.v1];
 			auto vertex_2 = vertices[face.v2];
 
-			if ( !vertex_0->m_edge)
+			if ( !vertex_0->m_incident_edge)
 			{
-				vertex_0->m_edge = half_edge_01;
+				vertex_0->m_incident_edge = half_edge_01;
 			}
 
-			if ( !vertex_1->m_edge)
+			if ( !vertex_1->m_incident_edge)
 			{
-				vertex_1->m_edge = half_edge_12;
+				vertex_1->m_incident_edge = half_edge_12;
 			}
 
-			if ( !vertex_2->m_edge)
+			if ( !vertex_2->m_incident_edge)
 			{
-				vertex_2->m_edge = half_edge_20;
+				vertex_2->m_incident_edge = half_edge_20;
 			}
 
-			half_edge_01->m_face = h_face;
-			half_edge_12->m_face = h_face;
-			half_edge_20->m_face = h_face;
+			half_edge_01->m_incident_face = h_face;
+			half_edge_12->m_incident_face = h_face;
+			half_edge_20->m_incident_face = h_face;
 
 			half_edge_01->m_next = half_edge_12;
 			half_edge_12->m_next = half_edge_20;
 			half_edge_20->m_next = half_edge_01;
 
-			half_edge_01->m_vertex = vertex_1;
-			half_edge_12->m_vertex = vertex_2;
-			half_edge_20->m_vertex = vertex_0;
+			half_edge_01->m_incident_vertex = vertex_1;
+			half_edge_12->m_incident_vertex = vertex_2;
+			half_edge_20->m_incident_vertex = vertex_0;
 
 		});
 
@@ -706,21 +732,21 @@ namespace geodesics
 				//internal edge
 				if (edge_0 != half_edges.end() && edge_1 != half_edges.end())
 				{
-					edge_0->second->m_opposite = edge_1->second;
-					edge_1->second->m_opposite = edge_0->second;
+					edge_0->second->m_twin = edge_1->second;
+					edge_1->second->m_twin = edge_0->second;
 				}
 				else
 				{
-					//boundary edges
+					//boundary edges, assume in every boundary vertex there are two edges, otherwise is not manifold
 					if ( edge_0 == half_edges.end() && edge_1 != half_edges.end() )
 					{
 						auto hedge = std::make_shared<half_edge>();
 
-						hedge->m_opposite = edge_1->second;
-						edge_1->second->m_opposite = hedge;
+						hedge->m_twin = edge_1->second;
+						edge_1->second->m_twin = hedge;
 
-						hedge->m_vertex = vertices[j];
-						vertices[i]->m_edge = hedge;
+						hedge->m_incident_vertex = vertices[j];
+						vertices[i]->m_incident_edge = hedge;
 
 						boundary_start_edges[ i ] = hedge;
 						boundary_end_edges  [ j ] = hedge;
@@ -729,12 +755,12 @@ namespace geodesics
 					{
 						auto hedge = std::make_shared<half_edge>();
 
-						hedge->m_opposite = edge_0->second;
-						edge_0->second->m_opposite = hedge;
+						hedge->m_twin = edge_0->second;
+						edge_0->second->m_twin = hedge;
 
-						hedge->m_vertex = vertices[i];
+						hedge->m_incident_vertex = vertices[i];
 
-						vertices[j]->m_edge = hedge;
+						vertices[j]->m_incident_edge = hedge;
 
 						boundary_start_edges[ j ] = hedge;
 						boundary_end_edges[ i ] = hedge;
@@ -758,20 +784,20 @@ namespace geodesics
 
 	class dart
 	{
-		std::shared_ptr<half_edge> m_edge;
+		std::shared_ptr<half_edge> m_incident_edge;
 		bool					   m_dir;
 
 		public:
 
 		dart( std::shared_ptr<half_edge> edge, bool dir ) :
-		m_edge(edge)
+		m_incident_edge(edge)
 		, m_dir(dir)
 		{
 
 		}
 
 		dart( dart&& o ) : 
-		m_edge( std::move(o.m_edge) )
+		m_incident_edge( std::move(o.m_incident_edge) )
 		, m_dir ( std::move(o.m_dir) )
 		{
 
@@ -779,14 +805,14 @@ namespace geodesics
 
 		dart& operator=(dart&& o )
 		{
-			m_edge = std::move(o.m_edge);
+			m_incident_edge = std::move(o.m_incident_edge);
 			m_dir = std::move(o.m_dir);
 			return *this;
 		}
 
 		bool operator==(const dart& o ) const
 		{
-			return (m_edge == o.m_edge && m_dir == o.m_dir );
+			return (m_incident_edge == o.m_incident_edge && m_dir == o.m_dir );
 		}
 
 		bool operator!=(const dart&o ) const
@@ -804,11 +830,11 @@ namespace geodesics
 		{
 			if (m_dir)
 			{
-				m_edge = m_edge->m_next->m_next;
+				m_incident_edge = m_incident_edge->m_next->m_next;
 			}
 			else
 			{
-				m_edge = m_edge->m_next;
+				m_incident_edge = m_incident_edge->m_next;
 			}
 
 			m_dir = !m_dir;
@@ -817,7 +843,7 @@ namespace geodesics
 
 		dart& alpha2()
 		{
-			m_edge = m_edge->m_opposite;
+			m_incident_edge = m_incident_edge->m_twin;
 			m_dir = !m_dir;
 			return *this;
 		}
@@ -841,7 +867,7 @@ int wmain(int argc, wchar_t* argv[])
     mesh::face_container     faces;
 
 	
-	
+	/*
 	vertices.push_back ( mesh::vertex( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	vertices.push_back ( mesh::vertex( 1.0f, 0.0f, 0.0f, 1.0f ) );
 	vertices.push_back ( mesh::vertex( 1.0f, 1.0f, 0.0f, 1.0f ) );
@@ -863,9 +889,9 @@ int wmain(int argc, wchar_t* argv[])
 	faces.push_back ( mesh::face( 0, 2, 5 ) );
 	//faces.push_back ( mesh::face( 0, 5, 3 ) );
 	faces.push_back ( mesh::face( 5, 2, 3 ) );
-
+	*/
 	
-	/*
+	
 	vertices.push_back ( mesh::vertex( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	vertices.push_back ( mesh::vertex( 1.0f, 0.0f, 0.0f, 1.0f ) );
 	vertices.push_back ( mesh::vertex( 0.0f, 1.0f, 0.0f, 1.0f ) );
@@ -876,7 +902,7 @@ int wmain(int argc, wchar_t* argv[])
 	
 	faces.push_back ( mesh::face( 0, 1, 2 ) );
 	
-	*/
+	
 	auto m1 = std::make_shared<mesh> ( vertices, normals, faces );
 
 
@@ -884,7 +910,7 @@ int wmain(int argc, wchar_t* argv[])
 
 	h->check_invariants();
 	auto vertex_index = 0;
-	auto end   = h->m_vertices[vertex_index]->m_edge;
+	auto end   = h->m_vertices[vertex_index]->m_incident_edge;
 	auto iter  = end;
 
 	std::cout<<"first"<<std::endl;
@@ -893,21 +919,22 @@ int wmain(int argc, wchar_t* argv[])
 	{
 		auto edge = iter;
 
-		std::cout<< edge->m_vertex->m_x << ", " << edge->m_vertex->m_y << ", " << edge->m_vertex->m_z << std::endl;
+		std::cout<< edge->m_incident_vertex->m_x << ", " << edge->m_incident_vertex->m_y << ", " << edge->m_incident_vertex->m_z << std::endl;
 
-		iter = iter->m_opposite->m_next;
+		iter = iter->m_twin->m_next;
 	}
-	while ( iter != end && iter->m_face);
+	while ( iter != end && iter->m_incident_face);
 
 	std::cout<<"second"<<std::endl;
 
 	auto iter1 = h->vertex_half_edge( vertex_index );
+	auto end1 = iter1;
 	
-	for ( ; iter1.is_valid(); ++iter1 )
+	for ( ; iter1 != end1; ++iter1 )
 	{
 		auto edge = *iter1;
 
-		std::cout<< edge->m_vertex->m_x << ", " << edge->m_vertex->m_y << ", " << edge->m_vertex->m_z << std::endl;
+		std::cout<< edge->m_incident_vertex->m_x << ", " << edge->m_incident_vertex->m_y << ", " << edge->m_incident_vertex->m_z << std::endl;
 	}
 	
 
