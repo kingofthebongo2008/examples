@@ -719,6 +719,41 @@ namespace geodesics
 		std::unordered_map < mesh::pointer , std::shared_ptr<half_edge> >	boundary_start_edges;
 		std::unordered_map < mesh::pointer , std::shared_ptr<half_edge> >	boundary_end_edges;
 
+		std::for_each( half_edges.begin(), half_edges.end(), [&] ( const std::pair < std::pair< mesh::pointer, mesh::pointer >, std::shared_ptr<half_edge> > & he ) -> void
+		{
+			auto edge_pair_0 = he.first;
+
+			auto i = std::get<0>( edge_pair_0 );
+			auto j = std::get<1>( edge_pair_0 );
+
+			auto edge_pair_1 = std::make_pair ( j, i );
+
+			auto edge_0 = he;
+			auto edge_1 = half_edges.find(edge_pair_1);
+
+			// edge_0 is a boundary edge?
+			if ( edge_1 == half_edges.end() )
+			{
+				auto hedge = std::make_shared<half_edge>();
+
+				hedge->m_twin = edge_0.second;
+				edge_0.second->m_twin = hedge;
+
+				hedge->m_incident_vertex = vertices[i];
+
+				vertices[j]->m_incident_edge = hedge;
+
+				boundary_start_edges[ j ] = hedge;
+				boundary_end_edges[ i ] = hedge;
+			}
+			else
+			{
+				edge_0.second->m_twin = edge_1->second;
+				edge_1->second->m_twin = edge_0.second;
+			}
+		});
+
+		/*
 		for( auto i = 0; i < vertex_count; ++i )
 		{
 			for (auto j = i + 1; j < vertex_count; ++j )
@@ -768,6 +803,7 @@ namespace geodesics
 				}
 			}
 		}
+		*/
 
 		std::for_each ( boundary_end_edges.begin(), boundary_end_edges.end(), [&] ( const std::pair< mesh::pointer, std::shared_ptr<half_edge> > & he ) -> void
 		{
@@ -867,7 +903,7 @@ int wmain(int argc, wchar_t* argv[])
     mesh::face_container     faces;
 
 	
-	/*
+	
 	vertices.push_back ( mesh::vertex( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	vertices.push_back ( mesh::vertex( 1.0f, 0.0f, 0.0f, 1.0f ) );
 	vertices.push_back ( mesh::vertex( 1.0f, 1.0f, 0.0f, 1.0f ) );
@@ -889,8 +925,9 @@ int wmain(int argc, wchar_t* argv[])
 	faces.push_back ( mesh::face( 0, 2, 5 ) );
 	//faces.push_back ( mesh::face( 0, 5, 3 ) );
 	faces.push_back ( mesh::face( 5, 2, 3 ) );
-	*/
 	
+	
+	/*
 	
 	vertices.push_back ( mesh::vertex( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	vertices.push_back ( mesh::vertex( 1.0f, 0.0f, 0.0f, 1.0f ) );
@@ -901,7 +938,7 @@ int wmain(int argc, wchar_t* argv[])
 	normals.push_back( mesh::normal( 0.0f, -1.0f, 0.0f, 0.0f ) );
 	
 	faces.push_back ( mesh::face( 0, 1, 2 ) );
-	
+	*/
 	
 	auto m1 = std::make_shared<mesh> ( vertices, normals, faces );
 
