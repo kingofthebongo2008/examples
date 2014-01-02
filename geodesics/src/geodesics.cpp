@@ -361,9 +361,12 @@ namespace geodesics
 
 		half_face( ) :
 		m_incident_edge(nullptr)
+		, m_index(0)
 		{}
 
 		std::shared_ptr<half_edge> m_incident_edge;
+
+		uint32_t m_index;
     };
 
 	class half_edge
@@ -408,7 +411,7 @@ namespace geodesics
 				) :
 		m_incident_edges(edges)
 		, m_vertices(vertices)
-		, m_incident_faces(faces)
+		, m_faces(faces)
 		{}
 
 		half_mesh ( 
@@ -418,7 +421,7 @@ namespace geodesics
 				) :
 		m_incident_edges( std::move(edges) )
 		, m_vertices(std::move ( vertices ))
-		, m_incident_faces(std::move( faces ) )
+		, m_faces(std::move( faces ) )
 		{}
 
 
@@ -444,22 +447,22 @@ namespace geodesics
 
 		face_iterator faces_begin()
 		{
-			return m_incident_faces.begin();
+			return m_faces.begin();
 		}
 
 		face_iterator faces_end()
 		{
-			return m_incident_faces.end();
+			return m_faces.end();
 		}
 
 		const_face_iterator faces_begin() const
 		{
-			return m_incident_faces.begin();
+			return m_faces.begin();
 		}
 
 		const_face_iterator faces_end() const
 		{
-			return m_incident_faces.end();
+			return m_faces.end();
 		}
 
 		half_edge_iterator edges_begin()
@@ -531,15 +534,14 @@ namespace geodesics
 			});
 		}
 
-
-		class vertex_half_edge_iterator : public std::iterator<
+		class vertex_vertex_iterator : public std::iterator<
 			std::input_iterator_tag, std::shared_ptr<half_edge> , std::ptrdiff_t,
 			const  std::shared_ptr<half_edge>* , const std::shared_ptr<half_edge>& >
 		{
 			public:
-			typedef vertex_half_edge_iterator this_type;
+			typedef vertex_vertex_iterator this_type;
 
-			explicit vertex_half_edge_iterator ( std::shared_ptr<half_vertex> vertex ) :
+			explicit vertex_vertex_iterator ( std::shared_ptr<half_vertex> vertex ) :
 			m_incident_vertex( vertex )
 			, m_current( vertex->m_incident_edge )
 			, m_loop_counter(0)
@@ -547,7 +549,7 @@ namespace geodesics
 				
 			}
 
-			vertex_half_edge_iterator( vertex_half_edge_iterator&& o ) :
+			vertex_vertex_iterator( vertex_vertex_iterator&& o ) :
 			m_incident_vertex(std::move(o.m_incident_vertex))
 			, m_current(std::move(o.m_current))
 			, m_loop_counter(std::move(o.m_loop_counter))
@@ -555,7 +557,7 @@ namespace geodesics
 
 			}
 
-			vertex_half_edge_iterator& operator=(vertex_half_edge_iterator&& o)
+			vertex_vertex_iterator& operator=(vertex_vertex_iterator&& o)
 			{
 				m_incident_vertex = std::move(o.m_incident_vertex);
 				m_current = std::move(o.m_current);
@@ -601,12 +603,12 @@ namespace geodesics
 				return  (m_loop_counter == 0 || m_current != m_incident_vertex->m_incident_edge );
 			}
 
-			bool operator==(const vertex_half_edge_iterator& o ) const
+			bool operator==(const vertex_vertex_iterator& o ) const
 			{
 				return (m_current == o.m_current && m_incident_vertex == o.m_incident_vertex && m_loop_counter == o.m_loop_counter);
 			}
 
-			bool operator !=(const vertex_half_edge_iterator& o ) const
+			bool operator !=(const vertex_vertex_iterator& o ) const
 			{
 				return ! this->operator==(o);
 			}
@@ -617,15 +619,217 @@ namespace geodesics
 			uint32_t						m_loop_counter;
 		};
 
-		vertex_half_edge_iterator vertex_half_edge ( uint32_t vertex_index )
+		class vertex_face_iterator : public std::iterator<
+			std::input_iterator_tag, std::shared_ptr<half_edge> , std::ptrdiff_t,
+			const  std::shared_ptr<half_edge>* , const std::shared_ptr<half_edge>& >
 		{
-			return vertex_half_edge_iterator( m_vertices[vertex_index] );
+			public:
+			typedef vertex_face_iterator this_type;
+
+			explicit vertex_face_iterator ( std::shared_ptr<half_vertex> vertex ) :
+			m_incident_vertex( vertex )
+			, m_current( vertex->m_incident_edge )
+			, m_loop_counter(0)
+			{
+				//if we are the boundary
+				if (!m_current->m_incident_face)
+				{
+					m_current = m_current->m_twin->m_next;
+
+					if ( m_current == m_incident_vertex->m_incident_edge )
+					{
+						++m_loop_counter;
+					}
+				}
+			}
+
+			vertex_face_iterator( vertex_face_iterator&& o ) :
+			m_incident_vertex(std::move(o.m_incident_vertex))
+			, m_current(std::move(o.m_current))
+			, m_loop_counter(std::move(o.m_loop_counter))
+			{
+
+			}
+
+			vertex_face_iterator& operator=(vertex_face_iterator&& o)
+			{
+				m_incident_vertex = std::move(o.m_incident_vertex);
+				m_current = std::move(o.m_current);
+				m_loop_counter = std::move(o.m_loop_counter);
+				return *this;
+			}
+
+			reference operator*() const
+			{	
+				// return designated value
+				return (m_current);
+			}
+
+			pointer operator->() const
+			{	
+				// return pointer to class object
+				return (&m_current);
+			}
+
+			this_type& operator++()
+			{
+				// preincrement
+				m_current = m_current->m_twin->m_next;
+				
+				if ( m_current == m_incident_vertex->m_incident_edge )
+				{
+					++m_loop_counter;
+				}
+
+				return (*this);
+			}
+
+			this_type operator++(int)
+			{
+				// postincrement
+				this_type tmp = *this;
+				++*this;
+				return (tmp);
+			}
+
+			bool is_valid() const
+			{
+				return  (m_loop_counter == 0 || m_current != m_incident_vertex->m_incident_edge );
+			}
+
+			bool operator==(const vertex_face_iterator& o ) const
+			{
+				return (m_current == o.m_current && m_incident_vertex == o.m_incident_vertex && m_loop_counter == o.m_loop_counter);
+			}
+
+			bool operator !=(const vertex_face_iterator& o ) const
+			{
+				return ! this->operator==(o);
+			}
+
+		private:
+			std::shared_ptr<half_vertex>	m_incident_vertex;
+			std::shared_ptr<half_edge>		m_current;
+			uint32_t						m_loop_counter;
+		};
+
+		class face_face_iterator : public std::iterator<
+			std::input_iterator_tag, std::shared_ptr<half_edge> , std::ptrdiff_t,
+			const  std::shared_ptr<half_edge>* , const std::shared_ptr<half_edge>& >
+		{
+			public:
+
+			typedef face_face_iterator this_type;
+
+			explicit face_face_iterator ( std::shared_ptr<half_face> face ) :
+			m_face( face )
+			, m_current( face->m_incident_edge )
+			, m_loop_counter(0)
+			{
+				m_result  = m_current->m_twin;
+
+				//if we are on a boundary, do one iteration
+				if (! m_result->m_incident_face )
+				{
+					this->operator++();
+				}
+			}
+
+			face_face_iterator( face_face_iterator&& o ) :
+			m_face(std::move(o.m_face))
+			, m_current(std::move(o.m_current))
+			, m_result(std::move(o.m_result))
+			, m_loop_counter(std::move(o.m_loop_counter))
+			
+			{
+
+			}
+
+			face_face_iterator& operator=(face_face_iterator&& o)
+			{
+				m_face = std::move(o.m_face);
+				m_current = std::move(o.m_current);
+				m_result = std::move(o.m_result);
+				m_loop_counter = std::move(o.m_loop_counter);
+				return *this;
+			}
+
+			reference operator*() const
+			{	
+				// return designated value
+				return (m_result);
+			}
+
+			pointer operator->() const
+			{	
+				// return pointer to class object
+				return (&m_result);
+			}
+
+			this_type& operator++()
+			{
+				// preincrement
+				m_current = m_current->m_next;
+				m_result  = m_current->m_twin;
+				
+				if ( m_current == m_face->m_incident_edge )
+				{
+					++m_loop_counter;
+				}
+
+				return (*this);
+			}
+
+			this_type operator++(int)
+			{
+				// postincrement
+				this_type tmp = *this;
+				++*this;
+				return (tmp);
+			}
+
+			bool is_valid() const
+			{
+				return  (m_loop_counter == 0 || m_current != m_face->m_incident_edge );
+			}
+
+			bool operator==(const face_face_iterator& o ) const
+			{
+				return (m_current == o.m_current && m_face == o.m_face && m_result == o.m_result && m_loop_counter == o.m_loop_counter);
+			}
+
+			bool operator !=(const face_face_iterator& o ) const
+			{
+				return ! this->operator==(o);
+			}
+
+		private:
+			std::shared_ptr<half_face>		m_face;
+			std::shared_ptr<half_edge>		m_current;
+			std::shared_ptr<half_edge>		m_result;
+			uint32_t						m_loop_counter;
+		};
+
+
+		vertex_vertex_iterator vertex_vertex ( uint32_t vertex_index )
+		{
+			return vertex_vertex_iterator( m_vertices[vertex_index] );
+		}
+
+		vertex_face_iterator vertex_face ( uint32_t vertex_index )
+		{
+			return vertex_face_iterator( m_vertices[vertex_index] );
+		}
+
+		face_face_iterator face_face ( uint32_t face_index )
+		{
+			return face_face_iterator( m_faces[face_index] );
 		}
 
 		public:
 		edges_container		m_incident_edges;
 		vertex_container	m_vertices;
-		faces_container		m_incident_faces;
+		faces_container		m_faces;
 	};
 
 	std::shared_ptr< half_mesh > create_half_mesh ( std::shared_ptr<indexed_face_set::mesh> mesh )
@@ -668,6 +872,7 @@ namespace geodesics
 			edges.push_back(std::move( half_edge_20) );
 		});
 
+		uint32_t face_count = 0;
 		std::for_each ( mesh->faces_begin(), mesh->faces_end(), [&] ( const mesh::face& face ) -> void
 		{
 			auto edge01 = std::make_pair( face.v0, face.v1 );
@@ -682,6 +887,7 @@ namespace geodesics
 			faces.push_back(h_face);
 
 			h_face->m_incident_edge = half_edge_01;
+			h_face->m_index = face_count++;
 
 			auto vertex_0 = vertices[face.v0];
 			auto vertex_1 = vertices[face.v1];
@@ -742,6 +948,9 @@ namespace geodesics
 				hedge->m_incident_vertex = vertices[i];
 
 				vertices[j]->m_incident_edge = hedge;
+
+				//make the boundary edge to be the edge in the face
+				edge_0.second->m_incident_face->m_incident_edge = edge_0.second;
 
 				boundary_start_edges[ j ] = hedge;
 				boundary_end_edges[ i ] = hedge;
@@ -927,8 +1136,8 @@ int wmain(int argc, wchar_t* argv[])
 	faces.push_back ( mesh::face( 5, 2, 3 ) );
 	
 	
-	/*
 	
+	/*	
 	vertices.push_back ( mesh::vertex( 0.0f, 0.0f, 0.0f, 1.0f ) );
 	vertices.push_back ( mesh::vertex( 1.0f, 0.0f, 0.0f, 1.0f ) );
 	vertices.push_back ( mesh::vertex( 0.0f, 1.0f, 0.0f, 1.0f ) );
@@ -946,32 +1155,27 @@ int wmain(int argc, wchar_t* argv[])
 	auto h = geodesics::create_half_mesh( m1 );
 
 	h->check_invariants();
-	auto vertex_index = 0;
+	auto vertex_index = 4;
 	auto end   = h->m_vertices[vertex_index]->m_incident_edge;
 	auto iter  = end;
 
 	std::cout<<"first"<<std::endl;
-
-	do
-	{
-		auto edge = iter;
-
-		std::cout<< edge->m_incident_vertex->m_x << ", " << edge->m_incident_vertex->m_y << ", " << edge->m_incident_vertex->m_z << std::endl;
-
-		iter = iter->m_twin->m_next;
-	}
-	while ( iter != end && iter->m_incident_face);
-
-	std::cout<<"second"<<std::endl;
-
-	auto iter1 = h->vertex_half_edge( vertex_index );
+	auto face_index = 3;
+	auto iter1 = h->face_face( face_index );
 	auto end1 = iter1;
 	
-	for ( ; iter1 != end1; ++iter1 )
+	for ( ; iter1.is_valid(); ++iter1 )
 	{
 		auto edge = *iter1;
 
-		std::cout<< edge->m_incident_vertex->m_x << ", " << edge->m_incident_vertex->m_y << ", " << edge->m_incident_vertex->m_z << std::endl;
+		if (edge->m_incident_face)
+		{
+			std::cout<< edge->m_incident_face->m_index << std::endl;
+		}
+		else
+		{
+			std::cout<< "boundary " << std::endl;
+		}
 	}
 	
 
