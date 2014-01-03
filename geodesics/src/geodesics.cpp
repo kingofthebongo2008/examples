@@ -331,6 +331,10 @@ namespace geodesics
 		class half_edge;
 		class face;
 
+		typedef std::shared_ptr< half_edge > half_edge_pointer;
+		typedef std::shared_ptr< vertex >	 vertex_pointer;
+		typedef std::shared_ptr < face >	 face_pointer;
+
 		class vertex : public mem::alloc_aligned< vertex >
 		{
 			public:
@@ -357,7 +361,7 @@ namespace geodesics
 			float	   m_w;
 			uint32_t m_index;
 
-			std::shared_ptr<half_edge> m_incident_edge;
+			half_edge_pointer m_incident_edge;
 		};
 
 		class face
@@ -369,7 +373,7 @@ namespace geodesics
 			, m_index(0)
 			{}
 
-			std::shared_ptr<half_edge> m_incident_edge;
+			half_edge_pointer m_incident_edge;
 
 			uint32_t m_index;
 		};
@@ -381,11 +385,11 @@ namespace geodesics
 			half_edge()
 			{}
 
-			std::shared_ptr<half_edge>		m_next;
-			std::shared_ptr<half_edge>		m_twin;	
+			half_edge_pointer		m_next;
+			half_edge_pointer		m_twin;	
 
-			std::shared_ptr<face>			m_incident_face;
-			std::shared_ptr<vertex>	m_incident_vertex;
+			face_pointer	m_incident_face;
+			vertex_pointer	m_incident_vertex;
 
 			bool is_boundary() const
 			{
@@ -397,9 +401,9 @@ namespace geodesics
 		{
 			public:
 
-			typedef std::vector< std::shared_ptr<half_edge> >	edges_container;
-			typedef std::vector< std::shared_ptr<vertex> >		vertex_container;
-			typedef std::vector< std::shared_ptr<face> >		faces_container;
+			typedef std::vector< half_edge_pointer >			edges_container;
+			typedef std::vector< vertex_pointer >		vertex_container;
+			typedef std::vector< face_pointer >		faces_container;
 
 			typedef vertex_container::iterator					vertex_iterator;
 			typedef faces_container::iterator					face_iterator;
@@ -491,13 +495,13 @@ namespace geodesics
 			}
 
 			class vertex_vertex_iterator : public std::iterator<
-				std::input_iterator_tag, std::shared_ptr<half_edge> , std::ptrdiff_t,
-				const  std::shared_ptr<half_edge>* , const std::shared_ptr<half_edge>& >
+				std::input_iterator_tag, half_edge_pointer , std::ptrdiff_t,
+				const  half_edge_pointer* , const half_edge_pointer& >
 			{
 				public:
 				typedef vertex_vertex_iterator this_type;
 
-				explicit vertex_vertex_iterator ( std::shared_ptr<vertex> vertex ) :
+				explicit vertex_vertex_iterator ( vertex_pointer vertex ) :
 				m_incident_vertex( vertex )
 				, m_current( vertex->m_incident_edge )
 				, m_loop_counter(0)
@@ -570,19 +574,19 @@ namespace geodesics
 				}
 
 			private:
-				std::shared_ptr<vertex>			m_incident_vertex;
-				std::shared_ptr<half_edge>		m_current;
+				vertex_pointer			m_incident_vertex;
+				half_edge_pointer		m_current;
 				uint32_t						m_loop_counter;
 			};
 
 			class vertex_face_iterator : public std::iterator<
-				std::input_iterator_tag, std::shared_ptr<half_edge> , std::ptrdiff_t,
-				const  std::shared_ptr<half_edge>* , const std::shared_ptr<half_edge>& >
+				std::input_iterator_tag, half_edge_pointer , std::ptrdiff_t,
+				const  half_edge_pointer* , const half_edge_pointer& >
 			{
 				public:
 				typedef vertex_face_iterator this_type;
 
-				explicit vertex_face_iterator ( std::shared_ptr<vertex> vertex ) :
+				explicit vertex_face_iterator ( vertex_pointer vertex ) :
 				m_incident_vertex( vertex )
 				, m_current( vertex->m_incident_edge )
 				, m_loop_counter(0)
@@ -664,20 +668,20 @@ namespace geodesics
 				}
 
 			private:
-				std::shared_ptr<vertex>			m_incident_vertex;
-				std::shared_ptr<half_edge>		m_current;
-				uint32_t						m_loop_counter;
+				vertex_pointer			m_incident_vertex;
+				half_edge_pointer		m_current;
+				uint32_t				m_loop_counter;
 			};
 
 			class face_face_iterator : public std::iterator<
-				std::input_iterator_tag, std::shared_ptr<half_edge> , std::ptrdiff_t,
-				const  std::shared_ptr<half_edge>* , const std::shared_ptr<half_edge>& >
+				std::input_iterator_tag, half_edge_pointer , std::ptrdiff_t,
+				const  half_edge_pointer* , const half_edge_pointer& >
 			{
 				public:
 
 				typedef face_face_iterator this_type;
 
-				explicit face_face_iterator ( std::shared_ptr<face> face ) :
+				explicit face_face_iterator ( face_pointer face ) :
 				m_face( face )
 				, m_current( face->m_incident_edge )
 				, m_loop_counter(0)
@@ -755,20 +759,20 @@ namespace geodesics
 				}
 
 			private:
-				std::shared_ptr<face>			m_face;
-				std::shared_ptr<half_edge>		m_current;
+				face_pointer			m_face;
+				half_edge_pointer		m_current;
 				uint32_t						m_loop_counter;
 			};
 
 			class face_vertex_iterator : public std::iterator<
-				std::input_iterator_tag, std::shared_ptr<half_edge> , std::ptrdiff_t,
-				const  std::shared_ptr<half_edge>* , const std::shared_ptr<half_edge>& >
+				std::input_iterator_tag, half_edge_pointer , std::ptrdiff_t,
+				const  half_edge_pointer* , const half_edge_pointer& >
 			{
 				public:
 
 				typedef face_vertex_iterator this_type;
 
-				explicit face_vertex_iterator ( std::shared_ptr<face> face ) :
+				explicit face_vertex_iterator ( face_pointer face ) :
 				m_face( face )
 				, m_current( face->m_incident_edge )
 				, m_loop_counter(0)
@@ -842,8 +846,8 @@ namespace geodesics
 				}
 
 			private:
-				std::shared_ptr<face>			m_face;
-				std::shared_ptr<half_edge>		m_current;
+				face_pointer			m_face;
+				half_edge_pointer		m_current;
 				uint32_t						m_loop_counter;
 			};
 
@@ -881,7 +885,7 @@ namespace geodesics
 
 			void check_invariants() const
 			{
-				std::for_each( edges_begin(), edges_end(), [&] ( const std::shared_ptr<half_edge>& he ) -> void
+				std::for_each( edges_begin(), edges_end(), [&] ( const half_edge_pointer& he ) -> void
 				{
 					if (!he->m_twin)
 					{
@@ -919,7 +923,7 @@ namespace geodesics
 					}
 				});
 
-				std::for_each( faces_begin(), faces_end(), [&] ( const std::shared_ptr<face>& face ) -> void
+				std::for_each( faces_begin(), faces_end(), [&] ( const face_pointer& face ) -> void
 				{
 					if (face->m_incident_edge->m_incident_face != face)
 					{
@@ -932,21 +936,60 @@ namespace geodesics
 
 	}
 
-	class mesh_pointer_hash 
-		: public std::unary_function< std::pair < indexed_face_set::mesh::pointer, indexed_face_set::mesh::pointer >, size_t>
-	{	// hash functor
+	class mesh_pointer_hash : public std::unary_function< std::pair < indexed_face_set::mesh::pointer, indexed_face_set::mesh::pointer >, size_t>
+	{
 		public:
-			typedef std::pair < indexed_face_set::mesh::pointer, indexed_face_set::mesh::pointer > value_type;
-
-			size_t operator()(const value_type& v) const
-				{
-					// hash _Keyval to size_t value by pseudorandomizing transform
-					uint64_t v0 = std::get<0>(v);
-					uint64_t v1 = std::get<1>(v);
-					uint64_t value = v1 << 32 | v0;
-					return (std::hash<uint64_t>()((value & (_ULLONG_MAX >> 1)) == 0 ? 0 : value));
-				}
+			result_type operator()(const argument_type& v) const
+			{
+				// hash _Keyval to size_t value by pseudorandomizing transform
+				uint64_t v0 = std::get<0>(v);
+				uint64_t v1 = std::get<1>(v);
+				uint64_t value = v1 << 32 | v0;
+				return (std::hash<uint64_t>()((value & (_ULLONG_MAX >> 1)) == 0 ? 0 : value));
+			}
 	};
+
+	
+	inline hds::half_edge_pointer make_half_edge()
+	{
+		return std::make_shared<hds::half_edge> ( );
+	}
+
+	inline hds::face_pointer	make_face()
+	{
+		return std::make_shared<hds::face> ( );
+	}
+
+	inline hds::vertex_pointer	make_vertex()
+	{
+		return std::make_shared<hds::vertex> ( );
+	}
+
+	template<typename t1> inline hds::vertex_pointer make_vertex(t1&& arg1)
+	{
+		return std::make_shared<hds::vertex>( std::forward<t1>(arg1) );
+	}
+
+	template<typename t1, typename t2> inline hds::vertex_pointer make_vertex(t1&& arg1, t2&& arg2)
+	{
+		return std::make_shared<hds::vertex>( std::forward<t1>(arg1), std::forward<t2>(arg2) );
+	}
+
+	template<typename t1, typename t2, typename t3> inline hds::vertex_pointer make_vertex(t1&& arg1, t2&& arg2, t3&& arg3)
+	{
+		return std::make_shared<hds::vertex>( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3) );
+	}
+
+	template<typename t1, typename t2, typename t3, typename t4> inline hds::vertex_pointer make_vertex(t1&& arg1, t2&& arg2, t3&& arg3, t4&& arg4)
+	{
+		return std::make_shared<hds::vertex>( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3), std::forward<t4>(arg4)   );
+	}
+
+	template<typename t1, typename t2, typename t3, typename t4, typename t5 > inline hds::vertex_pointer make_vertex(t1&& arg1, t2&& arg2, t3&& arg3, t4&& arg4, t5&& arg5)
+	{
+		return std::make_shared<hds::vertex>( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3), std::forward<t4>(arg4), std::forward<t5>(arg5) );
+	}
+
 
 	std::shared_ptr< hds::mesh > create_half_mesh ( std::shared_ptr<indexed_face_set::mesh> mesh )
 	{
@@ -965,7 +1008,7 @@ namespace geodesics
 		uint32_t vertex_indexer = 0;
 		std::for_each(mesh->vertices_begin(), mesh->vertices_end(), [&](const indexed_face_set::mesh::vertex& vertex ) -> void 
 		{
-			vertices.push_back( std::make_shared<hds::vertex>( vertex.x, vertex.y, vertex.z, vertex.w, vertex_indexer++ ) );
+			vertices.push_back( make_vertex( vertex.x, vertex.y, vertex.z, vertex.w, vertex_indexer++ ) );
 		});
 
 		std::unordered_map < std::pair < pointer, pointer >, std::shared_ptr< hds::half_edge>, mesh_pointer_hash > half_edges;
@@ -976,9 +1019,9 @@ namespace geodesics
 			auto edge12 = std::make_pair( face.v1, face.v2 );
 			auto edge20 = std::make_pair( face.v2, face.v0 );
 
-			auto half_edge_01 = std::make_shared<hds::half_edge>();
-			auto half_edge_12 = std::make_shared<hds::half_edge>();
-			auto half_edge_20 = std::make_shared<hds::half_edge>();
+			auto half_edge_01 = make_half_edge();
+			auto half_edge_12 = make_half_edge();
+			auto half_edge_20 = make_half_edge();
 
 			half_edges.insert ( std::make_pair( std::move( edge01 ), half_edge_01 ) );
 			half_edges.insert ( std::make_pair( std::move( edge12 ), half_edge_12 ) );
@@ -1000,7 +1043,7 @@ namespace geodesics
 			auto half_edge_12 = half_edges[ edge12 ];
 			auto half_edge_20 = half_edges[ edge20 ];
 
-			auto h_face = std::make_shared<hds::face>();
+			auto h_face = make_face();
 
 			h_face->m_incident_edge = half_edge_01;
 			h_face->m_index = face_count++;
@@ -1059,7 +1102,7 @@ namespace geodesics
 			// edge_0 is a boundary edge?
 			if ( edge_1 == half_edges.end() )
 			{
-				auto hedge = std::make_shared<hds::half_edge>();
+				auto hedge = make_half_edge();
 
 				hedge->m_twin = edge_0.second;
 				edge_0.second->m_twin = hedge;
