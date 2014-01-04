@@ -334,16 +334,15 @@ namespace geodesics
 		class half_edge;
 		class face;
 
-		
+#if defined(USE_SHARED_PTR)		
 		typedef std::shared_ptr< half_edge > half_edge_pointer;
 		typedef std::shared_ptr< vertex >	 vertex_pointer;
 		typedef std::shared_ptr < face >	 face_pointer;
-		
-		/*
+#else
 		typedef mem::intrusive_ptr< half_edge > half_edge_pointer;
 		typedef mem::intrusive_ptr< vertex >	vertex_pointer;
 		typedef mem::intrusive_ptr< face >		face_pointer;
-		*/
+#endif
 
 		class vertex : public mem::alloc_aligned< vertex >, public mem::ref_counter<vertex>
 		{
@@ -966,50 +965,74 @@ namespace geodesics
 
 	inline hds::half_edge_pointer make_half_edge()
 	{
+#if defined(USE_SHARED_PTR)	
 		return std::make_shared<hds::half_edge> ( );
-		//return mem::intrusive_ptr<hds::half_edge>( new hds::half_edge() );
+#else
+		return mem::intrusive_ptr<hds::half_edge>( new hds::half_edge() );
+#endif
 	}
 
 	inline hds::face_pointer	make_face()
 	{
+#if defined(USE_SHARED_PTR)	
 		return std::make_shared<hds::face> ( );
-		//return mem::intrusive_ptr<hds::face>( new hds::face() );
+#else
+		return mem::intrusive_ptr<hds::face>( new hds::face() );
+#endif
 	}
 
 	inline hds::vertex_pointer	make_vertex()
 	{
+#if defined(USE_SHARED_PTR)	
 		return std::make_shared<hds::vertex> ( );
-		//return mem::intrusive_ptr<hds::vertex>( new hds::vertex() );
+#else
+		return mem::intrusive_ptr<hds::vertex>( new hds::vertex() );
+#endif
 	}
 
 	template<typename t1> inline hds::vertex_pointer make_vertex(t1&& arg1)
 	{
+#if defined(USE_SHARED_PTR)	
 		return std::make_shared<hds::vertex>( std::forward<t1>(arg1) );
-		//return mem::intrusive_ptr<hds::vertex>( new hds::vertex( std::forward<t1>(arg1) ) );
+#else
+		return mem::intrusive_ptr<hds::vertex>( new hds::vertex( std::forward<t1>(arg1) ) );
+#endif
 	}
 
 	template<typename t1, typename t2> inline hds::vertex_pointer make_vertex(t1&& arg1, t2&& arg2)
 	{
+#if defined(USE_SHARED_PTR)	
 		return std::make_shared<hds::vertex>( std::forward<t1>(arg1), std::forward<t2>(arg2) );
-		//return mem::intrusive_ptr<hds::vertex>( new hds::vertex( std::forward<t1>(arg1), std::forward<t2>(arg2) ) );
+#else
+		return mem::intrusive_ptr<hds::vertex>( new hds::vertex( std::forward<t1>(arg1), std::forward<t2>(arg2) ) );
+#endif
 	}
 
 	template<typename t1, typename t2, typename t3> inline hds::vertex_pointer make_vertex(t1&& arg1, t2&& arg2, t3&& arg3)
 	{
+#if defined(USE_SHARED_PTR)	
 		return std::make_shared<hds::vertex>( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3) );
-		//return mem::intrusive_ptr<hds::vertex>( new hds::vertex( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3) ) );
+#else
+		return mem::intrusive_ptr<hds::vertex>( new hds::vertex( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3) ) );
+#endif
 	}
 
 	template<typename t1, typename t2, typename t3, typename t4> inline hds::vertex_pointer make_vertex(t1&& arg1, t2&& arg2, t3&& arg3, t4&& arg4)
 	{
+#if defined(USE_SHARED_PTR)	
 		return std::make_shared<hds::vertex>( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3), std::forward<t4>(arg4)   );
-		//return mem::intrusive_ptr<hds::vertex>( new hds::vertex( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3), std::forward<t4>(arg4) ) );
+#else
+		return mem::intrusive_ptr<hds::vertex>( new hds::vertex( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3), std::forward<t4>(arg4) ) );
+#endif
 	}
 
 	template<typename t1, typename t2, typename t3, typename t4, typename t5 > inline hds::vertex_pointer make_vertex(t1&& arg1, t2&& arg2, t3&& arg3, t4&& arg4, t5&& arg5)
 	{
+#if defined(USE_SHARED_PTR)	
 		return std::make_shared<hds::vertex>( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3), std::forward<t4>(arg4), std::forward<t5>(arg5) );
-		//return mem::intrusive_ptr<hds::vertex>( new hds::vertex( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3), std::forward<t4>(arg4), std::forward<t5>(arg5) ) );
+#else
+		return mem::intrusive_ptr<hds::vertex>( new hds::vertex( std::forward<t1>(arg1), std::forward<t2>(arg2), std::forward<t3>(arg3), std::forward<t4>(arg4), std::forward<t5>(arg5) ) );
+#endif
 	}
 
 
@@ -1034,6 +1057,7 @@ namespace geodesics
 		});
 
 		std::unordered_map < std::pair < pointer, pointer >, hds::half_edge_pointer, mesh_pointer_hash > half_edges;
+		//std::map < std::pair < pointer, pointer >, hds::half_edge_pointer> half_edges;
 
 		std::for_each ( mesh->faces_begin(), mesh->faces_end(), [&] ( const indexed_face_set::mesh::face& face ) -> void
 		{
@@ -1313,7 +1337,6 @@ int wmain(int argc, wchar_t* argv[])
 	std::cout<<"mesh loaded for "<< seconds_loaded_elapsed <<" milliseconds" << std::endl;
 	std::cout<<"half_mesh created for "<< seconds_created_elapsed <<" milliseconds" << std::endl;
 	
-   
 	return 0;
 }
 
