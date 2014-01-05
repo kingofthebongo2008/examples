@@ -1,4 +1,5 @@
 ﻿#include <cstdint>
+#include <fstream>
 #include <iostream>
 #include <memory>
 
@@ -14,15 +15,15 @@
 #include <jxr/jxr_prefilter.h>
 #include <jxr/jxr_overlapfilter.h>
 #include <jxr/jxr_pct.h>
+#include <jxr/jxr_decompose.h>
 
 #include <os/windows/com_initializer.h>
 
+#include "img_images.h"
 #include "img_loader.h"
 
 namespace example
 {
-    void add_with_cuda(int32_t * c, const int32_t * a, uint32_t size);
-
     class cuda_initializer
     {
         public:
@@ -81,36 +82,12 @@ namespace example
         c[i+15] = v[15];
     }
 
-    // Helper function for using CUDA to add vectors in parallel.
-    void add_with_cuda(int *c, const int *a, uint32_t size)
-    {
-        // Allocate GPU buffers for three vectors (two input, one output)    .
-        auto dev_a = std::make_shared< cuda::memory_buffer > ( size * sizeof( int32_t )  );
-        auto dev_c = std::make_shared< cuda::memory_buffer > ( size * sizeof( int32_t )  );
-
-        // Copy input vectors from host memory to GPU buffers.
-        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(*dev_a, a, size * sizeof(int32_t), cudaMemcpyHostToDevice) );
-
-        // Launch a kernel on the GPU with one thread for each element.
-        addKernel<<<1, 1>>>( *dev_c, *dev_a );
-
-        // Check for any errors launching the kernel
-        cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
-   
-        // cudaDeviceSynchronize waits for the kernel to finish, and returns
-        // any errors encountered during the launch.
-        cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
-
-        // Copy output vector from GPU buffer to host memory.
-        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy(c, dev_c->get(), size * sizeof(int32_t), cudaMemcpyDeviceToHost) );
-    }
-
     struct rgb 
     {
         uint8_t color[3];
     };
 
-    __global__ void decompose_kernel( const rgb* in, uint32_t* y_color, uint32_t* co_color, uint32_t* cg_color, const uint32_t read_pitch, const uint32_t write_pitch )
+    __global__ void decompose_ycocg_kernel( const rgb* in, uint32_t* y_color, uint32_t* co_color, uint32_t* cg_color, const uint32_t read_pitch, const uint32_t write_pitch )
     {
         auto x = blockIdx.x * blockDim.x + threadIdx.x;
         auto y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -131,72 +108,7 @@ namespace example
         cg_color[ row * write_pitch + col ] = b_cg;
     }
 
-    class ycocg_image
-    {
-        public:
-
-        ycocg_image
-            (
-                std::shared_ptr< cuda::memory_buffer >  y_buffer,
-                std::shared_ptr< cuda::memory_buffer >  co_buffer,
-                std::shared_ptr< cuda::memory_buffer >  cg_buffer,
-
-                uint32_t                                width,
-                uint32_t                                height,
-                uint32_t                                pitch
-            ) :
-              m_y_buffer(y_buffer)
-            , m_co_buffer(co_buffer)
-            , m_cg_buffer(cg_buffer)
-            , m_width(width)
-            , m_height(height)
-            , m_pitch(pitch)
-        {
-
-        }
-
-
-        std::shared_ptr< cuda::memory_buffer >  get_y() const
-        {
-            return m_y_buffer;
-        }
-
-        std::shared_ptr< cuda::memory_buffer >  get_co() const
-        {
-            return m_co_buffer;
-        }
-
-        std::shared_ptr< cuda::memory_buffer >  get_cg() const
-        {
-            return m_cg_buffer;
-        }
-
-        uint32_t    get_width() const
-        {
-            return m_width;
-        }
-
-        uint32_t    get_height() const
-        {
-            return m_height;
-        }
-
-        uint32_t    get_pitch() const
-        {
-            return m_pitch;
-        }
-
-        private:
-        std::shared_ptr< cuda::memory_buffer >  m_y_buffer;
-        std::shared_ptr< cuda::memory_buffer >  m_co_buffer;
-        std::shared_ptr< cuda::memory_buffer >  m_cg_buffer;
-
-        uint32_t                                m_width;
-        uint32_t                                m_height;
-        uint32_t                                m_pitch;
-
-    };
-
+    
     ycocg_image decompose_ycocg ( const image& image ) 
     {
         auto w         = image.get_width();
@@ -210,7 +122,7 @@ namespace example
         auto blocks = 1;
         auto threads_per_block = dim3( w, h );
 
-        decompose_kernel<<<blocks, threads_per_block>>>( image, *y_buffer, *co_buffer, *cg_buffer, image.get_pitch(), w );
+        decompose_ycocg_kernel<<<blocks, threads_per_block>>>( image, *y_buffer, *co_buffer, *cg_buffer, image.get_pitch(), w );
 
         cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
         cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
@@ -255,6 +167,50 @@ int32_t main()
 
         jpegxr::transforms::pixel c[arraySize] = { 0 };
 
+        #define _CC(r, g, b) (b -= r, r += ((b + 1) >> 1) - g, g += ((r + 0) >> 1))
+
+        for (int32_t i = 0; i < 255; ++i)
+        {
+            for (int32_t j = 0; j <255; ++j)
+            {
+                for (int32_t k = 0; k < 255; ++k )
+                {
+                    auto r = i;
+                    auto g = j;
+                    auto b = k;
+
+                    /*
+                    auto r = 144;
+                    auto g = 126;
+                    auto b = 47;
+
+                    auto r1 = 144;
+                    auto g1 = 126;
+                    auto b1 = 47;
+
+                    _CC(r1, g1, b1);
+
+                    //auto  pU[iPos] = -r, pV[iPos] = b, pY[iPos] = g - iOffset;
+                    auto  y = g1 - 128;
+                    auto  u = -r1;
+                    auto  v = b1;
+                    
+                    */
+                    using namespace jpegxr::transforms;
+
+                    rgb_2_yuv< scale::no_scale, bias::bd8 >(&r, &g, &b);
+                    yuv_2_rgb< scale::no_scale, bias::bd8 >(&r, &g, &b);
+
+                    if  ( !( r == i && g == j && b == k ) )
+                    {
+                        throw std::exception("error");
+                    }
+
+
+                }
+            }
+        }
+
         auto ycocg = decompose_ycocg(*image);
 
         auto w      = ycocg.get_width();
@@ -269,7 +225,6 @@ int32_t main()
         jpegxr::prefilter4x4( ycocg.get_y(), w, h, pitch );
         jpegxr::prefilter4_horizontal( ycocg.get_y(), w, h, pitch );
         jpegxr::prefilter4_vertical( ycocg.get_y(), w, h, pitch );
-
         jpegxr::pct4x4( ycocg.get_y(), w, h, pitch );
 
         jpegxr::ipct4x4( ycocg.get_y(), w, h, pitch );
@@ -291,7 +246,6 @@ int32_t main()
         {
             std::cerr <<"Error in reconstruction." << std::endl;
         }
-
     }
 
     catch (const cuda::exception& e)
