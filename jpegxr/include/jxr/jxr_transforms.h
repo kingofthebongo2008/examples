@@ -98,17 +98,6 @@ namespace jpegxr
             *b_cg = cg;
         }
 
-        __host__ __device__ inline void rgb_2_yuv(pixel* __restrict r_y, pixel* __restrict  g_u, pixel* __restrict b_v )
-        {
-          auto y = *g_u + ( *r_y - *g_u  + (  (*b_v  + 1 ) >> 1 ) ) >> 1 ;
-          auto u = *g_u - *r_y - ( (*b_v + 1) >> 1);
-          auto v = *b_v - *r_y;
-
-          *r_y = y;
-          *g_u = u;
-          *b_v = v;
-        }
-
         //better decorelates the signal than yuv
         __host__ __device__ inline void ycocg_2_rgb(pixel* __restrict r_y, pixel* __restrict  g_co, pixel* __restrict b_cg )
         {
@@ -122,6 +111,51 @@ namespace jpegxr
             *b_cg = b;
         }
 
+        enum scale : uint32_t
+        {
+            no_scale   = 0,
+            scaled     = 3
+        };
+
+        enum bias : uint32_t
+        {
+            no_bias = 0,
+            bd5 = (1 << 4),
+            bd565 = (1 << 5),
+            bd8 = (1 << 7),
+            bd10 = (1 << 9 ),
+            bd16 = (1 << 15)
+        };
+
+        template <int32_t scale, int32_t bias>
+        __host__ __device__ inline void rgb_2_yuv(pixel* __restrict r_y, pixel* __restrict  g_u, pixel* __restrict b_v )
+        {
+          auto v = *b_v - *r_y;
+          auto t = *r_y - *g_u +  ( ( v + 1 ) >> 1 );
+          auto y = *g_u + ( t >> 1 );
+
+          auto u = -t;
+
+          *r_y = y - ( bias << scale ) ;
+          *g_u = u;
+          *b_v = v;
+        }
+
+        template <int32_t scale, int32_t bias>
+        __host__ __device__ inline void yuv_2_rgb(pixel* __restrict r_y, pixel* __restrict  g_u, pixel* __restrict b_v )
+        {
+          auto t = -*g_u;
+
+          auto g = *r_y + ( bias << scale )  - ( t >> 1);
+          auto r = t + g - ( ( *b_v + 1 ) >> 1 ) ;
+          auto b = *b_v + r;
+
+          *r_y = r;
+          *g_u = g;
+          *b_v = b;
+        }
+
+        
         __host__ __device__ inline void gamma( pixel* __restrict r, pixel* __restrict  g, pixel* __restrict b )
         {
             //todo
