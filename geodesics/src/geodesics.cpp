@@ -30,6 +30,8 @@
 #include <math/math_vector.h>
 #include <math/math_graphics.h>
 
+#define USE_SHARED_PTR
+
 namespace geodesics
 {
     class renderable_mesh;
