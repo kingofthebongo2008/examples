@@ -80,35 +80,6 @@ namespace jpegxr
             *d = t1;
             *a -= *d;
             *b += *c;
-
-        }
-
-        //better decorelates the signal than yuv
-        __host__ __device__ inline void rgb_2_ycocg(pixel* __restrict r_y, pixel* __restrict  g_co, pixel* __restrict b_cg )
-        {
-            auto co = *r_y - *b_cg;
-            auto t = *b_cg + (co >> 1);
-
-            auto cg = *g_co - t;
-
-            auto y = t + (cg >> 1);
-
-            *r_y = y;
-            *g_co = co;
-            *b_cg = cg;
-        }
-
-        //better decorelates the signal than yuv
-        __host__ __device__ inline void ycocg_2_rgb(pixel* __restrict r_y, pixel* __restrict  g_co, pixel* __restrict b_cg )
-        {
-            auto t = *r_y - (*b_cg >> 1);
-            auto g = *b_cg + t;
-            auto b = t - (*g_co >> 1);
-            auto r = b + *g_co;
-
-            *r_y = r;
-            *g_co = g;
-            *b_cg = b;
         }
 
         enum scale : uint32_t
@@ -126,6 +97,34 @@ namespace jpegxr
             bd10 = (1 << 9 ),
             bd16 = (1 << 15)
         };
+
+        template <int32_t scale, int32_t bias>
+        __host__ __device__ inline void rgb_2_ycocg(pixel* __restrict r_y, pixel* __restrict  g_co, pixel* __restrict b_cg )
+        {
+            auto co = *r_y - *b_cg;
+            auto t = *b_cg + (co >> 1);
+
+            auto cg = *g_co - t;
+
+            auto y = t + (cg >> 1);
+
+            *r_y = y - ( bias << scale ) ;
+            *g_co = co;
+            *b_cg = cg;
+        }
+
+        template <int32_t scale, int32_t bias>
+        __host__ __device__ inline void ycocg_2_rgb(pixel* __restrict r_y, pixel* __restrict  g_co, pixel* __restrict b_cg )
+        {
+            auto t = *r_y  + ( bias << scale ) - (*b_cg >> 1);
+            auto g = *b_cg + t;
+            auto b = t - (*g_co >> 1);
+            auto r = b + *g_co;
+
+            *r_y = r;
+            *g_co = g;
+            *b_cg = b;
+        }
 
         template <int32_t scale, int32_t bias>
         __host__ __device__ inline void rgb_2_yuv(pixel* __restrict r_y, pixel* __restrict  g_u, pixel* __restrict b_v )
