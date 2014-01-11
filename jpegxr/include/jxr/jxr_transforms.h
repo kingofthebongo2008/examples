@@ -99,6 +99,24 @@ namespace jpegxr
         };
 
         template <int32_t scale, int32_t bias>
+        __host__ __device__ inline void scale_bias_bd8_analysis ( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c )
+        {
+            *a =  ( *a -  bias) << scale;
+            *b =  ( *b -  bias) << scale;
+            *c =  ( *c -  bias) << scale;
+        }
+
+        template <int32_t scale, int32_t bias>
+        __host__ __device__ inline void scale_bias_bd8_synthesis ( pixel* __restrict a, pixel* __restrict b, pixel* __restrict c )
+        {
+            auto round = 0;
+            auto shift_bits = 0;
+
+            *a =  ( *a + ( ( bias >> shift_bits ) << scale ) + round ) >> scale;
+            *b =  ( *b + ( ( bias >> shift_bits ) << scale ) + round ) >> scale;
+            *c =  ( *c + ( ( bias >> shift_bits ) << scale ) + round ) >> scale;
+        }
+
         __host__ __device__ inline void rgb_2_ycocg(pixel* __restrict r_y, pixel* __restrict  g_co, pixel* __restrict b_cg )
         {
             auto co = *r_y - *b_cg;
@@ -108,15 +126,14 @@ namespace jpegxr
 
             auto y = t + (cg >> 1);
 
-            *r_y = y - ( bias << scale ) ;
+            *r_y  = y;
             *g_co = co;
             *b_cg = cg;
         }
 
-        template <int32_t scale, int32_t bias>
         __host__ __device__ inline void ycocg_2_rgb(pixel* __restrict r_y, pixel* __restrict  g_co, pixel* __restrict b_cg )
         {
-            auto t = *r_y  + ( bias << scale ) - (*b_cg >> 1);
+            auto t = *r_y - (*b_cg >> 1);
             auto g = *b_cg + t;
             auto b = t - (*g_co >> 1);
             auto r = b + *g_co;
@@ -126,7 +143,6 @@ namespace jpegxr
             *b_cg = b;
         }
 
-        template <int32_t scale, int32_t bias>
         __host__ __device__ inline void rgb_2_yuv(pixel* __restrict r_y, pixel* __restrict  g_u, pixel* __restrict b_v )
         {
           auto v = *b_v - *r_y;
@@ -135,17 +151,16 @@ namespace jpegxr
 
           auto u = -t;
 
-          *r_y = y - ( bias << scale ) ;
+          *r_y = y;
           *g_u = u;
           *b_v = v;
         }
 
-        template <int32_t scale, int32_t bias>
         __host__ __device__ inline void yuv_2_rgb(pixel* __restrict r_y, pixel* __restrict  g_u, pixel* __restrict b_v )
         {
           auto t = -*g_u;
 
-          auto g = *r_y + ( bias << scale )  - ( t >> 1);
+          auto g = *r_y  - ( t >> 1);
           auto r = t + g - ( ( *b_v + 1 ) >> 1 ) ;
           auto b = *b_v + r;
 

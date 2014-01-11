@@ -65,7 +65,7 @@ namespace example
 
         using namespace jpegxr::transforms;
 
-        rgb_2_ycocg<scale::no_scale, bias::bd8>(&r_y, &g_co, &b_cg );
+        rgb_2_ycocg(&r_y, &g_co, &b_cg );
 
         y_color [ row * write_pitch + col ] = r_y;
         co_color[ row * write_pitch + col ] = g_co;
@@ -123,14 +123,14 @@ namespace example
         auto element = reinterpret_cast<const rgb*> (  (uint8_t*) in + ( row * read_pitch )  + sizeof(rgb) * col ); 
 
         jpegxr::transforms::pixel r_y  = element->color[0];
-        jpegxr::transforms::pixel g_u = element->color[1];
-        jpegxr::transforms::pixel b_v = element->color[2];
+        jpegxr::transforms::pixel g_u  = element->color[1];
+        jpegxr::transforms::pixel b_v  = element->color[2];
 
         using namespace jpegxr::transforms;
 
-        rgb_2_yuv<scale::no_scale, bias::bd8>(&r_y, &g_u, &b_v );
+        rgb_2_yuv(&r_y, &g_u, &b_v );
 
-        y_color [ row * write_pitch + col ] = r_y;
+        y_color[ row * write_pitch + col ] = r_y;
         u_color[ row * write_pitch + col ] = g_u;
         v_color[ row * write_pitch + col ] = b_v;
     }
@@ -175,6 +175,52 @@ namespace example
     }
 }
 
+static void block_shuffle444(int*data)
+{
+    int32_t tmp[256];
+
+    int32_t idx;
+    for (idx = 0 ; idx < 256 ; idx += 4) {
+        int blk = idx/16;
+        int mbx = blk%4;
+        int mby = blk/4;
+        int pix = idx%16;
+        int py = pix/4;
+
+        int ptr = 16*4*mby + 4*mbx + 16*py;
+        tmp[idx+0] = data[ptr+0];
+        tmp[idx+1] = data[ptr+1];
+        tmp[idx+2] = data[ptr+2];
+        tmp[idx+3] = data[ptr+3];
+    }
+
+    for (idx = 0 ; idx < 256 ; idx += 1)
+        data[idx] = tmp[idx];
+}
+
+static void unblock_shuffle444(int*data)
+{
+    int tmp[256];
+
+    int idx;
+    for (idx = 0 ; idx < 256 ; idx += 4) {
+        int blk = idx/16;
+        int mbx = blk%4;
+        int mby = blk/4;
+        int pix = idx%16;
+        int py = pix/4;
+
+        int ptr = 16*4*mby + 4*mbx + 16*py;
+        tmp[ptr+0] = data[idx+0];
+        tmp[ptr+1] = data[idx+1];
+        tmp[ptr+2] = data[idx+2];
+        tmp[ptr+3] = data[idx+3];
+    }
+
+    for (idx = 0 ; idx < 256 ; idx += 1)
+        data[idx] = tmp[idx];
+}
+
 int32_t main()
 {
     try
@@ -183,62 +229,45 @@ int32_t main()
         auto cuda_initializer = example::cuda_initializer();
         auto image  =  example::create_image ( L"test_32x32.png" );
 
-        const int32_t arraySize = 16;
-        const jpegxr::transforms::pixel a[arraySize] = 
-        { 
-            0, 0, 0, 0,
-            1, 1, 1, 1,
-            1, 1, 1, 1,
-            1, 1, 1, 1
-        };
+        int32_t data[256];
 
-        jpegxr::transforms::pixel c[arraySize] = { 0 };
-
-        #define _CC(r, g, b) (b -= r, r += ((b + 1) >> 1) - g, g += ((r + 0) >> 1))
-
-        for (int32_t i = 0; i < 255; ++i)
+        for (int32_t i = 0; i < 256; ++i )
         {
-            for (int32_t j = 0; j <255; ++j)
+            data[i] = i;
+        }
+
+        block_shuffle444(data);
+        unblock_shuffle444(data);
+
+        for (int32_t i = 0; i <255; ++i)
+        {
+            for (int32_t j = 0; j < 255; ++j)
             {
                 for (int32_t k = 0; k < 255; ++k )
                 {
-                    auto r = i;
-                    auto g = j;
-                    auto b = k;
+                    auto r0 = i;
+                    auto g0 = j;
+                    auto b0 = k;
 
-                    /*
-                    auto r = 144;
-                    auto g = 126;
-                    auto b = 47;
+                    auto r1 = i;
+                    auto g1 = j;
+                    auto b1 = k;
 
-                    auto r1 = 144;
-                    auto g1 = 126;
-                    auto b1 = 47;
-
-                    _CC(r1, g1, b1);
-
-                    //auto  pU[iPos] = -r, pV[iPos] = b, pY[iPos] = g - iOffset;
-                    auto  y = g1 - 128;
-                    auto  u = -r1;
-                    auto  v = b1;
-                    
-                    */
                     using namespace jpegxr::transforms;
 
-                    rgb_2_yuv< scale::no_scale, bias::bd8 >(&r, &g, &b);
-                    yuv_2_rgb< scale::no_scale, bias::bd8 >(&r, &g, &b);
+                    rgb_2_yuv(&r0, &g0, &b0 );
+                    rgb_2_ycocg(&r1, &g1, &b1 );
 
-                    if  ( !( r == i && g == j && b == k ) )
+                    if (! (  r0 == r1 && g0==g1 && b0==b1) )
                     {
-                        throw std::exception("error");
+                        //__debugbreak();
                     }
-
-
                 }
             }
         }
 
-        auto yuv = decompose_yuv(*image);
+
+        auto yuv = decompose_ycocg(*image);
 
         auto w      = yuv.get_width();
         auto h      = yuv.get_height();
