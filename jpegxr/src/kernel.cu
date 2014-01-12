@@ -98,6 +98,7 @@ namespace example
         cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
 
 
+        /*
         //debug purposes
         auto y  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
         auto co = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
@@ -111,7 +112,56 @@ namespace example
         auto res1 = reinterpret_cast<int32_t*> ( y.get()  );
         auto res2 = reinterpret_cast<int32_t*> ( co.get() );
         auto res3 = reinterpret_cast<int32_t*> ( cg.get() );
+        */
+
         return ycocg_image ( y_buffer, co_buffer, cg_buffer, w, h, w );
+    }
+
+    __global__ void scale_compose_ycocg_kernel( const uint32_t* y_color, const uint32_t* u_color, const uint32_t* v_color, rgb* out, const uint32_t read_pitch, const uint32_t write_pitch )
+    {
+        auto x = blockIdx.x * blockDim.x + threadIdx.x;
+        auto y = blockIdx.y * blockDim.y + threadIdx.y;
+
+        auto row = y;
+        auto col = x;
+        
+        auto element = reinterpret_cast<rgb*> (  (uint8_t*) out + ( row * write_pitch )  + sizeof(rgb) * col ); 
+
+        jpegxr::transforms::pixel r_y = y_color[ row * read_pitch + col ];
+        jpegxr::transforms::pixel g_u = u_color[ row * read_pitch + col ];
+        jpegxr::transforms::pixel b_v = v_color[ row * read_pitch + col ];
+
+        using namespace jpegxr::transforms;
+
+        ycocg_2_rgb(&r_y, &g_u, &b_v );
+        scale_bias_bd8_synthesis< no_scale, bd8 >(&r_y, &g_u, &b_v);
+
+        element->color[0] = r_y;
+        element->color[1] = g_u;
+        element->color[2] = b_v;
+    }
+
+    std::unique_ptr< image > scale_compose_ycocg( const ycocg_image img)
+    {
+        auto w              = img.get_width();
+        auto h              = img.get_height();
+
+        auto rgb_row_pitch  = (w * 24 + 7) / 8; 
+        auto rgb_image_size = rgb_row_pitch * h;
+
+        auto size           = w * h * sizeof(int32_t);
+        
+        auto rgb_buffer     = cuda::memory_buffer (  cuda::allocate<void*> ( rgb_image_size ), rgb_image_size );
+
+        auto blocks = 1;
+        auto threads_per_block = dim3( w, h );
+
+        scale_compose_ycocg_kernel<<<blocks, threads_per_block>>>( *img.get_y(), *img.get_co(), *img.get_cg(), rgb_buffer, w, rgb_row_pitch );
+
+        cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
+        cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
+
+        return std::unique_ptr<image> ( new image ( image::format_24bpp_rgb, rgb_row_pitch, w, h, std::move(rgb_buffer) ) );
     }
 
 
@@ -158,6 +208,7 @@ namespace example
         cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
 
         //debug purposes
+        /*
         auto y  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
         auto co = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
         auto cg = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
@@ -170,6 +221,7 @@ namespace example
         auto res1 = reinterpret_cast<int32_t*> ( y.get()  );
         auto res2 = reinterpret_cast<int32_t*> ( co.get() );
         auto res3 = reinterpret_cast<int32_t*> ( cg.get() );
+        */
         return ycbcr_image ( y_buffer, u_buffer, v_buffer, w, h, w );
     }
 
@@ -280,11 +332,8 @@ int32_t main()
         auto cuda_initializer = example::cuda_initializer();
         auto image  =  example::create_image ( L"test_32x32.png" );
 
-        auto copy_of_image_1  = std::unique_ptr< uint8_t[] > ( new uint8_t [ image->size() ] );
-        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( copy_of_image_1.get(),  *image, image->size(), cudaMemcpyDeviceToHost) );
-
-        auto yuv  = scale_decompose_yuv(*image);
-        auto back = scale_compose_yuv(yuv);
+        auto yuv  = scale_decompose_ycocg(*image);
+        auto back = scale_compose_ycocg(yuv);
 
         if ( cuda::is_equal( image->get_data(), back->get_data() ) )
         {
@@ -296,8 +345,6 @@ int32_t main()
         auto pitch  = yuv.get_width();
         auto size   = w * h * sizeof(jpegxr::transforms::pixel) ;
 
-
-
         jpegxr::prefilter2x2_edge( yuv.get_y(), w, h, pitch );
         jpegxr::prefilter4x4( yuv.get_y(), w, h, pitch );
         jpegxr::prefilter4_horizontal( yuv.get_y(), w, h, pitch );
@@ -305,12 +352,12 @@ int32_t main()
         jpegxr::pct4x4( yuv.get_y(), w, h, pitch );
 
         jpegxr::ipct4x4( yuv.get_y(), w, h, pitch );
-        jpegxr::overlapfilter2x2_edge( yuv.get_y(), w, h, pitch );
-        jpegxr::overlapfilter4x4( yuv.get_y(), w, h, pitch );
-        jpegxr::overlapfilter4_horizontal( yuv.get_y(), w, h, pitch );
         jpegxr::overlapfilter4_vertical( yuv.get_y(), w, h, pitch );
+        jpegxr::overlapfilter4_horizontal( yuv.get_y(), w, h, pitch );
+        jpegxr::overlapfilter4x4( yuv.get_y(), w, h, pitch );
+        jpegxr::overlapfilter2x2_edge( yuv.get_y(), w, h, pitch );
 
-        auto image_out = scale_compose_yuv(yuv);
+        auto image_out = scale_compose_ycocg(yuv);
 
         if ( cuda::is_equal( image->get_data(), image_out->get_data() ) )
         {

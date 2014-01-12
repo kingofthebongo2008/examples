@@ -28,12 +28,13 @@ namespace jpegxr
         ::cuda::throw_if_failed<::cuda::exception> ( cudaDeviceSynchronize() );
 
         //debug purposes
+        /*
         auto y  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
 
         ::cuda::throw_if_failed<::cuda::exception> ( cudaMemcpy( y.get(), in, size , cudaMemcpyDeviceToHost) );
 
         auto res = reinterpret_cast< jpegxr::transforms::pixel* > ( y.get() );
-        int i  = 0; i++;
+        */
     }
 }
 
