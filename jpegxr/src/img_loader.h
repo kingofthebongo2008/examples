@@ -107,6 +107,11 @@ namespace example
         {
             return m_pitch * m_height;
         }
+
+        const cuda::memory_buffer& get_data() const
+        {
+            return m_data;        
+        }
     };
 
     std::unique_ptr< image > create_image ( const wchar_t* image_file_path );

@@ -84,7 +84,7 @@ namespace example
         auto row_pitch = cuda_row_pitch;
         auto image_size = row_pitch * height;
 
-        cuda::memory_buffer p( cuda::allocate<void*>( image_size ) );
+        cuda::memory_buffer p( cuda::allocate<void*>( image_size ), image_size );
 
         struct __declspec(align(16)) rgb
         {

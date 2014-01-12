@@ -123,30 +123,33 @@ namespace cuda
 
         typedef allocator                   allocator_type;
         void*                               m_value;
+        size_t                              m_size;
         allocator_type                      m_allocator;
-
 
         void swap(this_type & rhs)
         {
             std::swap ( m_allocator, rhs.m_allocator );
             std::swap ( m_value, rhs.m_value );
+            std::swap ( m_size, rhs.m_size );
         }
 
         public:
 
         this_type ( size_t size , allocator_type alloc = allocator_type() ) :
-        m_allocator( alloc )
+        m_size(size)
+        , m_allocator( alloc )
         {
             m_value = m_allocator.allocate(size);
         }
 
-        this_type( void* value ) :
+        this_type( void* value, size_t size ) :
         m_value ( reinterpret_cast<int*> ( value ) )
+        , m_size(size)
         {
 
         }
 
-        this_type ( this_type&& rhs ) : m_value(rhs.m_value), m_allocator( std::move(rhs.m_allocator) )
+        this_type ( this_type&& rhs ) : m_value(rhs.m_value), m_size(rhs.m_size), m_allocator( std::move(rhs.m_allocator) )
         {
             rhs.m_value = nullptr;
         }
@@ -183,6 +186,11 @@ namespace cuda
             return reinterpret_cast<t*> (m_value);
         }
 
+        size_t size() const
+        {
+            return m_size;
+        }
+
         private:
 
         this_type( const this_type& );
@@ -203,8 +211,8 @@ namespace cuda
 
         }
 
-        memory_buffer( void* pointer ) :
-        base ( pointer )
+        memory_buffer( void* pointer, size_t size ) :
+        base ( pointer, size )
         {
 
         }
@@ -226,6 +234,46 @@ namespace cuda
         this_type& operator=(const this_type&);
     };
 
+    inline bool is_equal( const memory_buffer& b1, const memory_buffer& b2 )
+    {
+        if ( !( b1.size() == b2.size() ) )
+        {
+            return false;
+        }
+
+        if ( !( b1.get() != nullptr && b2.get() != nullptr) )
+        {
+            return false;
+        }
+
+        cudaPointerAttributes attributes1 = {};
+        cudaPointerAttributes attributes2 = {};
+
+        cuda::throw_if_failed<cuda::exception> ( cudaPointerGetAttributes(&attributes1, b1.get() ) );
+        cuda::throw_if_failed<cuda::exception> ( cudaPointerGetAttributes(&attributes2, b2.get() ) );
+
+        void* pointer_1 = attributes1.hostPointer;
+        void* pointer_2 = attributes2.hostPointer;
+
+        std::unique_ptr< uint8_t [] > memory_1;
+        std::unique_ptr< uint8_t [] > memory_2;
+
+        if (pointer_1 == nullptr)
+        {
+            memory_1 = std::move( std::unique_ptr< uint8_t[] > ( new uint8_t [ b1.size() ] ) );
+            cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( memory_1.get(), b1.get(), b1.size(), cudaMemcpyDeviceToHost) );
+            pointer_1 = memory_1.get();
+        }
+
+        if (pointer_2 == nullptr)
+        {
+            memory_2 = std::move( std::unique_ptr< uint8_t[] > ( new uint8_t [ b1.size() ] ) );
+            cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( memory_2.get(), b2.get(), b2.size(), cudaMemcpyDeviceToHost) );
+            pointer_2 = memory_1.get();
+        }
+
+        return std::memcmp( pointer_1, pointer_2, b1.size() ) == 0;
+    }
 }
 
 #endif

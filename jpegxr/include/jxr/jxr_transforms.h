@@ -117,14 +117,46 @@ namespace jpegxr
             *c =  ( *c + ( ( bias >> shift_bits ) << scale ) + round ) >> scale;
         }
 
+        __host__ __device__ inline int32_t hadd(int a, int b)
+        {
+            return (a & b) + ((a ^ b) >> 1);
+        }
+
+        __host__ __device__ inline int32_t rhadd(int a, int b)
+        {
+            return (a | b) - ((a ^ b) >> 1);
+        }
+
+        __host__ __device__ inline int32_t floor_div2(int32_t x)
+        {
+            return hadd( x, 0 );
+            /*
+            if (x >= 0)
+                return ( x >> 1 );
+            else
+                return -( ( -x + 1 ) >>1 );
+            */
+        }
+
+        __host__ __device__ inline int32_t ceil_div2(int32_t x)
+        {
+            return rhadd(x, 0 );
+            /*
+            if (x >= 0)
+                return ( x + 1) >> 1;
+            else
+                return -( ( -x ) >> 1 );
+            */
+        }
+
         __host__ __device__ inline void rgb_2_ycocg(pixel* __restrict r_y, pixel* __restrict  g_co, pixel* __restrict b_cg )
         {
             auto co = *r_y - *b_cg;
-            auto t = *b_cg + (co >> 1);
+            auto t = *b_cg + floor_div2(co) ;
 
             auto cg = *g_co - t;
 
-            auto y = t + (cg >> 1);
+            auto y = t + floor_div2(cg);
 
             *r_y  = y;
             *g_co = co;
@@ -133,9 +165,9 @@ namespace jpegxr
 
         __host__ __device__ inline void ycocg_2_rgb(pixel* __restrict r_y, pixel* __restrict  g_co, pixel* __restrict b_cg )
         {
-            auto t = *r_y - (*b_cg >> 1);
+            auto t = *r_y - floor_div2(*b_cg);
             auto g = *b_cg + t;
-            auto b = t - (*g_co >> 1);
+            auto b = t - floor_div2(*g_co);
             auto r = b + *g_co;
 
             *r_y = r;
@@ -146,8 +178,8 @@ namespace jpegxr
         __host__ __device__ inline void rgb_2_yuv(pixel* __restrict r_y, pixel* __restrict  g_u, pixel* __restrict b_v )
         {
           auto v = *b_v - *r_y;
-          auto t = *r_y - *g_u +  ( ( v + 1 ) >> 1 );
-          auto y = *g_u + ( t >> 1 );
+          auto t = *r_y - *g_u +  ceil_div2( v );
+          auto y = *g_u + floor_div2( t );
 
           auto u = -t;
 
@@ -160,8 +192,8 @@ namespace jpegxr
         {
           auto t = -*g_u;
 
-          auto g = *r_y  - ( t >> 1);
-          auto r = t + g - ( ( *b_v + 1 ) >> 1 ) ;
+          auto g = *r_y  - floor_div2( t );
+          auto r = t + g - ceil_div2(*b_v);
           auto b = *b_v + r;
 
           *r_y = r;

@@ -12,6 +12,11 @@ namespace std
 		return std::unique_ptr<T>( new T( std::forward<Args>(args)... ) );
 	}
 */
+
+	template<typename T, typename Arg1> unique_ptr<T> make_unique( Arg1&& args )
+	{
+		return std::unique_ptr<T>( new T( std::forward<Arg1>(args) ) );
+	}
 }
 
 #endif
