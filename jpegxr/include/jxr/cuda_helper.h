@@ -234,6 +234,12 @@ namespace cuda
         this_type& operator=(const this_type&);
     };
 
+
+    inline std::shared_ptr< memory_buffer > make_memory_buffer( size_t size )
+    {
+        return std::make_shared < cuda::memory_buffer > ( cuda::allocate<void*> ( size ), size ) ;
+    }
+
     inline bool is_equal( const memory_buffer& b1, const memory_buffer& b2 )
     {
         if ( !( b1.size() == b2.size() ) )
@@ -252,6 +258,12 @@ namespace cuda
         cuda::throw_if_failed<cuda::exception> ( cudaPointerGetAttributes(&attributes1, b1.get() ) );
         cuda::throw_if_failed<cuda::exception> ( cudaPointerGetAttributes(&attributes2, b2.get() ) );
 
+        //if we point to the same location
+        if( std::memcmp(&attributes1, &attributes2, sizeof( cudaPointerAttributes )  ) == 0 )
+        {
+            return true;
+        }
+
         void* pointer_1 = attributes1.hostPointer;
         void* pointer_2 = attributes2.hostPointer;
 
@@ -269,11 +281,17 @@ namespace cuda
         {
             memory_2 = std::move( std::unique_ptr< uint8_t[] > ( new uint8_t [ b1.size() ] ) );
             cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( memory_2.get(), b2.get(), b2.size(), cudaMemcpyDeviceToHost) );
-            pointer_2 = memory_1.get();
+            pointer_2 = memory_2.get();
         }
 
         return std::memcmp( pointer_1, pointer_2, b1.size() ) == 0;
     }
+
+    inline bool is_equal( const std::shared_ptr<memory_buffer> b1, const std::shared_ptr<memory_buffer> b2 )
+    {
+        return is_equal(*b1, *b2);
+    }
+    
 }
 
 #endif

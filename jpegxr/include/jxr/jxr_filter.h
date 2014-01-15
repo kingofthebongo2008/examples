@@ -14,7 +14,6 @@ namespace jpegxr
         auto w                  = image_width;
         auto h                  = image_height;
         auto pitch              = image_pitch;
-        auto size               = w * h * sizeof(jpegxr::transforms::pixel) ;
 
         auto blocks             = dim3 ( ( w + 15 )  / 16 , ( h + 15 ) / 16, 1 );
         auto threads_per_block  = dim3 ( 16,  16,  1 );
@@ -29,6 +28,7 @@ namespace jpegxr
 
         //debug purposes
         /*
+        auto size               = w * h * sizeof(jpegxr::transforms::pixel) ;
         auto y  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
 
         ::cuda::throw_if_failed<::cuda::exception> ( cudaMemcpy( y.get(), in, size , cudaMemcpyDeviceToHost) );

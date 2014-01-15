@@ -11,7 +11,7 @@ namespace example
 {
     class image
     {
-        typedef cuda::memory_buffer data_pointer;
+        typedef std::shared_ptr<cuda::memory_buffer> data_pointer;
 
         public:
 
@@ -36,12 +36,12 @@ namespace example
         
         public:
 
-        image ( format format, uint32_t pitch, uint32_t width, uint32_t height, data_pointer&& data ) :
+        image ( format format, uint32_t pitch, uint32_t width, uint32_t height, data_pointer data ) :
           m_format(format)
         , m_pitch(pitch)
         , m_width( static_cast<uint16_t>(width) )
         , m_height( static_cast<uint16_t>(height) )
-        , m_data( std::move(data) )
+        , m_data( data )
         {
 
         }
@@ -70,22 +70,22 @@ namespace example
 
         const void* get() const
         {
-            return m_data.get();
+            return m_data->get();
         }
 
         void*    get()
         {
-            return m_data.get();
+            return m_data->get();
         }
 
         template <typename t> operator t*()
         {
-            return reinterpret_cast<t*> (m_data.get());
+            return reinterpret_cast<t*> (m_data->get());
         }
 
         template <typename t> operator const t*() const
         {
-            return reinterpret_cast<const t*> (m_data.get());
+            return reinterpret_cast<const t*> (m_data->get());
         }
 
         uint32_t get_width() const
@@ -108,13 +108,14 @@ namespace example
             return m_pitch * m_height;
         }
 
-        const cuda::memory_buffer& get_data() const
+        data_pointer get_buffer()
         {
-            return m_data;        
+            return m_data;
         }
+
     };
 
-    std::unique_ptr< image > create_image ( const wchar_t* image_file_path );
+    std::shared_ptr< image > create_image ( const wchar_t* image_file_path );
 }
 
 #endif

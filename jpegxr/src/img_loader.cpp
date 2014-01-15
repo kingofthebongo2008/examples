@@ -34,7 +34,7 @@ namespace example
 
     }
 
-    std::unique_ptr< image > create_image ( const wchar_t* image_file_path )
+    std::shared_ptr< image > create_image ( const wchar_t* image_file_path )
     {
         using namespace os::windows;
 
@@ -84,7 +84,7 @@ namespace example
         auto row_pitch = cuda_row_pitch;
         auto image_size = row_pitch * height;
 
-        cuda::memory_buffer p( cuda::allocate<void*>( image_size ), image_size );
+        auto p = cuda::make_memory_buffer( image_size ); 
 
         struct __declspec(align(16)) rgb
         {
@@ -105,9 +105,9 @@ namespace example
         rgb* pElement1 = pElement+1;
 
         // Copy input vectors from host memory to GPU buffers.
-        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( p, temp.get(), image_size, cudaMemcpyHostToDevice) );
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( *p, temp.get(), image_size, cudaMemcpyHostToDevice) );
 
-        return std::unique_ptr<image> ( new image ( image::format_24bpp_rgb, static_cast<uint32_t> ( cuda_row_pitch ), width, height, std::move( p )  ) );
+        return std::shared_ptr<image> ( new image ( image::format_24bpp_rgb, static_cast<uint32_t> ( cuda_row_pitch ), width, height, p ) );
     }
 }
 

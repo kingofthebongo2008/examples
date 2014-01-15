@@ -24,7 +24,7 @@ namespace jpegxr
                 return;
             }
 
-            auto element_in_index  = (row + 0) * pitch + col + 0;
+            auto element_in_index  = row * pitch + col;
 
             auto dc = in[ element_in_index ];
 
@@ -32,7 +32,6 @@ namespace jpegxr
             out[ element_out_index ] = dc;
         }
 
-        //gather dc coefficients after the pct4x4 transform
         __global__ void combine_lp_hp( const transforms::pixel* in, transforms::pixel* out, const uint32_t in_pitch, const uint32_t width, const uint32_t height, const uint32_t out_pitch)
         {
             auto x = blockIdx.x * blockDim.x + threadIdx.x;
