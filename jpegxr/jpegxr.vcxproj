@@ -161,7 +161,9 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <CudaCompile Include="./src/kernel.cu" />
+    <CudaCompile Include="./src/kernel.cu">
+      <FileType>Document</FileType>
+    </CudaCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\img_loader.cpp" />

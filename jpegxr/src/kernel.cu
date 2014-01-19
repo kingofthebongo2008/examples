@@ -45,6 +45,141 @@ namespace example
             cuda::throw_if_failed<cuda::exception> ( cudaDeviceReset() );
         }
     };
+
+    const jpegxr::transforms::pixel* get_pixels( const image_2d& image )
+    {
+        return reinterpret_cast<const jpegxr::transforms::pixel*> ( get_data(image) );
+    }
+
+    jpegxr::transforms::pixel* get_pixels( image_2d& image )
+    {
+        return reinterpret_cast<jpegxr::transforms::pixel*> ( get_data(image) );
+    }
+
+    jpegxr::transforms::pixel* get_pixels( const std::shared_ptr<image_2d> image )
+    {
+        return reinterpret_cast<jpegxr::transforms::pixel*> ( get_data(image) );
+    }
+
+    __global__ void make_test_image_kernel( jpegxr::transforms::pixel* pixels, const uint32_t pixel_value, const uint32_t width, const uint32_t height, const uint32_t write_pitch )
+    {
+        auto x = blockIdx.x * blockDim.x + threadIdx.x;
+        auto y = blockIdx.y * blockDim.y + threadIdx.y;
+
+        auto row = y;
+        auto col = x;
+
+        if ( row < 0  && row > ( height - 1) )
+        {
+            return;
+        }
+
+        if ( col < 0 || col > ( width - 1 ) ) 
+        {
+            return;
+        }
+
+        pixels [ row * write_pitch + col ] = pixel_value;
+    }
+
+    __global__ void make_test_image_kernel_2x2( jpegxr::transforms::pixel* pixels, const uint32_t lt, const uint32_t rt, const uint32_t lb, const uint32_t rb, const uint32_t width, const uint32_t height, const uint32_t write_pitch )
+    {
+        auto x = blockIdx.x * blockDim.x + threadIdx.x;
+        auto y = blockIdx.y * blockDim.y + threadIdx.y;
+
+        auto row = 2 * y;
+        auto col = 2 * x;
+
+        if ( row < 0  && row > ( height - 1) )
+        {
+            return;
+        }
+
+        if ( col < 0 || col > ( width - 1 ) ) 
+        {
+            return;
+        }
+
+        pixels [ row * write_pitch + col ] = lt;
+        pixels [ row * write_pitch + col + 1] = rt;
+
+        pixels [ (row + 1) * write_pitch + col ] = lb;
+        pixels [ (row + 1) * write_pitch + col + 1 ] = rb;
+
+        
+    }
+
+    std::pair< dim3, dim3> make_threads_blocks_16 ( uint32_t pixel_width, uint32_t pixel_height )
+    {
+        auto w = pixel_width;
+        auto h = pixel_height;
+
+        return std::make_pair( dim3 ( w, h,  1 ), dim3 ( ( w + 15 )  / 16 , ( h + 15 ) / 16, 1 ) );
+    }
+
+    std::shared_ptr< image_2d > make_test_image( uint32_t width, uint32_t height, jpegxr::transforms::pixel pixel_value)
+    {
+        auto image_size = width * height * sizeof(jpegxr::transforms::pixel);
+
+        auto w                  = width;
+        auto h                  = height;
+        auto pitch              = w;
+
+        auto kernel_params      = make_threads_blocks_16( w, h );
+        
+
+        auto buffer             = cuda::make_memory_buffer (  image_size );
+
+        make_test_image_kernel<<< std::get<0>( kernel_params), std::get<1>(kernel_params) >>> ( *buffer, pixel_value, w, h, pitch );
+
+        return make_image_2d( buffer, width, height, width );
+    }
+
+    std::shared_ptr< image_2d > make_test_image_2x2( uint32_t width, uint32_t height, jpegxr::transforms::pixel lt, jpegxr::transforms::pixel rt, jpegxr::transforms::pixel lb, jpegxr::transforms::pixel rb)
+    {
+        auto image_size = width * height * sizeof(jpegxr::transforms::pixel);
+
+        auto w                  = width;
+        auto h                  = height;
+        auto pitch              = w;
+
+        auto kernel_params      = make_threads_blocks_16( w, h );
+        
+
+        auto buffer             = cuda::make_memory_buffer (  image_size );
+
+        make_test_image_kernel_2x2<<< std::get<0>( kernel_params), std::get<1>(kernel_params) >>> ( *buffer, lt, rt, lb, rb, w, h, pitch );
+
+        return make_image_2d( buffer, width, height, width );
+    }
+
+    std::shared_ptr< image_2d > make_zero_image( uint32_t width, uint32_t height, jpegxr::transforms::pixel pixel_value)
+    {
+        return make_test_image( width, height, 0 );
+    }
+
+    void print_image( std::shared_ptr<image_2d> image )
+    {
+        auto size               = image->get_width() * image->get_height() * sizeof(jpegxr::transforms::pixel) ;
+        auto y                  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
+
+        ::cuda::throw_if_failed<::cuda::exception> ( cudaMemcpy( y.get(), get_pixels(image), size , cudaMemcpyDeviceToHost) );
+
+        auto ptr = reinterpret_cast<jpegxr::transforms::pixel*> (&y[0]);
+
+        for( uint32_t i = 0; i < image->get_height(); ++i )
+        {
+            for (uint32_t j = 0; j < image->get_width(); ++j)
+            {
+                std::cout << *( ptr++ ) <<"\t";
+
+                if ( j == image->get_width() - 1 )
+                {
+                    std::cout<<std::endl;
+                }
+            }
+        }
+    }
 }
 
 namespace example
@@ -54,7 +189,7 @@ namespace example
         uint8_t color[3];
     };
 
-    __global__ void scale_decompose_ycocg_kernel( const rgb* in, uint32_t* y_color, uint32_t* co_color, uint32_t* cg_color, const uint32_t read_pitch, const uint32_t write_pitch )
+    __global__ void scale_decompose_ycocg_kernel( const rgb* in, jpegxr::transforms::pixel* y_color, jpegxr::transforms::pixel* co_color, jpegxr::transforms::pixel* cg_color, const uint32_t read_pitch, const uint32_t write_pitch )
     {
         auto x = blockIdx.x * blockDim.x + threadIdx.x;
         auto y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -116,7 +251,7 @@ namespace example
         return std::make_shared<ycocg_image> ( make_image_2d ( y_buffer, w, h, w ), make_image_2d (co_buffer, w, h, w) , make_image_2d( cg_buffer, w, h, w ) ) ;
     }
 
-    __global__ void scale_compose_ycocg_kernel( const uint32_t* y_color, const uint32_t* u_color, const uint32_t* v_color, rgb* out, const uint32_t read_pitch, const uint32_t write_pitch )
+    __global__ void scale_compose_ycocg_kernel( const jpegxr::transforms::pixel* y_color, const jpegxr::transforms::pixel* u_color, const jpegxr::transforms::pixel* v_color, rgb* out, const uint32_t read_pitch, const uint32_t write_pitch )
     {
         auto x = blockIdx.x * blockDim.x + threadIdx.x;
         auto y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -155,22 +290,32 @@ namespace example
         auto blocks = 1;
         auto threads_per_block = dim3( w, h );
 
-        auto a = get_y(img);
-        auto b = get_co(img);
-        auto c = get_cg(img);
-
-        auto data_a = get_data(a);
-        auto data_b = get_data(b);
-        auto data_c = get_data(c);
-
-        scale_compose_ycocg_kernel<<<blocks, threads_per_block>>>( reinterpret_cast< uint32_t*> ( data_a )  , reinterpret_cast<uint32_t*> (data_b ), reinterpret_cast<uint32_t*> ( data_c ), *rgb_buffer, w, rgb_row_pitch );
+        scale_compose_ycocg_kernel<<<blocks, threads_per_block>>>( get_pixels( get_y( img ) ), get_pixels( get_co(img) ), get_pixels( get_cg(img) ), *rgb_buffer, w, rgb_row_pitch );
 
         cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
         cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
 
-        //return std::make_shared<image> ( image::format_24bpp_rgb, rgb_row_pitch, w, h, std::move(rgb_buffer) ) ;
+        return std::shared_ptr<image> ( new image (image::format_24bpp_rgb, rgb_row_pitch, w, h, std::move(rgb_buffer) ) );
+    }
 
-        return std::shared_ptr<image> ( new image (image::format_24bpp_rgb, rgb_row_pitch, w, h, rgb_buffer ) );
+    std::shared_ptr<image_2d> make_low_pass( std::shared_ptr<image_2d> img )
+    {
+        auto w              = img -> get_width() / 4;
+        auto h              = img -> get_width() / 4;
+        auto pitch          = w;
+        auto image_size     = pitch * h * sizeof(jpegxr::transforms::pixel);
+
+        auto buffer         = cuda::make_memory_buffer ( image_size ) ;
+
+        auto blocks             = dim3 ( ( w + 15 )  / 16 , ( h + 15 ) / 16, 1 );
+        auto threads_per_block  = dim3 ( 16,  16,  1 );
+
+        jpegxr::decompose::split_lp_hp <<< blocks, threads_per_block >>> ( get_pixels( img ), *buffer,  img->get_pitch(), w, h, pitch ); 
+
+        cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
+        cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
+
+        return make_image_2d( buffer, w, h, pitch) ;
     }
 
     __global__ void scale_decompose_yuv_kernel( const rgb* in, uint32_t* y_color, uint32_t* u_color, uint32_t* v_color, const uint32_t read_pitch, const uint32_t write_pitch )
@@ -275,10 +420,8 @@ namespace example
         cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
         cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
 
-        //return std::make_shared<image> ( image::format_24bpp_rgb, rgb_row_pitch, w, h, std::move(rgb_buffer) ) ;
-        return std::shared_ptr<image> ( new image (image::format_24bpp_rgb, rgb_row_pitch, w, h, std::move(rgb_buffer) ) );
+        return std::make_shared<image> ( image::format_24bpp_rgb, rgb_row_pitch, w, h, std::move(rgb_buffer) ) ;
     }
-
 }
 
 static void block_shuffle444(int*data)
@@ -348,49 +491,31 @@ int32_t main()
             std::cout <<"Prefect color transformation" << std::endl;
         }
 
-        auto w      = get_y(yuv)->get_width();
-        auto h      = get_y(yuv)->get_height();
-        auto pitch  = get_y(yuv)->get_width();
+        auto y      = get_y(yuv);
+        auto w      = y->get_width();
+        auto h      = y->get_height();
+        auto pitch  = y->get_width();
 
         //
-        jpegxr::prefilter2x2_edge( *get_y( yuv ) , w, h, pitch );
-        jpegxr::prefilter4x4( *get_y(yuv), w, h, pitch );
-        jpegxr::prefilter4_horizontal( *get_y(yuv) , w, h, pitch );
-        jpegxr::prefilter4_vertical( *get_y(yuv), w, h, pitch );
-        jpegxr::pct4x4( *get_y(yuv), w, h, pitch );
+        jpegxr::prefilter2x2_edge( *y , w, h, pitch );
+        jpegxr::prefilter4x4( *y, w, h, pitch );
+        jpegxr::prefilter4_horizontal( *y , w, h, pitch );
+        jpegxr::prefilter4_vertical( *y, w, h, pitch );
+        jpegxr::pct4x4( *y, w, h, pitch );
 
-        jpegxr::prefilter2x2_edge( *get_co( yuv ) , w, h, pitch );
-        jpegxr::prefilter4x4( *get_co(yuv), w, h, pitch );
-        jpegxr::prefilter4_horizontal( *get_co(yuv) , w, h, pitch );
-        jpegxr::prefilter4_vertical( *get_co(yuv), w, h, pitch );
-        jpegxr::pct4x4( *get_co(yuv), w, h, pitch );
+        auto lp = make_low_pass( example::make_test_image( 16, 16, 5) ) ;
 
-        jpegxr::prefilter2x2_edge( *get_cg( yuv ) , w, h, pitch );
-        jpegxr::prefilter4x4( *get_cg(yuv), w, h, pitch );
-        jpegxr::prefilter4_horizontal( *get_cg(yuv) , w, h, pitch );
-        jpegxr::prefilter4_vertical( *get_cg(yuv), w, h, pitch );
-        jpegxr::pct4x4( *get_cg(yuv), w, h, pitch );
+        //auto lp = make_low_pass(yuv);
 
-        jpegxr::ipct4x4( *get_y(yuv), w, h, pitch );
-        jpegxr::overlapfilter4_vertical( *get_y(yuv), w, h, pitch );
-        jpegxr::overlapfilter4_horizontal( *get_y(yuv), w, h, pitch );
-        jpegxr::overlapfilter4x4( *get_y(yuv), w, h, pitch );
-        jpegxr::overlapfilter2x2_edge( *get_y(yuv), w, h, pitch );
-
-        jpegxr::ipct4x4( *get_co(yuv), w, h, pitch );
-        jpegxr::overlapfilter4_vertical( *get_co(yuv), w, h, pitch );
-        jpegxr::overlapfilter4_horizontal( *get_co(yuv), w, h, pitch );
-        jpegxr::overlapfilter4x4( *get_co(yuv), w, h, pitch );
-        jpegxr::overlapfilter2x2_edge( *get_co(yuv), w, h, pitch );
-
-        jpegxr::ipct4x4( *get_cg(yuv), w, h, pitch );
-        jpegxr::overlapfilter4_vertical( *get_cg(yuv), w, h, pitch );
-        jpegxr::overlapfilter4_horizontal( *get_cg(yuv), w, h, pitch );
-        jpegxr::overlapfilter4x4( *get_cg(yuv), w, h, pitch );
-        jpegxr::overlapfilter2x2_edge( *get_cg(yuv), w, h, pitch );
-        
+        jpegxr::ipct4x4( *y, w, h, pitch );
+        jpegxr::overlapfilter4_vertical( *y, w, h, pitch );
+        jpegxr::overlapfilter4_horizontal( *y, w, h, pitch );
+        jpegxr::overlapfilter4x4( *y, w, h, pitch );
+        jpegxr::overlapfilter2x2_edge( *y, w, h, pitch );
 
         auto image_out = make_rgb(yuv);
+
+        print_image ( example::make_test_image_2x2( 16, 16, 0, 1, 2, 3) );
 
         if ( cuda::is_equal( image->get_buffer(), image_out->get_buffer() ) )
         {

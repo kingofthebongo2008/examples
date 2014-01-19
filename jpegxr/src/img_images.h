@@ -66,10 +66,16 @@ namespace example
         return image.get_data().get()->get();
     }
 
+    const void* get_data( const image_2d& image )
+    {
+        return image.get_data().get()->get();
+    }
+
     void* get_data( std::shared_ptr<image_2d> image )
     {
         return image->get_data().get()->get();
     }
+
 
     template< typename arg1, typename arg2, typename arg3, typename arg4 > std::shared_ptr< image_2d> make_image_2d( arg1 a1, arg2 a2, arg3 a3, arg4 a4  )
     {
