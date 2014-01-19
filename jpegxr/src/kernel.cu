@@ -270,6 +270,14 @@ namespace example
         ycocg_2_rgb(&r_y, &g_u, &b_v );
         scale_bias_bd8_synthesis< no_scale, bd8 >(&r_y, &g_u, &b_v);
 
+        r_y = r_y < 0 ? 0 : r_y;
+        g_u = g_u < 0 ? 0 : g_u;
+        b_v = b_v < 0 ? 0 : b_v;
+
+        r_y = r_y > 255 ? 255 : r_y;
+        g_u = g_u > 255 ? 255 : g_u;
+        b_v = b_v > 255 ? 255 : b_v;
+
         element->color[0] = r_y;
         element->color[1] = g_u;
         element->color[2] = b_v;
@@ -397,6 +405,14 @@ namespace example
         yuv_2_rgb(&r_y, &g_u, &b_v );
         scale_bias_bd8_synthesis< no_scale, bd8 >(&r_y, &g_u, &b_v);
 
+        r_y = r_y < 0 ? 0 : r_y;
+        g_u = g_u < 0 ? 0 : g_u;
+        b_v = b_v < 0 ? 0 : b_v;
+
+        r_y = r_y > 255 ? 255 : r_y;
+        g_u = g_u > 255 ? 255 : g_u;
+        b_v = b_v > 255 ? 255 : b_v;
+
         element->color[0] = r_y;
         element->color[1] = g_u;
         element->color[2] = b_v;
@@ -505,6 +521,8 @@ int32_t main()
 
         auto lp = make_low_pass( example::make_test_image( 16, 16, 5) ) ;
 
+        print_image ( lp );
+
         //auto lp = make_low_pass(yuv);
 
         jpegxr::ipct4x4( *y, w, h, pitch );
@@ -515,7 +533,7 @@ int32_t main()
 
         auto image_out = make_rgb(yuv);
 
-        print_image ( example::make_test_image_2x2( 16, 16, 0, 1, 2, 3) );
+        //print_image ( example::make_test_image_2x2( 16, 16, 0, 1, 2, 3) );
 
         if ( cuda::is_equal( image->get_buffer(), image_out->get_buffer() ) )
         {
