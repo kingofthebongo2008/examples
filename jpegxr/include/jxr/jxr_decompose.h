@@ -16,20 +16,16 @@ namespace jpegxr
 
             auto row = 4 * y;
             auto col = 4 * x;
-            auto pitch = in_pitch;
 
             //out of image bounds
-            if ( col >= width || row >= height )
+            if ( x >= width || y >= height )
             {
                 return;
             }
 
-            auto element_in_index  = row * pitch + col;
+            auto dc = in[ row * in_pitch + col ];
 
-            auto dc = in[ element_in_index ];
-
-            auto element_out_index  = (y + 0) * out_pitch + x + 0;
-            out[ element_out_index ] = dc;
+            out[ y * out_pitch + x ] = dc;
         }
 
         __global__ void combine_lp_hp( const transforms::pixel* in, transforms::pixel* out, const uint32_t in_pitch, const uint32_t width, const uint32_t height, const uint32_t out_pitch)

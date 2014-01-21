@@ -18,9 +18,6 @@ namespace jpegxr
         auto blocks             = dim3 ( ( w + 15 )  / 16 , ( h + 15 ) / 16, 1 );
         auto threads_per_block  = dim3 ( 16,  16,  1 );
 
-        //debug purposes
-        //::cuda::throw_if_failed<::cuda::exception> ( cudaMemset( out, 0, size ) );
-
         f( blocks, threads_per_block, in, out, pitch, w, h ); 
 
         ::cuda::throw_if_failed<::cuda::exception> ( cudaGetLastError() );

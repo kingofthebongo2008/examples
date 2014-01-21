@@ -1,5 +1,7 @@
 ﻿#include "precompiled.h"
 
+#include "img_utils.h"
+
 #include <cstdint>
 #include <fstream>
 #include <iostream>
@@ -45,141 +47,6 @@ namespace example
             cuda::throw_if_failed<cuda::exception> ( cudaDeviceReset() );
         }
     };
-
-    const jpegxr::transforms::pixel* get_pixels( const image_2d& image )
-    {
-        return reinterpret_cast<const jpegxr::transforms::pixel*> ( get_data(image) );
-    }
-
-    jpegxr::transforms::pixel* get_pixels( image_2d& image )
-    {
-        return reinterpret_cast<jpegxr::transforms::pixel*> ( get_data(image) );
-    }
-
-    jpegxr::transforms::pixel* get_pixels( const std::shared_ptr<image_2d> image )
-    {
-        return reinterpret_cast<jpegxr::transforms::pixel*> ( get_data(image) );
-    }
-
-    __global__ void make_test_image_kernel( jpegxr::transforms::pixel* pixels, const uint32_t pixel_value, const uint32_t width, const uint32_t height, const uint32_t write_pitch )
-    {
-        auto x = blockIdx.x * blockDim.x + threadIdx.x;
-        auto y = blockIdx.y * blockDim.y + threadIdx.y;
-
-        auto row = y;
-        auto col = x;
-
-        if ( row < 0  && row > ( height - 1) )
-        {
-            return;
-        }
-
-        if ( col < 0 || col > ( width - 1 ) ) 
-        {
-            return;
-        }
-
-        pixels [ row * write_pitch + col ] = pixel_value;
-    }
-
-    __global__ void make_test_image_kernel_2x2( jpegxr::transforms::pixel* pixels, const uint32_t lt, const uint32_t rt, const uint32_t lb, const uint32_t rb, const uint32_t width, const uint32_t height, const uint32_t write_pitch )
-    {
-        auto x = blockIdx.x * blockDim.x + threadIdx.x;
-        auto y = blockIdx.y * blockDim.y + threadIdx.y;
-
-        auto row = 2 * y;
-        auto col = 2 * x;
-
-        if ( row < 0  && row > ( height - 1) )
-        {
-            return;
-        }
-
-        if ( col < 0 || col > ( width - 1 ) ) 
-        {
-            return;
-        }
-
-        pixels [ row * write_pitch + col ] = lt;
-        pixels [ row * write_pitch + col + 1] = rt;
-
-        pixels [ (row + 1) * write_pitch + col ] = lb;
-        pixels [ (row + 1) * write_pitch + col + 1 ] = rb;
-
-        
-    }
-
-    std::pair< dim3, dim3> make_threads_blocks_16 ( uint32_t pixel_width, uint32_t pixel_height )
-    {
-        auto w = pixel_width;
-        auto h = pixel_height;
-
-        return std::make_pair( dim3 ( w, h,  1 ), dim3 ( ( w + 15 )  / 16 , ( h + 15 ) / 16, 1 ) );
-    }
-
-    std::shared_ptr< image_2d > make_test_image( uint32_t width, uint32_t height, jpegxr::transforms::pixel pixel_value)
-    {
-        auto image_size = width * height * sizeof(jpegxr::transforms::pixel);
-
-        auto w                  = width;
-        auto h                  = height;
-        auto pitch              = w;
-
-        auto kernel_params      = make_threads_blocks_16( w, h );
-        
-
-        auto buffer             = cuda::make_memory_buffer (  image_size );
-
-        make_test_image_kernel<<< std::get<0>( kernel_params), std::get<1>(kernel_params) >>> ( *buffer, pixel_value, w, h, pitch );
-
-        return make_image_2d( buffer, width, height, width );
-    }
-
-    std::shared_ptr< image_2d > make_test_image_2x2( uint32_t width, uint32_t height, jpegxr::transforms::pixel lt, jpegxr::transforms::pixel rt, jpegxr::transforms::pixel lb, jpegxr::transforms::pixel rb)
-    {
-        auto image_size = width * height * sizeof(jpegxr::transforms::pixel);
-
-        auto w                  = width;
-        auto h                  = height;
-        auto pitch              = w;
-
-        auto kernel_params      = make_threads_blocks_16( w, h );
-        
-
-        auto buffer             = cuda::make_memory_buffer (  image_size );
-
-        make_test_image_kernel_2x2<<< std::get<0>( kernel_params), std::get<1>(kernel_params) >>> ( *buffer, lt, rt, lb, rb, w, h, pitch );
-
-        return make_image_2d( buffer, width, height, width );
-    }
-
-    std::shared_ptr< image_2d > make_zero_image( uint32_t width, uint32_t height, jpegxr::transforms::pixel pixel_value)
-    {
-        return make_test_image( width, height, 0 );
-    }
-
-    void print_image( std::shared_ptr<image_2d> image )
-    {
-        auto size               = image->get_width() * image->get_height() * sizeof(jpegxr::transforms::pixel) ;
-        auto y                  = std::unique_ptr< uint8_t[] > ( new uint8_t [ size ] );
-
-        ::cuda::throw_if_failed<::cuda::exception> ( cudaMemcpy( y.get(), get_pixels(image), size , cudaMemcpyDeviceToHost) );
-
-        auto ptr = reinterpret_cast<jpegxr::transforms::pixel*> (&y[0]);
-
-        for( uint32_t i = 0; i < image->get_height(); ++i )
-        {
-            for (uint32_t j = 0; j < image->get_width(); ++j)
-            {
-                std::cout << *( ptr++ ) <<"\t";
-
-                if ( j == image->get_width() - 1 )
-                {
-                    std::cout<<std::endl;
-                }
-            }
-        }
-    }
 }
 
 namespace example
@@ -291,8 +158,7 @@ namespace example
         auto rgb_row_pitch  = (w * 24 + 7) / 8; 
         auto rgb_image_size = rgb_row_pitch * h;
 
-        //auto size           = w * h * sizeof(int32_t);
-        
+       
         auto rgb_buffer     = cuda::make_memory_buffer (  rgb_image_size) ;
 
         auto blocks = 1;
@@ -309,16 +175,15 @@ namespace example
     std::shared_ptr<image_2d> make_low_pass( std::shared_ptr<image_2d> img )
     {
         auto w              = img -> get_width() / 4;
-        auto h              = img -> get_width() / 4;
+        auto h              = img -> get_height() / 4;
         auto pitch          = w;
         auto image_size     = pitch * h * sizeof(jpegxr::transforms::pixel);
 
         auto buffer         = cuda::make_memory_buffer ( image_size ) ;
 
-        auto blocks             = dim3 ( ( w + 15 )  / 16 , ( h + 15 ) / 16, 1 );
-        auto threads_per_block  = dim3 ( 16,  16,  1 );
+        auto kernel_params      = make_threads_blocks_16( w, h );
 
-        jpegxr::decompose::split_lp_hp <<< blocks, threads_per_block >>> ( get_pixels( img ), *buffer,  img->get_pitch(), w, h, pitch ); 
+        jpegxr::decompose::split_lp_hp <<< std::get<0>( kernel_params), std::get<1>(kernel_params) >>> ( get_pixels( img ), *buffer,  img->get_pitch(), w, h, pitch ); 
 
         cuda::throw_if_failed<cuda::exception> ( cudaGetLastError() );
         cuda::throw_if_failed<cuda::exception> ( cudaDeviceSynchronize() );
@@ -519,9 +384,9 @@ int32_t main()
         jpegxr::prefilter4_vertical( *y, w, h, pitch );
         jpegxr::pct4x4( *y, w, h, pitch );
 
-        auto lp = make_low_pass( example::make_test_image( 16, 16, 5) ) ;
+        auto lp = make_low_pass( example::make_test_image_linear_4x4( 32, 16 ) ) ;
 
-        print_image ( lp );
+        print_image ( lp  );
 
         //auto lp = make_low_pass(yuv);
 

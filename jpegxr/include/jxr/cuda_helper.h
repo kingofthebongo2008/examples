@@ -240,6 +240,23 @@ namespace cuda
         return std::make_shared < cuda::memory_buffer > ( cuda::allocate<void*> ( size ), size ) ;
     }
 
+
+    inline std::shared_ptr< memory_buffer > make_memory_buffer_host( size_t size, const void* initial_host_data )
+    {
+        auto r = std::make_shared < cuda::memory_buffer > ( cuda::allocate<void*> ( size ), size ) ;
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( *r, initial_host_data, size, cudaMemcpyHostToDevice) );
+
+        return r;
+    }
+
+    inline std::shared_ptr< memory_buffer > make_memory_buffer_device( size_t size, const void* initial_device_data )
+    {
+        auto r = std::make_shared < cuda::memory_buffer > ( cuda::allocate<void*> ( size ), size ) ;
+        cuda::throw_if_failed<cuda::exception> ( cudaMemcpy( *r, initial_device_data, size, cudaMemcpyDeviceToDevice) );
+        return r;
+    }
+
+
     inline bool is_equal( const memory_buffer& b1, const memory_buffer& b2 )
     {
         if ( !( b1.size() == b2.size() ) )
