@@ -181,7 +181,7 @@ namespace example
 
         auto buffer         = cuda::make_memory_buffer ( image_size ) ;
 
-        auto kernel_params      = make_threads_blocks_16( w, h );
+        auto kernel_params      = cuda::make_threads_blocks_16( w, h );
 
         jpegxr::decompose::split_lp_hp <<< std::get<0>( kernel_params), std::get<1>(kernel_params) >>> ( get_pixels( img ), *buffer,  img->get_pitch(), w, h, pitch ); 
 
@@ -363,20 +363,23 @@ int32_t main()
         auto com_initializer  =  os::windows::com_initializer();
         auto cuda_initializer = example::cuda_initializer();
         auto image  =  example::create_image ( L"test_32x32.png" );
-        
-        auto yuv  = make_ycocg(image);
-        auto back = make_rgb(yuv);
 
-        if ( cuda::is_equal( image->get_buffer(), back->get_buffer() ) )
-        {
-            std::cout <<"Prefect color transformation" << std::endl;
-        }
+        auto image1  =  example::make_test_image_linear_16x16();
+
+        
+        print_image(image1);
+
+        return 0;
+                
+        auto yuv  = make_ycocg(image);
 
         auto y      = get_y(yuv);
         auto w      = y->get_width();
         auto h      = y->get_height();
         auto pitch  = y->get_width();
 
+        std::cout<<"YCoCg...."<<std::endl;
+        print_image ( y  );
         //
         jpegxr::prefilter2x2_edge( *y , w, h, pitch );
         jpegxr::prefilter4x4( *y, w, h, pitch );
@@ -384,7 +387,16 @@ int32_t main()
         jpegxr::prefilter4_vertical( *y, w, h, pitch );
         jpegxr::pct4x4( *y, w, h, pitch );
 
-        auto lp = make_low_pass( example::make_test_image_linear_4x4( 32, 16 ) ) ;
+        std::cout<<"Stage 1..."<<std::endl;
+        print_image ( y  );
+
+        auto lp = make_low_pass( y ) ;
+
+        std::cout<<"Low pass..."<<std::endl;
+        print_image ( lp  );
+
+        jpegxr::pct4x4( *lp, lp->get_width(), lp->get_height(), lp->get_pitch() );
+        std::cout<<"Second Stage..."<<std::endl;
 
         print_image ( lp  );
 

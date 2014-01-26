@@ -117,13 +117,35 @@ namespace example
 
     }
 
-    inline std::pair< dim3, dim3> make_threads_blocks_16 ( uint32_t pixel_width, uint32_t pixel_height )
+    __global__ void make_test_image_kernel_16x16( jpegxr::transforms::pixel* pixels, const jpegxr::transforms::pixel* pixel_values, const uint32_t width, const uint32_t height, const uint32_t write_pitch )
     {
-        auto w = pixel_width;
-        auto h = pixel_height;
+        auto x = blockIdx.x * blockDim.x + threadIdx.x;
+        auto y = blockIdx.y * blockDim.y + threadIdx.y;
 
-        return std::make_pair( dim3 ( w, h,  1 ), dim3 ( ( w + 15 )  / 16 , ( h + 15 ) / 16, 1 ) );
+        auto row = 16 * y;
+        auto col = 16 * x;
+
+        if (  row > ( height - 1) )
+        {
+            return;
+        }
+
+        if ( col > ( width - 1 ) ) 
+        {
+            return;
+        }
+
+        auto value = 0;
+
+        for (auto j = 0; j < 16; ++j)
+        {
+            for(auto i=0; i < 16;++i)
+            {
+                pixels [ j * write_pitch + col + i] = pixel_values[value++];
+            }
+        }
     }
+
 
     inline std::shared_ptr< image_2d > make_test_image( uint32_t width, uint32_t height, jpegxr::transforms::pixel pixel_value)
     {
@@ -133,7 +155,7 @@ namespace example
         auto h                  = height;
         auto pitch              = w;
 
-        auto kernel_params      = make_threads_blocks_16( w, h );
+        auto kernel_params      = cuda::make_threads_blocks_16( w, h );
         
 
         auto buffer             = cuda::make_memory_buffer (  image_size );
@@ -143,15 +165,15 @@ namespace example
         return make_image_2d( buffer, width, height, width );
     }
 
-    inline std::shared_ptr< image_2d > make_test_image_2x2( uint32_t width, uint32_t height, jpegxr::transforms::pixel lt, jpegxr::transforms::pixel rt, jpegxr::transforms::pixel lb, jpegxr::transforms::pixel rb)
+    inline std::shared_ptr< image_2d > make_test_image_2x2( jpegxr::transforms::pixel lt, jpegxr::transforms::pixel rt, jpegxr::transforms::pixel lb, jpegxr::transforms::pixel rb)
     {
-        auto image_size = width * height * sizeof(jpegxr::transforms::pixel);
-
-        auto w                  = width;
-        auto h                  = height;
+        auto w                  = 2;
+        auto h                  = 2;
         auto pitch              = w;
 
-        auto kernel_params      = make_threads_blocks_16( w, h );
+        auto image_size = w * h * sizeof(jpegxr::transforms::pixel);
+
+        auto kernel_params      = cuda::make_threads_blocks_16( w, h );
         
 
         auto buffer             = cuda::make_memory_buffer (  image_size );
@@ -161,19 +183,19 @@ namespace example
         ::cuda::throw_if_failed<::cuda::exception> ( cudaGetLastError() );
         ::cuda::throw_if_failed<::cuda::exception> ( cudaDeviceSynchronize() );
 
-        return make_image_2d( buffer, width, height, width );
+        return make_image_2d( buffer, w, h, w );
     }
 
 
-    inline std::shared_ptr< image_2d > make_test_image_4x4( uint32_t width, uint32_t height, const jpegxr::transforms::pixel pixels[16])
+    inline std::shared_ptr< image_2d > make_test_image_4x4( const jpegxr::transforms::pixel pixels[16])
     {
-        auto image_size = width * height * sizeof(jpegxr::transforms::pixel);
-
-        auto w                  = width;
-        auto h                  = height;
+        auto w                  = 4;
+        auto h                  = 4;
         auto pitch              = w;
 
-        auto kernel_params      = make_threads_blocks_16( w, h );
+        auto image_size = w * h * sizeof(jpegxr::transforms::pixel);
+
+        auto kernel_params      = cuda::make_threads_blocks_16( w, h );
         
 
         auto buffer_out         = cuda::make_memory_buffer (  image_size );
@@ -184,13 +206,51 @@ namespace example
         ::cuda::throw_if_failed<::cuda::exception> ( cudaGetLastError() );
         ::cuda::throw_if_failed<::cuda::exception> ( cudaDeviceSynchronize() );
 
-        return make_image_2d( buffer_out, width, height, width );
+        return make_image_2d( buffer_out, w, h, w );
     }
 
-    inline std::shared_ptr< image_2d > make_test_image_linear_4x4( uint32_t width, uint32_t height )
+    inline std::shared_ptr< image_2d > make_test_image_linear_4x4(  )
     {
-        const jpegxr::transforms::pixel pixels[16] = { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
-        return make_test_image_4x4(width, height, pixels);
+        std::unique_ptr<jpegxr::transforms::pixel[]> pixels ( new jpegxr::transforms::pixel[16]);
+
+        for ( auto i = 0; i < 16; ++i)
+        {
+            pixels[i] = i;
+        }
+        return make_test_image_4x4(pixels.get());
+    }
+
+    inline std::shared_ptr< image_2d > make_test_image_16x16( const jpegxr::transforms::pixel pixels[256])
+    {
+        auto w                  = 16;
+        auto h                  = 16;
+        auto pitch              = w;
+
+        auto image_size = w * h * sizeof(jpegxr::transforms::pixel);
+
+        auto kernel_params      = cuda::make_threads_blocks_16( w, h );
+        
+
+        auto buffer_out         = cuda::make_memory_buffer (  image_size );
+        auto buffer_in          = cuda::make_memory_buffer_host ( sizeof(jpegxr::transforms::pixel) * 256 , pixels );
+
+        make_test_image_kernel_16x16<<< std::get<0>( kernel_params), std::get<1>(kernel_params) >>> ( *buffer_out, *buffer_in, w, h, pitch );
+        
+        ::cuda::throw_if_failed<::cuda::exception> ( cudaGetLastError() );
+        ::cuda::throw_if_failed<::cuda::exception> ( cudaDeviceSynchronize() );
+
+        return make_image_2d( buffer_out, w, h, w );
+    }
+
+    inline std::shared_ptr< image_2d > make_test_image_linear_16x16( )
+    {
+        std::unique_ptr<jpegxr::transforms::pixel[]> pixels ( new jpegxr::transforms::pixel[256]);
+
+        for ( auto i = 0; i < 256; ++i)
+        {
+            pixels[i] = i;
+        }
+        return make_test_image_16x16( pixels.get());
     }
 
     inline std::shared_ptr< image_2d > make_zero_image( uint32_t width, uint32_t height, jpegxr::transforms::pixel pixel_value)

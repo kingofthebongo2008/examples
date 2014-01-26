@@ -308,6 +308,15 @@ namespace cuda
     {
         return is_equal(*b1, *b2);
     }
+
+        
+    inline std::pair< dim3, dim3> make_threads_blocks_16 ( uint32_t pixel_width, uint32_t pixel_height )
+    {
+        auto w = pixel_width;
+        auto h = pixel_height;
+
+        return std::make_pair( dim3 ( w, h,  1 ), dim3 ( ( w + 15 )  / 16 , ( h + 15 ) / 16, 1 ) );
+    }
     
 }
 
