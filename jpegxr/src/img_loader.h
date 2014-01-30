@@ -116,6 +116,9 @@ namespace example
     };
 
     std::shared_ptr< image > create_image ( const wchar_t* image_file_path );
+
 }
+
+
 
 #endif

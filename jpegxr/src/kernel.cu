@@ -364,13 +364,6 @@ int32_t main()
         auto cuda_initializer = example::cuda_initializer();
         auto image  =  example::create_image ( L"test_32x32.png" );
 
-        auto image1  =  example::make_test_image_linear_16x16();
-
-        
-        print_image(image1);
-
-        return 0;
-                
         auto yuv  = make_ycocg(image);
 
         auto y      = get_y(yuv);
@@ -395,12 +388,21 @@ int32_t main()
         std::cout<<"Low pass..."<<std::endl;
         print_image ( lp  );
 
-        jpegxr::pct4x4( *lp, lp->get_width(), lp->get_height(), lp->get_pitch() );
         std::cout<<"Second Stage..."<<std::endl;
+
+        auto w_lp = lp->get_width();
+        auto h_lp = lp->get_height();
+        auto pitch_lp = lp->get_pitch();
+
+        jpegxr::prefilter2x2_edge( *lp , w_lp, h_lp, pitch_lp );
+        jpegxr::prefilter4x4( *lp, w_lp, h_lp, pitch_lp );
+        jpegxr::prefilter4_horizontal( *lp , w_lp, h_lp, pitch_lp );
+        jpegxr::prefilter4_vertical( *lp, w_lp, h_lp, pitch_lp );
+        jpegxr::pct4x4( *lp, w_lp, h_lp, pitch_lp );
 
         print_image ( lp  );
 
-        //auto lp = make_low_pass(yuv);
+        
 
         jpegxr::ipct4x4( *y, w, h, pitch );
         jpegxr::overlapfilter4_vertical( *y, w, h, pitch );
