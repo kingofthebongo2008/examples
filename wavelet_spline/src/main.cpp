@@ -12,10 +12,38 @@
 
 #include <vector_functions.h>
 
+#include <array>
 
+#include "liftbase.h"
+#include "daub.h"
 
 namespace lifting
 {
+
+    template < typename iterator, typename normalizer >
+    void normalize_even(iterator begin, iterator end, normalizer n)
+    {
+        auto  middle    = thrust::distance( begin, end ) / 2;
+        auto  half      = begin + (middle);
+
+        for ( auto it = begin; it < half; ++it )
+        {
+            (*it) = n( it, begin, end );
+        }
+    }
+
+    template < typename iterator, typename normalizer >
+    void normalize_odd(iterator begin, iterator end, normalizer n)
+    {
+        auto  middle    = thrust::distance( begin, end ) / 2;
+        auto  half      = begin + (middle);
+
+        for ( auto it = half; it < end; ++it )
+        {
+            ( *it ) = n( it, begin, end );
+        }
+    }
+
     namespace fwd
     {
         template <typename iterator>
@@ -47,9 +75,9 @@ namespace lifting
                 auto even   =   *it;
                 auto odd    =   *(it + middle);
 
-                auto predicted = odd - p( it, begin, end );
+                auto detail = odd - p( it, begin, end );
 
-                *(it + middle ) = predicted;
+                *(it + middle ) = detail;
             }
         }
 
@@ -64,9 +92,9 @@ namespace lifting
                 auto even   =   *it;
                 auto odd    =   *(it + middle);
 
-                auto updated = even + u( it + middle, begin, end );
+                auto scale = even + u( it + middle, begin, end );
 
-                *(it) = updated;
+                *(it) = scale;
             }
         }
     }
@@ -105,9 +133,9 @@ namespace lifting
                 auto even   =   *it;
                 auto odd    =   *(it + middle);
 
-                auto predicted = odd + p( it, begin, end );
+                auto detail = odd + p( it, begin, end );
 
-                *(it + middle ) = predicted;
+                *(it + middle ) = detail;
             }
         }
 
@@ -122,9 +150,9 @@ namespace lifting
                 auto even   =   *it;
                 auto odd    =   *(it + middle);
 
-                auto updated = even - u( it + middle, begin, end );
+                auto scale = even - u( it + middle, begin, end );
 
-                *(it) = updated;
+                *(it) = scale;
             }
         }
     }
@@ -145,30 +173,12 @@ namespace lifting
             typedef typename thrust::iterator_value<iterator>::type value;
             value operator()( iterator odd, iterator begin, iterator end ) const
             {
-                return (*odd) / 2.0f;
+                return ( *odd ) / 2.0f;
             }
         };
 
         namespace fwd
         {
-            template <typename iterator>
-            void split( iterator begin, iterator end )
-            {
-                lifting::fwd::split(begin, end);
-            }
-
-            template <typename iterator>
-            void predict(iterator begin, iterator end)
-            {
-                lifting::fwd::predict( begin, end, predictor<iterator>());
-            }
-
-            template < typename iterator >
-            void update( iterator begin, iterator end )
-            {
-                lifting::fwd::update( begin, end, updater<iterator>() );
-            }
-
             template < typename iterator >
             void normalize( iterator begin, iterator end )
             {
@@ -187,38 +197,20 @@ namespace lifting
             template < typename iterator>
             void transform( iterator begin, iterator end )
             {
-                split(begin, end);
-                predict(begin, end);
-                update(begin, end);
+                lifting::fwd::split(begin, end);
+                lifting::fwd::predict( begin, end, predictor<iterator>());
+                lifting::fwd::update( begin, end, updater<iterator>() );
             }
         }
 
         namespace inv
         {
-            template <typename iterator>
-            void merge( iterator begin, iterator end )
-            {
-                lifting::inv::merge(begin, end);
-            }
-
-            template <typename iterator>
-            void predict(iterator begin, iterator end)
-            {
-                lifting::inv::predict( begin, end, predictor<iterator>());
-            }
-
-            template < typename iterator >
-            void update( iterator begin, iterator end )
-            {
-                lifting::inv::update( begin, end, updater<iterator>() );
-            }
-
             template < typename iterator>
             void transform( iterator begin, iterator end )
             {
-                update( begin, end );
-                predict( begin, end );
-                merge( begin, end );
+                lifting::inv::update( begin, end, updater<iterator>() );
+                lifting::inv::predict( begin, end, predictor<iterator>());
+                lifting::inv::merge(begin, end);
             }
         }
     }
@@ -275,62 +267,155 @@ namespace lifting
 
         namespace fwd
         {
-            template <typename iterator>
-            void split( iterator begin, iterator end )
-            {
-                lifting::fwd::split(begin, end);
-            }
-
-            template <typename iterator>
-            void predict(iterator begin, iterator end)
-            {
-                lifting::fwd::predict( begin, end, predictor<iterator>());
-            }
-
-            template < typename iterator >
-            void update( iterator begin, iterator end )
-            {
-                lifting::fwd::update( begin, end, updater<iterator>() );
-            }
-
             template < typename iterator>
             void transform( iterator begin, iterator end )
             {
-                split(begin, end);
-                predict(begin, end);
-                update(begin, end);
+                lifting::fwd::split( begin, end );
+                lifting::fwd::predict( begin, end, predictor<iterator>() );
+                lifting::fwd::update( begin, end, updater<iterator>() );
             }
         }
 
         namespace inv
         {
-            template <typename iterator>
-            void merge( iterator begin, iterator end )
-            {
-                lifting::inv::merge(begin, end);
-            }
-
-            template <typename iterator>
-            void predict(iterator begin, iterator end)
-            {
-                lifting::inv::predict( begin, end, predictor<iterator>());
-            }
-
-            template < typename iterator >
-            void update( iterator begin, iterator end )
+            template < typename iterator>
+            void transform( iterator begin, iterator end )
             {
                 lifting::inv::update( begin, end, updater<iterator>() );
+                lifting::inv::predict( begin, end, predictor<iterator>());
+                lifting::inv::merge( begin, end );
             }
+        }
+    }
+
+    namespace d4
+    {
+        template <typename iterator> struct predictor0
+        {
+            typedef typename thrust::iterator_value<iterator>::type value;
+
+            value operator()( iterator even, iterator begin, iterator end ) const
+            {
+                const auto f0 = sqrt( 3.0 );
+                const auto f1 = (sqrt(3.0) - 2);
+                auto left = even - 1;
+
+                auto  distance  = thrust::distance( begin, end );
+                auto  half      = begin + (distance / 2);
+
+                if (left < begin )
+                {
+                    left = half - 1;
+                }
+
+                return  ( f0 * (*even) +  f1 * (*left) ) / 4.0 ;
+            }
+        };
+
+        template <typename iterator> struct updater0
+        {
+            typedef typename thrust::iterator_value<iterator>::type value;
+
+            value operator()( iterator odd, iterator begin, iterator end ) const
+            {
+                const auto f = sqrtf( 3.0 );
+                return f * ( *odd ) ;
+            }
+        };
+
+        template <typename iterator> struct updater1
+        {
+            typedef typename thrust::iterator_value<iterator>::type value;
+
+            value operator()( iterator odd, iterator begin, iterator end ) const
+            {
+                auto right = odd + 1;
+
+                if ( right > end - 1 )
+                {
+                    auto  distance  = thrust::distance( begin, end );
+                    auto  half      = begin + (distance / 2);
+
+                    right = half;
+                }
+
+                return  - ( *( right ) );
+            }
+        };
+
+        namespace fwd
+        {
+            template <typename iterator> struct scale_even
+            {
+                typedef typename thrust::iterator_value<iterator>::type value;
+
+                value operator()( iterator even, iterator begin, iterator end ) const
+                {
+                    const auto f = ( sqrt( 3.0 ) - 1.0 ) / sqrt( 2.0 );
+                    return f * (*even) ;
+                }
+            };
+
+            template <typename iterator> struct scale_odd
+            {
+                typedef typename thrust::iterator_value<iterator>::type value;
+
+                value operator()( iterator odd, iterator begin, iterator end ) const
+                {
+                    const auto f = ( sqrt(3.0) + 1.0 ) / sqrt(2.0);
+                    return f * (*odd);
+                }
+            };
 
             template < typename iterator>
             void transform( iterator begin, iterator end )
             {
-                update( begin, end );
-                predict( begin, end );
-                merge( begin, end );
+                lifting::fwd::split(begin, end);
+                lifting::fwd::update( begin, end, updater0<iterator>() );
+                lifting::fwd::predict( begin, end, predictor0<iterator>());
+                lifting::fwd::update( begin, end, updater1<iterator>() );
+
+                lifting::normalize_even( begin, end, scale_even<iterator>() );
+                lifting::normalize_odd( begin, end, scale_odd<iterator>() );
             }
         }
 
+        namespace inv
+        {
+            template <typename iterator> struct scale_even
+            {
+                typedef typename thrust::iterator_value<iterator>::type value;
+
+                value operator()( iterator even, iterator begin, iterator end ) const
+                {
+                    const auto f = sqrt( 2.0 ) / ( sqrt( 3.0 ) - 1.0 ) ;
+                    return f * (*even) ;
+                }
+            };
+
+            template <typename iterator> struct scale_odd
+            {
+                typedef typename thrust::iterator_value<iterator>::type value;
+
+                value operator()( iterator odd, iterator begin, iterator end ) const
+                {
+                    const auto f =  sqrt(2.0) / ( sqrt(3.0) + 1.0 ) ;
+                    return f * (*odd);
+                }
+            };
+
+            template < typename iterator>
+            void transform( iterator begin, iterator end )
+            {
+                lifting::normalize_even( begin, end, scale_even<iterator>() );
+                lifting::normalize_odd( begin, end, scale_odd<iterator>() );
+
+                lifting::inv::update( begin, end, updater1<iterator>() );
+                lifting::inv::predict( begin, end, predictor0<iterator>());
+                lifting::inv::update( begin, end, updater0<iterator>() );
+                lifting::inv::merge(begin, end);
+            }
+        }
     }
 }
 
@@ -338,29 +423,53 @@ std::int32_t main(int argc, _TCHAR* argv[])
 {
     using namespace lifting;
 
-    double arr[] = { 4 , 3 , 2, 1, 2, 3 , 4 , 5 };
-    double arr_orig[] = { arr[0], arr[1], arr[2], arr[3], arr[4], arr[5], arr[6], arr[7] };
-    double arr2[] = { 4 , 3 , 2, 1, 1, 2 , 3 , 4 };
-    
-    haar::fwd::transform(&arr[0], &arr[0] + sizeof(arr) / sizeof(arr[0]) );
-    haar::fwd::transform(&arr[0], &arr[0] + sizeof(arr) / ( 2* sizeof(arr[0]) ) );
-    haar::fwd::transform(&arr[0], &arr[0] + sizeof(arr) / ( 4* sizeof(arr[0]) ) );
+    //double arr[] = { 4 , 3 , 2, 1, 2, 3 , 4 , 5 };
+    //double arr1[] = { 4 , 3 , 2, 1, 2, 3 , 4 , 5 };
 
-    haar::inv::transform(&arr[0], &arr[0] + sizeof(arr) / ( 4* sizeof(arr[0]) ) );
-    haar::inv::transform(&arr[0], &arr[0] + sizeof(arr) / ( 2* sizeof(arr[0]) ) );
-    haar::inv::transform(&arr[0], &arr[0] + sizeof(arr) / sizeof(arr[0]) );
-    
+    double arr[]    = { 2, 4, 16, 256, 65536, 6, 7, 8 };
+    double arr1[]   = { 1, 2, 3, 4, 5, 6, 7, 8 };
 
-    linear::fwd::transform(&arr[0], &arr[0] + sizeof(arr) / sizeof(arr[0]) );
+    typedef std::tr1::array<double, 8> arr_type  ;
+    std::tr1::array<double, 8>  arr2 = { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+    arr[0] = arr1[0] = arr2[0] = 0.125;
+
+    for ( auto i = 1; i < 8 ;++i)
+    {
+        arr[i]  = arr[i-1] * arr[i-1];
+        arr1[i] = arr1[i-1] * arr1[i-1];
+        arr2[i] = arr2[i-1] * arr2[i-1];
+    }
+
+    d4::fwd::transform(&arr[0], &arr[0] + sizeof(arr) / sizeof(arr[0]) );
+    d4::fwd::transform(&arr[0], &arr[0] + sizeof(arr) / ( 2 * sizeof(arr[0] ) ) );
+    d4::fwd::transform(&arr[0], &arr[0] + sizeof(arr) / ( 4 * sizeof(arr[0] ) ) );
+
+    linear::fwd::transform(&arr1[0], &arr1[0] + sizeof(arr1) / ( sizeof(arr1[0]) ) );
+    linear::fwd::transform(&arr1[0], &arr1[0] + sizeof(arr1) / ( 2 * sizeof(arr1[0]) ) );
+    linear::fwd::transform(&arr1[0], &arr1[0] + sizeof(arr1) / ( 4* sizeof(arr1[0]) ) );
+
+    d4::inv::transform(&arr[0], &arr[0] + sizeof(arr) / ( 4 * sizeof(arr[0] ) ) );
+    d4::inv::transform(&arr[0], &arr[0] + sizeof(arr) / ( 2 * sizeof(arr[0] ) ) );
+    d4::inv::transform(&arr[0], &arr[0] + sizeof(arr) / sizeof(arr[0]) );
+
+    /*
     linear::fwd::transform(&arr[0], &arr[0] + sizeof(arr) / ( 2* sizeof(arr[0]) ) );
     linear::fwd::transform(&arr[0], &arr[0] + sizeof(arr) / ( 4* sizeof(arr[0]) ) );
     linear::fwd::transform(&arr[0], &arr[0] + sizeof(arr) / ( 8* sizeof(arr[0]) ) );
-
+    */
+    /*
     linear::inv::transform(&arr[0], &arr[0] + sizeof(arr) / ( 8* sizeof(arr[0]) ) );
     linear::inv::transform(&arr[0], &arr[0] + sizeof(arr) / ( 4* sizeof(arr[0]) ) );
     linear::inv::transform(&arr[0], &arr[0] + sizeof(arr) / ( 2* sizeof(arr[0]) ) );
     linear::inv::transform(&arr[0], &arr[0] + sizeof(arr) / sizeof(arr[0]) );
-   
+    */
+
+    
+    
+    Daubechies< arr_type > d;
+
+    d.forwardTrans( arr2, 8);
    
     return 0;
 }
