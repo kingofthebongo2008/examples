@@ -716,7 +716,7 @@ namespace lwt
 
 namespace arithmetic
 {
-    static const uint32_t code_value_bits = 16;
+    static const uint32_t   code_value_bits = 16;
     
     typedef int32_t         code_value;
 
@@ -727,17 +727,22 @@ namespace arithmetic
     static const code_value third_quarter = 3 * first_quarter;
 
     static const uint32_t no_of_chars   = 256;
-    static const uint32_t eof_symbol    = no_of_chars + 1;
+    static const int32_t  eof_symbol    = no_of_chars + 1;
     static const uint32_t no_of_symbols = no_of_chars + 1;
     static const uint32_t max_frequency = 16383;
 
+    class exception : public std::exception
+    {
+
+    };
+
+    static inline void raise_error()
+    {
+        throw exception();
+    }
+
     namespace statistics
     {
-        static inline void raise_max_frequency_error()
-        {
-            //throw exception;
-        }
-
         struct context
         {
             uint32_t    m_cum_frequency[ no_of_symbols + 1];
@@ -745,8 +750,9 @@ namespace arithmetic
             int32_t     m_char_to_index[ no_of_chars ];
             uint32_t    m_index_to_char[ no_of_symbols ];
 
-            context() : 
-            m_cum_frequency()
+            uint32_t    m_frequency[ no_of_symbols + 1];
+
+            context() 
             {
                 //setup tables that translate between symbol indexes and chars
                 for ( uint32_t i = 0; i < no_of_chars; ++i)
@@ -757,20 +763,22 @@ namespace arithmetic
             }
         };
 
-        context intialize_frequencies( context* s,  uint32_t frequency [no_of_symbols + 1] )
+        context intialize_frequencies( context* s,  uint32_t frequency [ no_of_symbols + 1] )
         {
             s->m_cum_frequency[ no_of_symbols ] = 0;
 
             //setup cumulative frequency counts
-            for (int32_t i = no_of_symbols; i > 0; i--)
+            for (int32_t i = no_of_symbols; i > 0; --i)
             {
                 s->m_cum_frequency[i-1] = s->m_cum_frequency[i] + frequency[i];
             }
 
             if (s->m_cum_frequency[0] > max_frequency )
             {
-                raise_max_frequency_error();
+                raise_error();
             }
+
+            std::copy ( &frequency[0], &frequency[0] + no_of_symbols+ 1, std::begin ( s->m_frequency ) );
 
             return *s;
         }
@@ -786,12 +794,18 @@ namespace arithmetic
 
             //setup eof symbol frequency
             frequency[ no_of_symbols ] = 1;
+            frequency[ 0 ] = 1;
 
             std::for_each( begin, end, [&]( const uint8_t v ) -> void
             {
                 auto symbol = s.m_char_to_index[v];
-                frequency[symbol]++;
+                frequency[symbol] +=1;
             });
+
+            int freq[ no_of_symbols + 1] = 
+            { 
+              
+            };
 
             return intialize_frequencies(&s, frequency);
         }
@@ -799,7 +813,7 @@ namespace arithmetic
         context create_context( uint32_t frequency [no_of_symbols + 1] )
         {
             context s;
-            return intialize_frequencies(&s, frequency);
+            return intialize_frequencies( &s, frequency );
         }
     }
 
@@ -838,8 +852,11 @@ namespace arithmetic
                 auto range = (m_high - m_low )  + 1;
                 auto freq_0 = m_stat.m_cum_frequency  [ 0 ];
 
-                m_high  = m_low +  ( range * m_stat.m_cum_frequency[ symbol - 1 ] ) / freq_0 - 1;
-                m_low   = m_low +  ( range * m_stat.m_cum_frequency[ symbol     ] ) / freq_0;
+                auto freq_symbol_1  = m_stat.m_cum_frequency[ symbol - 1] ;
+                auto freq_symbol    = m_stat.m_cum_frequency[ symbol ] ;
+
+                m_high  = m_low +  ( range *  freq_symbol_1  ) / freq_0  - 1;
+                m_low   = m_low +  ( range *  freq_symbol    ) / freq_0;
 
                 for (;;)
                 {
@@ -864,8 +881,8 @@ namespace arithmetic
                         break;
                     }
 
-                    m_low = 2 * m_low;
-                    m_high = 2 * m_high + 1;
+                    m_low   = 2 * m_low;
+                    m_high  = 2 * m_high + 1;
                 }
             }
 
@@ -898,7 +915,7 @@ namespace arithmetic
         }
 
         template < typename stream >
-        void encode ( const uint8_t* begin, const uint8_t* end, stream& s)
+        statistics::context encode ( const uint8_t* begin, const uint8_t* end, stream& s)
         {
             context c = create_context( begin, end );
 
@@ -914,22 +931,143 @@ namespace arithmetic
             c.encode_symbol ( eof_symbol, s);
             c.done_encoding(s);
             s.done_outputing_bits();
+
+            return c.m_stat;
         }
         
     }
 
+    namespace decoder
+    {
+        struct context
+        {
+            statistics::context m_stat;
+
+            code_value          m_low;
+            code_value          m_high;
+            code_value          m_value;
+
+
+            context( const statistics::context& stat ) : 
+            m_stat(stat)
+            , m_low(0)
+            , m_high(top_value)
+            {
+
+            }
+
+
+            template <typename stream>
+            void start_decoding( stream& s)
+            {
+                m_value = 0;
+
+                //input bits to fill the codevalue
+                for ( int32_t i = 1; i <= code_value_bits; ++i )
+                {
+                    m_value = 2 * m_value + s.input_bit();
+                }
+
+                //full code range
+                m_low = 0;
+                m_high = top_value;
+            }
+
+            template <typename stream>
+            int32_t decode_symbol ( stream& s )
+            {
+                int32_t range;
+                int32_t cum;
+
+                int32_t symbol;
+
+                int32_t freq_0 = m_stat.m_cum_frequency[0];
+
+                range = ( m_high - m_low ) + 1;
+                cum   = ( (  ( m_value - m_low ) + 1 )  * freq_0 - 1 ) / range; 
+
+                for ( symbol = 1 ; m_stat.m_cum_frequency[ symbol ] > cum ; ++symbol )
+                {
+
+                }
+
+                m_high  = m_low +  ( range * m_stat.m_cum_frequency[ symbol - 1 ] ) / freq_0 - 1;
+                m_low   = m_low +  ( range * m_stat.m_cum_frequency[ symbol     ] ) / freq_0;
+
+                for ( ;; )
+                {
+                    if ( m_high < half )
+                    {
+
+                    }
+                    else if ( m_low >= half )
+                    {
+                        m_value -= half;
+                        m_low   -= half;
+                        m_high  -= half;
+                    }
+                    else if ( m_low >= first_quarter && m_high <third_quarter)
+                    {
+                        m_value -= first_quarter;
+                        m_low   -= first_quarter;
+                        m_high  -= first_quarter;
+                    }
+                    else
+                    {
+                        break;
+                    }
+
+                    m_low   = 2 * m_low;
+                    m_high  = 2 * m_high + 1;
+                    m_value = 2 * m_value + s.input_bit();
+                }
+
+                return symbol;
+            }
+        };
+
+        template < typename stream, typename iterator >
+        void decode ( context& c, stream& s, iterator output )
+        {
+            s.start_inputing_bits();
+            c.start_decoding(s);
+
+            for ( ;; )
+            {
+                int32_t ch;
+                int32_t symbol;
+
+                symbol = c.decode_symbol( s );
+                if ( symbol == eof_symbol )
+                {
+                    break;
+                }
+
+                ch = c.m_stat.m_index_to_char[ symbol ];
+
+                *output++ = ch;
+            }
+        }
+    }
+
+    template < typename iterator >
     class output_bit_stream
     {
         private:
 
-        int32_t m_buffer;       //bits buffered for output
-        int32_t m_bits_to_go;   //free bits in the buffer
+        int32_t     m_buffer;       //bits buffered for output
+        int32_t     m_bits_to_go;   //free bits in the buffer
 
-        std::vector<uint8_t>   m_output;
+        iterator&   m_output;
 
         public:
 
-        output_bit_stream()
+        output_bit_stream( iterator& output ) : m_output(output)
+        {
+            reset();
+        }
+
+        output_bit_stream( iterator&& output ) : m_output( std::move(output) )
         {
             reset();
         }
@@ -938,7 +1076,6 @@ namespace arithmetic
         {
             m_buffer = 0;
             m_bits_to_go = 8;
-            m_output.reserve(256);
         }
 
         void start_outputing_bits()
@@ -949,7 +1086,7 @@ namespace arithmetic
         void done_outputing_bits()
         {
             auto out = static_cast<uint8_t>(m_buffer >> m_bits_to_go );
-            m_output.push_back( out );
+            *m_output++ = out;
         }
 
         void output_bit( int32_t bit )
@@ -967,25 +1104,112 @@ namespace arithmetic
             if (m_bits_to_go == 0)
             {
                 auto out = static_cast<uint8_t>(m_buffer);
-                m_output.push_back( out );
+                *m_output++=out;
                 m_bits_to_go = 8;
             }
         }
     };
+
+    class input_bit_stream
+    {
+        private:
+
+        int32_t m_buffer;       //bits waiting to be input
+        int32_t m_bits_to_go;   //free bits in the buffer
+        int32_t m_garbage_bits; //number of bits past eof
+
+        std::vector<uint8_t>   m_input;
+        uint32_t               m_input_pointer;
+        static const int32_t   eof = static_cast<int32_t> (-1);
+
+        public:
+        
+        template <typename iterator>
+        input_bit_stream( iterator begin, iterator end ) :
+        m_buffer(0)
+        , m_bits_to_go(0)
+        , m_garbage_bits(0)
+        , m_input_pointer(0)
+        {
+            m_input.resize ( std::distance ( begin, end ) );
+            std::copy ( begin, end, m_input.begin()) ;
+        }
+
+        void reset()
+        {
+            m_buffer = 0;
+            m_bits_to_go = 0;
+            m_garbage_bits = 0;
+            m_input_pointer = 0;
+        }
+
+        void start_inputing_bits()
+        {
+            reset();
+        }
+
+        int32_t get_byte()
+        {
+            if ( m_input_pointer == m_input.size() )
+            {
+                return eof;
+            }
+            else
+            {
+                return m_input[m_input_pointer++];
+            }
+        }
+
+        int32_t input_bit()
+        {
+            int32_t t;
+
+            if ( m_bits_to_go == 0 )
+            {
+                m_buffer = get_byte();
+
+                if (m_buffer == eof )
+                {
+                    m_garbage_bits +=1;
+
+                    if (m_garbage_bits > code_value_bits - 2 )
+                    {
+                        raise_error();
+                    }
+                }
+
+                m_bits_to_go = 8;
+            }
+
+            t = m_buffer & 0x1;
+
+            m_buffer >>= 1;
+            m_bits_to_go -=1;
+            return t;
+        }
+    };
 }
+
 
 std::int32_t main(int argc, _TCHAR* argv[])
 {
-    uint8_t message[] = {'s', 'w', 'i', 's', 's', ' ', 'm', 'i', 's', 's' };
+    uint8_t message[] = { 'a','a','a', 'a', 'a', ' ', 'a', 'a', 'a', 'a' };
 
-    auto context = arithmetic::encoder::create_context( std::begin(message), std::end(message) );
+    std::vector<uint8_t> output;
 
-    arithmetic::output_bit_stream s;
-    arithmetic::encoder::encode( std::begin(message), std::end(message), s );
+    typedef std::back_insert_iterator < std::vector< uint8_t > > back_iterator;
 
+    arithmetic::output_bit_stream< back_iterator  >  s( std::back_inserter( output ) );
 
+    auto context = arithmetic::encoder::encode( std::begin( message ), std::end( message), s );
+    std::vector<uint8_t> v;
 
-    size_t s1 = sizeof (context.m_stat.m_cum_frequency);
+    arithmetic::input_bit_stream i( output.begin(), output.end() );
+  
+    arithmetic::decoder::context decode_context ( context );
+
+    arithmetic::decoder::decode( decode_context, i, std::back_inserter( v ) );
+    
 
     return 0;
 }
