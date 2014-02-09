@@ -736,7 +736,7 @@ namespace arithmetic
 
     };
 
-    static inline void raise_error()
+    inline void raise_error()
     {
         throw exception();
     }
@@ -745,12 +745,12 @@ namespace arithmetic
     {
         struct context
         {
-            uint32_t    m_cum_frequency[ no_of_symbols + 1];
+            int32_t     m_cum_frequency[ no_of_symbols + 1];
 
             int32_t     m_char_to_index[ no_of_chars ];
-            uint32_t    m_index_to_char[ no_of_symbols ];
+            int32_t     m_index_to_char[ no_of_symbols ];
 
-            uint32_t    m_frequency[ no_of_symbols + 1];
+            int32_t     m_frequency[ no_of_symbols + 1];
 
             context() 
             {
@@ -763,7 +763,7 @@ namespace arithmetic
             }
         };
 
-        context intialize_frequencies( context* s,  uint32_t frequency [ no_of_symbols + 1] )
+        inline context intialize_frequencies( context* s,  const int32_t frequency [ no_of_symbols + 1] )
         {
             s->m_cum_frequency[ no_of_symbols ] = 0;
 
@@ -783,18 +783,18 @@ namespace arithmetic
             return *s;
         }
 
-        context create_context( const uint8_t* begin, const uint8_t* end )
+        inline context create_context( const uint8_t* begin, const uint8_t* end )
         {
             context s;
 
             //analyze initial frequency of symbols
-            uint32_t    frequency[ no_of_symbols + 1];
-            uint32_t    symbol_count = 0;
+            int32_t    frequency[ no_of_symbols + 1];
+            int32_t    symbol_count = 0;
             std::fill( std::begin(frequency), std::end(frequency), 0 );
 
             //setup eof symbol frequency
             frequency[ no_of_symbols ] = 1;
-            frequency[ 0 ] = 1;
+            //frequency[ 0 ] = 1;
 
             std::for_each( begin, end, [&]( const uint8_t v ) -> void
             {
@@ -810,7 +810,7 @@ namespace arithmetic
             return intialize_frequencies(&s, frequency);
         }
 
-        context create_context( uint32_t frequency [no_of_symbols + 1] )
+        inline context create_context( const int32_t frequency [no_of_symbols + 1] )
         {
             context s;
             return intialize_frequencies( &s, frequency );
@@ -908,8 +908,7 @@ namespace arithmetic
             }
         };
 
-
-        context create_context ( const uint8_t* begin, const uint8_t* end )
+        inline context create_context ( const uint8_t* begin, const uint8_t* end )
         {
             return context ( statistics::create_context( begin, end ) );
         }
@@ -955,7 +954,6 @@ namespace arithmetic
             {
 
             }
-
 
             template <typename stream>
             void start_decoding( stream& s)
@@ -1129,7 +1127,7 @@ namespace arithmetic
 
         public:
         
-        input_bit_stream( iterator& begin, iterator& end ) :
+        input_bit_stream( iterator begin, iterator end ) :
         m_buffer(0)
         , m_bits_to_go(0)
         , m_garbage_bits(0)
@@ -1164,7 +1162,7 @@ namespace arithmetic
             }
         }
 
-        int32_t input_bit()
+        inline int32_t input_bit()
         {
             int32_t t;
 
@@ -1192,28 +1190,58 @@ namespace arithmetic
             return t;
         }
     };
+    namespace helpers
+    {
+        struct encoded_result
+        {
+            std::vector<uint8_t> m_result;
+            int32_t              m_frequency_table[no_of_symbols + 1];
+        };
+
+        inline encoded_result encode( const uint8_t* begin, const uint8_t* end )
+        {
+            encoded_result r;
+
+            typedef std::back_insert_iterator < std::vector< uint8_t > > back_iterator;
+
+            arithmetic::output_bit_stream< back_iterator  >  s( std::back_inserter( r.m_result ) );
+
+            auto context = arithmetic::encoder::encode( begin, end, s );
+
+            std::copy(std::begin(context.m_frequency), std::end(context.m_frequency), std::begin( r.m_frequency_table ) );
+
+            return r;
+        }
+
+        inline std::vector<uint8_t> decode ( const encoded_result& encoded )
+        {
+            std::vector<uint8_t> r;
+
+            arithmetic::input_bit_stream< std::vector<uint8_t>::const_iterator >  i( encoded.m_result.begin(), encoded.m_result.end()  );
+  
+            arithmetic::decoder::context decode_context ( arithmetic::statistics::create_context( encoded.m_frequency_table ) ) ;
+
+            arithmetic::decoder::decode( decode_context, i, std::back_inserter( r ) );
+
+            return r;
+        }
+
+        inline void example ( )
+        {
+            uint8_t message[] = { 'a','a','a', 'a', 'a', ' ', 'a', 'a', 'a', 'a' };
+
+            auto r1 = arithmetic::helpers::encode( std::begin( message ), std::end( message ) );
+
+            auto r2 = arithmetic::helpers::decode ( r1 );
+        }
+    }
 }
 
 
 std::int32_t main(int argc, _TCHAR* argv[])
 {
-    uint8_t message[] = { 'a','a','a', 'a', 'a', ' ', 'a', 'a', 'a', 'a' };
-
-    std::vector<uint8_t> output;
-
-    typedef std::back_insert_iterator < std::vector< uint8_t > > back_iterator;
-
-    arithmetic::output_bit_stream< back_iterator  >  s( std::back_inserter( output ) );
-
-    auto context = arithmetic::encoder::encode( std::begin( message ), std::end( message), s );
     
-    std::vector<uint8_t> v;
 
-    arithmetic::input_bit_stream< std::vector<uint8_t>::iterator >  i( output.begin(), output.end() );
-  
-    arithmetic::decoder::context decode_context ( context );
-
-    arithmetic::decoder::decode( decode_context, i, std::back_inserter( v ) );
     
 
     return 0;
