@@ -1058,7 +1058,7 @@ namespace arithmetic
         int32_t     m_buffer;       //bits buffered for output
         int32_t     m_bits_to_go;   //free bits in the buffer
 
-        iterator&   m_output;
+        iterator    m_output;
 
         public:
 
@@ -1110,6 +1110,7 @@ namespace arithmetic
         }
     };
 
+    template <typename iterator>
     class input_bit_stream
     {
         private:
@@ -1122,17 +1123,20 @@ namespace arithmetic
         uint32_t               m_input_pointer;
         static const int32_t   eof = static_cast<int32_t> (-1);
 
+        iterator               m_begin;
+        iterator               m_end;
+        iterator               m_pointer;
+
         public:
         
-        template <typename iterator>
-        input_bit_stream( iterator begin, iterator end ) :
+        input_bit_stream( iterator& begin, iterator& end ) :
         m_buffer(0)
         , m_bits_to_go(0)
         , m_garbage_bits(0)
-        , m_input_pointer(0)
+        , m_begin(begin)
+        , m_end(end)
+        , m_pointer(begin)
         {
-            m_input.resize ( std::distance ( begin, end ) );
-            std::copy ( begin, end, m_input.begin()) ;
         }
 
         void reset()
@@ -1150,13 +1154,13 @@ namespace arithmetic
 
         int32_t get_byte()
         {
-            if ( m_input_pointer == m_input.size() )
+            if ( m_pointer == m_end  )
             {
                 return eof;
             }
             else
             {
-                return m_input[m_input_pointer++];
+                return static_cast<int32_t> ( *m_pointer++ );
             }
         }
 
@@ -1202,9 +1206,10 @@ std::int32_t main(int argc, _TCHAR* argv[])
     arithmetic::output_bit_stream< back_iterator  >  s( std::back_inserter( output ) );
 
     auto context = arithmetic::encoder::encode( std::begin( message ), std::end( message), s );
+    
     std::vector<uint8_t> v;
 
-    arithmetic::input_bit_stream i( output.begin(), output.end() );
+    arithmetic::input_bit_stream< std::vector<uint8_t>::iterator >  i( output.begin(), output.end() );
   
     arithmetic::decoder::context decode_context ( context );
 
