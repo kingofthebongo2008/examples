@@ -2,6 +2,8 @@
 
 #include <cstdint>
 #include <iostream>
+#include <numeric>
+#include <tuple>
 #include <vector>
 
 #include <thrust/host_vector.h>
@@ -728,17 +730,17 @@ namespace bezier
     typedef glm::vec4   vector4;
 
 
-    inline float dot3 ( point3 a, point3 b )
+    inline float dot3 ( const point3& a, const point3& b )
     {
         return glm::dot( a, b );
     }
 
-    inline float dot2 ( point2 a, point2 b )
+    inline float dot2 ( const point2& a, const point2& b )
     {
         return glm::dot( a, b );
     }
 
-    inline float distance ( point3 a, point3 b)
+    inline float distance ( const point3& a, const point3& b)
     {
         return glm::distance(a, b);
     }
@@ -772,10 +774,36 @@ namespace bezier
         return 0.0f;
     }
 
-    template<typename point, int32_t degree >
-    point evaluate ( const point* control_points, float t )
+    template<typename const_point_iterator>
+    auto evaluate ( const_point_iterator control_points, const int32_t degree, float t ) -> typename std::iterator_traits< const_point_iterator >::value_type
     {
-        std::tr1::array< point, degree + 1 > buffer_points;
+        typedef typename std::iterator_traits< const_point_iterator >::value_type point;
+
+        std::vector< point > buffer_points;
+
+        buffer_points.resize( degree + 1  );
+
+        std::copy( control_points, control_points + degree + 1, std::begin(buffer_points) );
+
+        for (int32_t i = 1; i <= degree; ++i)
+        {
+            for (int32_t j = 0; j <= degree - i; ++j )
+            {
+                buffer_points[j] = (1.0f - t ) * buffer_points[j] + t * buffer_points[j+1];
+            }
+        }
+
+        return buffer_points[0];
+    }
+
+    template< typename const_point_iterator , int32_t degree >
+    auto evaluate ( const_point_iterator control_points, float t ) -> typename std::iterator_traits< const_point_iterator >::value_type
+    {
+        typedef typename std::iterator_traits< const_point_iterator >::value_type point;
+
+        std::vector< point > buffer_points;
+
+        buffer_points.resize( degree + 1  );
 
         std::copy( control_points, control_points + degree + 1, std::begin(buffer_points) );
 
@@ -791,20 +819,21 @@ namespace bezier
     }
 
 
-    //one iterator for ( q(u)- p ) dot (q'(u) ) = 0
-    template <typename point>
-    inline float newton_raphson ( const point q[4], point p, float u )
+    //one iteration for ( q(u)- p ) dot (q'(u) ) = 0
+    template <typename const_point_iterator>
+    inline float newton_raphson ( const_point_iterator control_points, const typename std::iterator_traits< const_point_iterator >::value_type & p, float u )
     {
-        point q_u, q1_u, q2_u;  // u evaluated for q, q', q''
-        point q1[3];            // q'   control points
-        point q2[2];            // q''  control points
+        typedef typename std::iterator_traits< const_point_iterator >::value_type point;
+
+        point q_u, q1_u, q2_u;                    // u evaluated for q, q', q''
+        std::tr1::array< point, 3 > q1;           // q'   control points
+        std::tr1::array< point, 2 > q2;           // q''  control points
 
         //generate q'
         for ( int32_t i = 0 ; i <= 2; ++i )
         {
-            q1[i] = ( q[i + 1 ] - q[i] ) / 3.0f;
+            q1[i] = ( *(control_points + i + 1) - *(control_points + i ) ) / 3.0f;
         }
-
 
         //generate q''
         for ( int32_t i = 0 ; i <= 1; ++i )
@@ -812,9 +841,9 @@ namespace bezier
             q2[i] = ( q1[i + 1 ] - q1[i] ) / 2.0f;
         }
 
-        q_u  = evaluate<point, 3>  ( &q[0],  u );
-        q1_u = evaluate<point, 2>  ( &q1[0], u );
-        q2_u = evaluate<point, 1>  ( &q2[0], u );
+        q_u  = evaluate<const_point_iterator, 3>  ( control_points,  u );
+        q1_u = evaluate<std::tr1::array< point, 3 >::const_iterator, 2>  ( std::begin(q1), u );
+        q2_u = evaluate<std::tr1::array< point, 2 >::const_iterator, 1>  ( std::begin(q2), u );
 
         //compute f(u) / f'(u) ( q(u) - p ) dot q'(u)
         float numerator = dot3 ( q_u - p, q1_u );
@@ -848,8 +877,10 @@ namespace bezier
         return glm::normalize( (v1 + v2) / 2.0f );
     }
 
-    template<typename point, typename const_iterator, typename iterator> void chord_length_parametrize( const_iterator begin, const_iterator end, iterator output )
+    template<typename const_iterator, typename iterator> void chord_length_parametrize( const_iterator begin, const_iterator end, iterator output )
     {
+        typedef typename std::iterator_traits< iterator >::value_type point;
+
         auto begin_output = output;
 
         *output++=zero<point>();
@@ -879,19 +910,22 @@ namespace bezier
         {
 
         }
-
     };
 
-    template <typename point, typename const_iterator_points, typename const_iterator_curve> max_error<point> compute_max_error( const_iterator_points begin, const_iterator_points end, const point* bezier, const_iterator_curve curve_params )
+    //find maximum of squared distance of points to a curve
+    template <typename const_iterator_points, typename const_iterator_curve > 
+    auto compute_max_error( const_iterator_points begin, const_iterator_points end, const_iterator_points bezier, const_iterator_curve curve_params )
+         -> std::tuple< float, typename std::iterator_traits< const_iterator_points >::value_type > 
     {
+        typedef typename std::iterator_traits< const_iterator_points >::value_type point;
+
         float max_distance = 0.0f;
 
         point split = *( begin + std::distance( begin, end ) / 2 ) ;
 
         for ( auto it = begin; it != end; ++it, ++curve_params )
         {
-            auto p = evaluate<point, 3> ( bezier, *curve_params );
-
+            auto p = evaluate< const_iterator_points, 3> ( bezier, *curve_params ) ;
             auto new_distance = dot ( p - *it, p - *it );
 
             if (new_distance > max_distance )
@@ -901,51 +935,153 @@ namespace bezier
             }
         }
 
-        return max_error<point>( max_distance, split );
+        return std::make_tuple( max_distance, split );
+    }
+
+    template <typename const_iterator_points, typename const_iterator_curve, typename iterator_curve> void reparameterize( const_iterator_points begin, const_iterator_points end, const_iterator_points bezier, const_iterator_curve curve_params, iterator_curve out )
+    {
+        for ( const_iterator_points it = begin; it!=end; ++it, ++curve_params, ++out )
+        {
+            *out = newton_raphson( bezier, *it, *curve_params);
+        }
+    }
+
+    inline float b0( float u )
+    {
+        auto tmp = 1.0f - u;
+
+        return ( tmp * tmp * tmp );
+    }
+
+    inline float b1( float u )
+    {
+        auto tmp = 1.0f - u;
+
+        return 3 * u * ( tmp * tmp );
+    }
+
+    inline float b2( float u )
+    {
+        auto tmp = 1.0f - u;
+
+        return 3 * u * u * ( tmp );
+    }
+
+    inline float b3( float u )
+    {
+        return u * u * u;
+    }
+
+
+    template <  typename const_iterator_points, 
+                typename const_iterator_curve,
+                typename vector_type
+            >
+    void generate_bezier
+    ( 
+        const_iterator_points   begin_points,
+        const_iterator_points   end_points,
+        const_iterator_curve    begin_curve,
+        const_iterator_curve    end_curve,
+        vector_type             hat1,
+        vector_type             hat2
+    )
+    {
+        typedef typename const_iterator_points::value_type  point;
+        typedef typename const_iterator_curve::value_type   curve_point;
+
+        std::vector< vector_type > a0;
+        std::vector< vector_type > a1;
+
+        a0.resize  ( std::distance ( begin_curve, end_curve ) );
+        a1.resize  ( std::distance ( begin_curve, end_curve ) );
+
+        std::transform( begin_curve, end_curve, std::begin(a0), [&]( const curve_point o ) -> vector_type
+        {
+            return hat1 * b1( o );
+        });
+
+        std::transform( begin_curve, end_curve, std::begin(a1), [&]( const curve_point o ) -> vector_type
+        {
+            return hat2 * b2( o );
+        });
+
+        // matrix part
+        auto c00 = std::accumulate( std::begin(a0), std::end(a0), 0.0f, [&]( float val, const vector_type& v ) -> float
+        {
+            return val + dot(v,v);
+        });
+
+        auto c11 = std::accumulate( std::begin(a1), std::end(a1), 0.0f, [&]( float val, const vector_type& v ) -> float
+        {
+            return val + dot(v,v);
+        });
+
+        auto z0b = thrust::make_zip_iterator ( thrust::make_tuple( std::begin(a0), std::begin(a1) )  );
+        auto z0e = thrust::make_zip_iterator ( thrust::make_tuple( std::end(a0), std::end(a1) ) );
+
+        auto c12 = std::accumulate( z0b, z0e, 0.0f, [&]( float val, const thrust::tuple< vector_type, vector_type >&  v ) -> float
+        {
+            return val + dot( thrust::get<0>(v), thrust::get<1>(v) );
+        });
+
+        // vector part
     }
 }
 
 std::int32_t main(int argc, _TCHAR* argv[])
 {
-    bezier::point3 p[] =
+    typedef std::tr1::array<bezier::point3, 4>::const_iterator iterator_local;
+
+    std::tr1::array<bezier::point3, 4> p =
     { 
         bezier::point3(0.0f, 0.0f, 0.0f),
         bezier::point3(1.0f, 0.0f, 0.0f),
         bezier::point3(2.0f, 0.0f, 0.0f),
-        bezier::point3(5.0f, 0.0f, 0.0f),
+        bezier::point3(5, 0.0f, 0.0f),
     };
 
-    bezier::point2 p1[] =
+    std::tr1::array<bezier::point3, 4> p1 =
     { 
-        bezier::point2(0.0f, 0.0f),
-        bezier::point2(1.0f, 0.0f),
-        bezier::point2(2.0f, 0.0f),
-        bezier::point2(5.0f, 0.0f),
+        bezier::point3(0.0f, 0.0f, 0.0f),
+        bezier::point3(1.0f, 0.0f, 0.0f),
+        bezier::point3(2.0f, 0.0f, 0.0f),
+        bezier::point3(5, 0.0f, 0.0f),
     };
+    
+    /*
 
-    std::tr1::array< float, 4  > param;
+    std::vector< bezier::point3> p;
 
-    bezier::max_error<bezier::point3> r1 = bezier::compute_max_error( std::begin(p), std::end(p), std::begin(p), std::begin(param) );
+    p.push_back ( bezier::point3(0.0f, 0.0f, 0.0f) );
+    p.push_back ( bezier::point3(0.0f, 0.0f, 0.0f) );
+    p.push_back ( bezier::point3(0.0f, 0.0f, 0.0f) );
+    p.push_back ( bezier::point3(0.0f, 0.0f, 0.0f) );
+    */
 
 
-    bezier::chord_length_parametrize<float>( std::begin(p1), std::end(p1), param.begin() );
+    std::tr1::array<float, 4> param;
 
+    bezier::chord_length_parametrize( std::begin(p), std::end(p), std::begin(param) );
+    
 
+    auto r = bezier::compute_max_error( std::begin(p), std::end(p), std::begin(p1), std::begin(param) ) ;
 
     /*
 
-    auto p1 = bezier::newton_raphson<bezier::point3>(p, bezier::point3(2.0, 0.0, 0.0), 1.0f);
-    auto p2 = bezier::newton_raphson<bezier::point3>(p, bezier::point3(2.0, 0.0, 0.0), p1 );
-    auto p3 = bezier::newton_raphson<bezier::point3>(p, bezier::point3(2.0, 0.0, 0.0), p2 );
-    auto p4 = bezier::newton_raphson<bezier::point3>(p, bezier::point3(2.0, 0.0, 0.0), p3 );
-    auto p5 = bezier::newton_raphson<bezier::point3>(p, bezier::point3(2.0, 0.0, 0.0), p4 );
-    auto p6 = bezier::newton_raphson<bezier::point3>(p, bezier::point3(2.0, 0.0, 0.0), p5 );
-    auto p7 = bezier::newton_raphson<bezier::point3>(p, bezier::point3(2.0, 0.0, 0.0), p6 );
-    auto p8 = bezier::newton_raphson<bezier::point3>(p, bezier::point3(2.0, 0.0, 0.0), p7 );
-    auto p9 = bezier::newton_raphson<bezier::point3>(p, bezier::point3(2.0, 0.0, 0.0), p8 );
-    auto p10 = bezier::newton_raphson<bezier::point3>(p, bezier::point3(2.0, 0.0, 0.0), p9 );
+    std::tr1::array< float, 4  > param;
+    bezier::chord_length_parametrize( std::begin(p1), std::end(p1), param.begin() );
+
+    std::tr1::array< float, 4  > param2;
+    bezier::reparameterize( std::begin(p1), std::end(p1), std::begin(p), std::begin(param), std::begin(param2) );
+
+    auto r1 = bezier::compute_max_error( std::begin(p1), std::end(p1), std::begin(p), std::begin(param) );
+
+    
 
     */
+
+    bezier::generate_bezier( std::begin(p), std::end(p), std::begin(param), std::end(param), bezier::vector3(1.0,0.0,0.0f ), bezier::vector3(1.0,0.0,0.0f ) );
 
     return 0;
 }
