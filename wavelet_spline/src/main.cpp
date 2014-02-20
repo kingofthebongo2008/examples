@@ -975,7 +975,8 @@ namespace bezier
 
     template <  typename const_iterator_points, 
                 typename const_iterator_curve,
-                typename vector_type
+                typename vector_type,
+                typename out_iterator_curve
             >
     void generate_bezier
     ( 
@@ -984,11 +985,13 @@ namespace bezier
         const_iterator_curve    begin_curve,
         const_iterator_curve    end_curve,
         vector_type             hat1,
-        vector_type             hat2
+        vector_type             hat2,
+        out_iterator_curve      out_curve
     )
     {
-        typedef typename const_iterator_points::value_type  point;
-        typedef typename const_iterator_curve::value_type   curve_point;
+        typedef typename thrust::iterator_traits< const_iterator_points >::value_type point;
+        typedef typename thrust::iterator_traits< const_iterator_curve >::value_type curve_point;
+
 
         std::vector< vector_type > a0;
         std::vector< vector_type > a1;
@@ -1020,12 +1023,93 @@ namespace bezier
         auto z0b = thrust::make_zip_iterator ( thrust::make_tuple( std::begin(a0), std::begin(a1) )  );
         auto z0e = thrust::make_zip_iterator ( thrust::make_tuple( std::end(a0), std::end(a1) ) );
 
-        auto c12 = std::accumulate( z0b, z0e, 0.0f, [&]( float val, const thrust::tuple< vector_type, vector_type >&  v ) -> float
+        auto c01 = std::accumulate( z0b, z0e, 0.0f, [&]( float val, const thrust::tuple< vector_type, vector_type >&  v ) -> float
         {
             return val + dot( thrust::get<0>(v), thrust::get<1>(v) );
         });
 
+        auto c10 = c01;
+
+        // right vector 0
+        auto z1b = thrust::make_zip_iterator ( thrust::make_tuple( begin_points, begin_curve, std::begin(a0) ) );
+        auto z1e = thrust::make_zip_iterator ( thrust::make_tuple( end_points, end_curve, std::end(a0) )  );
+
+        auto v0 = *begin_points;
+        auto v3 = *(end_points - 1 );
+        
+        auto x0 = std::accumulate( z1b, z1e, 0.0f, [&]( float val, const thrust::tuple< point, curve_point, vector_type >&  v ) -> float
+        {
+            return val + dot( thrust::get<2>(v), 
+                 thrust::get<0>(v) -
+                 (
+                    v0 * b0( thrust::get<1>(v) ) + 
+                    v0 * b1( thrust::get<1>(v) ) +
+                    v3 * b2( thrust::get<1>(v) ) +
+                    v3 * b3( thrust::get<1>(v) ) 
+                 )
+                 
+                 );
+        });
+
+
+        // right vector 1
+        auto z2b = thrust::make_zip_iterator ( thrust::make_tuple( begin_points, begin_curve, std::begin(a1) ) );
+        auto z2e = thrust::make_zip_iterator ( thrust::make_tuple( end_points, end_curve, std::end(a1) )  );
+
+        auto x1 = std::accumulate( z2b, z2e, 0.0f, [&]( float val, const thrust::tuple< point, curve_point, vector_type >&  v ) -> float
+        {
+            return val + dot( thrust::get<2>(v), 
+                 thrust::get<0>(v) -
+                 (
+                    v0 * b0( thrust::get<1>(v) ) + 
+                    v0 * b1( thrust::get<1>(v) ) +
+                    v3 * b2( thrust::get<1>(v) ) +
+                    v3 * b3( thrust::get<1>(v) ) 
+                 )
+                 
+                 );
+        });
+        
+        // Compute the determinants of c and x 
+        auto det_c0_c1 = c00 * c11 - c01 * c10;
+        auto det_c0_x  = c00 * x1  - c10 * x0;
+        auto det_x_c1  = c11 * x0  - c01 * x1;
+
+        // Finally, derive alpha values
+        auto alpha_l = (det_c0_c1 == 0.0f) ? 0.0f : det_x_c1 / det_c0_c1;
+        auto alpha_r = (det_c0_c1 == 0.0f) ? 0.0f : det_c0_x / det_c0_c1;
+
+
+        std::tr1::array< point, 4 > bezier;
+
+        // If alpha negative, use the Wu/Barsky heuristic (see text) (if alpha is 0, you get coincident control points that lead to
+        // divide by zero in any subsequent NewtonRaphsonRootFind() call. 
+
+        auto  segment_length = distance(v0, v3);
+        auto  epsilon = 1.0e-6f * segment_length;
+
+        auto scale_l = alpha_l;
+        auto scale_r = alpha_r;
+
+        if ( alpha_l < segment_length || alpha_r < segment_length)
+        {
+            // fall back on standard (probably inaccurate) formula, and subdivide further if needed.
+            scale_l = segment_length / 3.0f;
+            scale_r = scale_l;
+        }
+
+        // First and last control points of the Bezier curve are positioned exactly at the first and last data points
+        // Control points 1 and 2 are positioned an alpha distance out on the tangent vectors, left and right, respectively
         // vector part
+
+        bezier[0] = v0;            
+        bezier[1] = v0 + (scale_l * hat1);
+        bezier[2] = v3 + (scale_r * hat2 );
+        bezier[3] = v3;
+
+        std::copy( std::begin(bezier), std::end(bezier), out_curve );
+
+
     }
 }
 
@@ -1061,10 +1145,7 @@ std::int32_t main(int argc, _TCHAR* argv[])
 
 
     std::tr1::array<float, 4> param;
-
     bezier::chord_length_parametrize( std::begin(p), std::end(p), std::begin(param) );
-    
-
     auto r = bezier::compute_max_error( std::begin(p), std::end(p), std::begin(p1), std::begin(param) ) ;
 
     /*
@@ -1081,7 +1162,9 @@ std::int32_t main(int argc, _TCHAR* argv[])
 
     */
 
-    bezier::generate_bezier( std::begin(p), std::end(p), std::begin(param), std::end(param), bezier::vector3(1.0,0.0,0.0f ), bezier::vector3(1.0,0.0,0.0f ) );
+    std::tr1::array< bezier::point3, 4 > bezier;
+
+    bezier::generate_bezier( std::begin(p), std::end(p), std::begin(param), std::end(param), bezier::vector3(1.0,0.0,0.0f ), bezier::vector3(1.0,0.0,0.0f ), std::begin(bezier) );
 
     return 0;
 }
