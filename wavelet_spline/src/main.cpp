@@ -1,4 +1,4 @@
-#include "precompiled.h"
+﻿#include "precompiled.h"
 
 #include <cstdint>
 #include <iostream>
@@ -20,6 +20,8 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtx/simd_vec4.hpp>
+
+#include "FitCurve.h"
 
 
 namespace lwt
@@ -735,7 +737,17 @@ namespace bezier
         return glm::dot( a, b );
     }
 
+    inline float dot ( const point3& a, const point3& b )
+    {
+        return glm::dot( a, b );
+    }
+
     inline float dot2 ( const point2& a, const point2& b )
+    {
+        return glm::dot( a, b );
+    }
+
+    inline float dot ( const point2& a, const point2& b )
     {
         return glm::dot( a, b );
     }
@@ -846,10 +858,10 @@ namespace bezier
         q2_u = evaluate<std::tr1::array< point, 2 >::const_iterator, 1>  ( std::begin(q2), u );
 
         //compute f(u) / f'(u) ( q(u) - p ) dot q'(u)
-        float numerator = dot3 ( q_u - p, q1_u );
+        float numerator = dot ( q_u - p, q1_u );
 
         // q'(u) dot q'(u) + q(u) dot q''(u)
-        float denomerator = dot3 ( q1_u - p, q1_u - p ) + dot3 ( q_u - p, q2_u );
+        float denomerator = dot ( q1_u - p, q1_u - p ) + dot ( q_u - p, q2_u );
 
         if ( denomerator == 0.0f )
         {
@@ -862,19 +874,54 @@ namespace bezier
 
     template<typename point, typename vector> vector left_tangent( const point& p0, const point& p1 )
     {
-        return glm::normalize( p1 - p0 );
+        auto  r = p1 - p0;
+
+        if ( glm::length(r) == 0.0f )
+        {
+            return zero<vector>();
+        }
+        else
+        {
+            return glm::normalize( r );
+        }
     }
 
     template<typename point, typename vector> vector right_tangent( const point& p0, const point& p1 )
     {
-        return glm::normalize( p0 - p1 );
+        auto  r = p0 - p1;
+
+        if ( glm::length(r) == 0.0f )
+        {
+            return zero<vector>();
+        }
+        else
+        {
+            return glm::normalize( r );
+        }
     }
 
-    template<typename point, typename vector> vector center_tangent( const point& p0, const point& p1 )
+    template<typename point, typename vector> vector center_tangent( const point& p0, const point& p1, const point& p2 )
     {
         auto v1 = p0 - p1;
-        auto v2 = p1 - p0;
-        return glm::normalize( (v1 + v2) / 2.0f );
+        auto v2 = p1 - p2;
+
+        auto center = glm::normalize( (v1 + v2) / 2.0f );
+
+        if (glm::length ( center ) < 0.00001f )
+        {
+            center = glm::normalize( v1 );
+        }
+
+        return center;
+    }
+
+
+    template <typename point, typename vector> std::tuple<vector, vector> compute_center_tangents( const point& left, const point& center, const point& right )
+    {
+        auto v1n = center_tangent<point, vector>(left, center, right);
+        auto v2n = -1.0f * v1n;
+
+        return std::make_tuple( v1n, v2n );
     }
 
     template<typename const_iterator, typename iterator> void chord_length_parametrize( const_iterator begin, const_iterator end, iterator output )
@@ -913,32 +960,32 @@ namespace bezier
     };
 
     //find maximum of squared distance of points to a curve
-    template <typename const_iterator_points, typename const_iterator_curve > 
-    auto compute_max_error( const_iterator_points begin, const_iterator_points end, const_iterator_points bezier, const_iterator_curve curve_params )
-         -> std::tuple< float, typename std::iterator_traits< const_iterator_points >::value_type > 
+    template <typename const_iterator_points, typename const_iterator_bezier, typename const_iterator_curve > 
+    auto compute_max_error( const_iterator_points begin, const_iterator_points end, const_iterator_bezier bezier, const_iterator_curve curve_params )
+         -> std::tuple< float, typename const_iterator_points > 
     {
         typedef typename std::iterator_traits< const_iterator_points >::value_type point;
 
         float max_distance = 0.0f;
 
-        point split = *( begin + std::distance( begin, end ) / 2 ) ;
+        const_iterator_points split = ( begin + std::distance( begin, end ) / 2 ) ;
 
         for ( auto it = begin; it != end; ++it, ++curve_params )
         {
-            auto p = evaluate< const_iterator_points, 3> ( bezier, *curve_params ) ;
+            auto p = evaluate< const_iterator_bezier, 3> ( bezier, *curve_params ) ;
             auto new_distance = dot ( p - *it, p - *it );
 
-            if (new_distance > max_distance )
+            if (new_distance >= max_distance )
             {
                 max_distance = new_distance;
-                split = *it;
+                split = it;
             }
         }
 
         return std::make_tuple( max_distance, split );
     }
 
-    template <typename const_iterator_points, typename const_iterator_curve, typename iterator_curve> void reparameterize( const_iterator_points begin, const_iterator_points end, const_iterator_points bezier, const_iterator_curve curve_params, iterator_curve out )
+    template <typename const_iterator_points, typename const_iterator_bezier, typename const_iterator_curve, typename iterator_curve> void reparameterize( const_iterator_points begin, const_iterator_points end, const_iterator_bezier bezier, const_iterator_curve curve_params, iterator_curve out )
     {
         for ( const_iterator_points it = begin; it!=end; ++it, ++curve_params, ++out )
         {
@@ -1079,7 +1126,6 @@ namespace bezier
         auto alpha_l = (det_c0_c1 == 0.0f) ? 0.0f : det_x_c1 / det_c0_c1;
         auto alpha_r = (det_c0_c1 == 0.0f) ? 0.0f : det_c0_x / det_c0_c1;
 
-
         std::tr1::array< point, 4 > bezier;
 
         // If alpha negative, use the Wu/Barsky heuristic (see text) (if alpha is 0, you get coincident control points that lead to
@@ -1108,63 +1154,233 @@ namespace bezier
         bezier[3] = v3;
 
         std::copy( std::begin(bezier), std::end(bezier), out_curve );
-
-
     }
+
+    template <  typename const_iterator_points, 
+                typename vector_type,
+                typename out_iterator_curve    >
+    void fit_cubic( 
+            const_iterator_points   begin_points,
+            const_iterator_points   end_points,
+            vector_type             hat1,
+            vector_type             hat2,
+            float                   error,
+            out_iterator_curve      out_curve )
+    {
+
+        typedef typename thrust::iterator_traits< const_iterator_points >::value_type point;
+        auto point_count = std::distance( begin_points, end_points);
+
+        //  Use heuristic if region only has two points in it
+        if (point_count == 2)
+        {
+            auto v0 = *begin_points;
+            auto v3 = *(end_points - 1 );
+
+            auto d = distance ( v0, v3 ) / 3.0f;
+            std::tr1::array< point, 4 > bezier;
+
+            bezier[0] = v0;            
+            bezier[1] = v0 + (d * hat1);
+            bezier[2] = v3 + (d * hat2 );
+            bezier[3] = v3;
+
+            std::copy( std::begin( bezier ), std::end( bezier ), out_curve) ;
+        }
+        else
+        {
+            std::vector< float > u;
+            u.resize( point_count );
+            chord_length_parametrize( begin_points, end_points, std::begin(u) );
+
+            std::tr1::array< point, 4 > bezier;
+            bezier::generate_bezier( begin_points, end_points, std::begin(u), std::end(u), hat1, hat2, std::begin(bezier) );
+
+            auto max_error = bezier::compute_max_error< const_iterator_points, std::tr1::array< point, 4 >::iterator> ( begin_points, end_points, std::begin(bezier), std::begin(u) );
+
+            // Find max deviation of points to fitted curve
+            if ( std::get<0>(max_error) < error )
+            {
+                std::copy( std::begin( bezier), std::end(bezier), out_curve);
+                return;
+            }
+
+            auto iteration_error = error * error;
+            auto max_iterations = 4;
+
+            if ( std::get<0>(max_error) < iteration_error )
+            {
+                std::vector< float > u_prime;
+                u_prime.resize( point_count );
+
+                for ( int32_t i = 0; i < max_iterations; ++i )
+                {
+                    reparameterize( begin_points, end_points, std::begin(bezier), std::begin(u), std::begin(u_prime) );
+                    generate_bezier( begin_points, end_points, std::begin(u_prime), std::end(u_prime), hat1, hat2, std::begin(bezier) );
+
+                    auto max_error = bezier::compute_max_error( begin_points, end_points, std::begin(bezier), std::begin(u) );
+
+                    // Find max deviation of points to fitted curve
+                    if ( std::get<0>(max_error) < error )
+                    {
+                        std::copy( std::begin( bezier), std::end( bezier ), out_curve );
+                        return;
+                    }
+
+                    //swap u and u_prime, todo remove the copy
+                    std::copy( std::begin(u_prime), std::end(u_prime), std::begin(u) );
+                }
+            }
+
+
+            //fitting failed -> split at max error and fit recursively
+            auto split_point = std::get<1>( max_error );
+
+            auto tangents = compute_center_tangents< point, vector_type >( *(split_point - 1), *(split_point), *(split_point + 1) );
+        
+            fit_cubic( begin_points, split_point + 1, hat1, std::get<0>(tangents), error, out_curve );
+            fit_cubic( split_point, end_points, std::get<1>(tangents), hat2, error, out_curve );
+        }
+    }
+
+
+    template <  typename const_iterator_points,
+                typename out_iterator_curve    >
+    void fit_curve ( 
+            const_iterator_points   begin_points,
+            const_iterator_points   end_points,
+            float                   error,
+            out_iterator_curve      out_curve )
+    {
+        typedef typename thrust::iterator_traits< const_iterator_points >::value_type point;
+
+        auto hat1 = left_tangent<point, point>( *(begin_points), *( begin_points + 1 ) );
+        auto hat2 = right_tangent<point, point>( *(end_points - 2 ), *( end_points - 1 ) );
+
+
+        fit_cubic( begin_points, end_points, hat1, hat2, error, out_curve);
+    }
+}
+
+static float max_error = 0.0f;
+
+float difference ( const Freestyle::Vec2d& a, const bezier::point2& b )
+{
+    auto r = std::abs  ( std::max<float>( a[0] - b.x  ,  a[1] - b.y  ) );
+    if (r > max_error)
+    {
+        max_error = r;
+    }
+
+    return  r;
 }
 
 std::int32_t main(int argc, _TCHAR* argv[])
 {
-    typedef std::tr1::array<bezier::point3, 4>::const_iterator iterator_local;
 
-    std::tr1::array<bezier::point3, 4> p =
-    { 
-        bezier::point3(0.0f, 0.0f, 0.0f),
-        bezier::point3(1.0f, 0.0f, 0.0f),
-        bezier::point3(2.0f, 0.0f, 0.0f),
-        bezier::point3(5, 0.0f, 0.0f),
-    };
+    using namespace Freestyle;
 
-    std::tr1::array<bezier::point3, 4> p1 =
-    { 
-        bezier::point3(0.0f, 0.0f, 0.0f),
-        bezier::point3(1.0f, 0.0f, 0.0f),
-        bezier::point3(2.0f, 0.0f, 0.0f),
-        bezier::point3(5, 0.0f, 0.0f),
-    };
+    Freestyle::FitCurveWrapper w; 
+
+    std::vector< Vec2d> v1;
+    std::vector< Vec2d> v2;
+
+    v1.push_back( Vec2d(1.0f, 0.0f) );
+    v1.push_back( Vec2d(2.0f, 0.0f) );
+    v1.push_back( Vec2d(3.0f, 0.0f) );
+    v1.push_back( Vec2d(4.0f, 0.0f) );
+    v1.push_back( Vec2d(3.0f, 0.0f) );
+
+    v1.push_back( Vec2d(2.0f, 0.0f) );
+    v1.push_back( Vec2d(1.0f, 0.0f) );
     
-    /*
+    
+    v1.push_back( Vec2d(1.0f, 0.0f) );
+    v1.push_back( Vec2d(2.0f, 0.0f) );
 
-    std::vector< bezier::point3> p;
-
-    p.push_back ( bezier::point3(0.0f, 0.0f, 0.0f) );
-    p.push_back ( bezier::point3(0.0f, 0.0f, 0.0f) );
-    p.push_back ( bezier::point3(0.0f, 0.0f, 0.0f) );
-    p.push_back ( bezier::point3(0.0f, 0.0f, 0.0f) );
-    */
-
-
-    std::tr1::array<float, 4> param;
-    bezier::chord_length_parametrize( std::begin(p), std::end(p), std::begin(param) );
-    auto r = bezier::compute_max_error( std::begin(p), std::end(p), std::begin(p1), std::begin(param) ) ;
-
-    /*
-
-    std::tr1::array< float, 4  > param;
-    bezier::chord_length_parametrize( std::begin(p1), std::end(p1), param.begin() );
-
-    std::tr1::array< float, 4  > param2;
-    bezier::reparameterize( std::begin(p1), std::end(p1), std::begin(p), std::begin(param), std::begin(param2) );
-
-    auto r1 = bezier::compute_max_error( std::begin(p1), std::end(p1), std::begin(p), std::begin(param) );
+    v1.push_back( Vec2d(3.0f, 0.0f) );
+    v1.push_back( Vec2d(4.0f, 0.0f) );
+    v1.push_back( Vec2d(3.0f, 0.0f) );
+    v1.push_back( Vec2d(2.0f, 0.0f) );
+    v1.push_back( Vec2d(1.0f, 0.0f) );
 
     
+    v1.push_back( Vec2d(1.0f, 0.0f) );
+    v1.push_back( Vec2d(2.0f, 0.0f) );
+    v1.push_back( Vec2d(3.0f, 0.0f) );
+    v1.push_back( Vec2d(4.0f, 0.0f) );
+    v1.push_back( Vec2d(3.0f, 0.0f) );
+    v1.push_back( Vec2d(2.0f, 0.0f) );
+    v1.push_back( Vec2d(1.0f, 0.0f) );
 
-    */
+    v1.push_back( Vec2d(1.0f, 0.0f) );
+    v1.push_back( Vec2d(2.0f, 0.0f) );
+    v1.push_back( Vec2d(3.0f, 0.0f) );
+    v1.push_back( Vec2d(4.0f, 0.0f) );
+    v1.push_back( Vec2d(3.0f, 0.0f) );
+    v1.push_back( Vec2d(2.0f, 0.0f) );
+    v1.push_back( Vec2d(1.0f, 0.0f) );
 
-    std::tr1::array< bezier::point3, 4 > bezier;
+    w.FitCurve( v1, v2, 0.001);
 
-    bezier::generate_bezier( std::begin(p), std::end(p), std::begin(param), std::end(param), bezier::vector3(1.0,0.0,0.0f ), bezier::vector3(1.0,0.0,0.0f ), std::begin(bezier) );
+    std::vector< bezier::point2 >  fitted_cubics;
+    std::vector< bezier::point2 >  data;
+
+    data.push_back( bezier::point2( 1.0f, 0.0f ) );
+    data.push_back( bezier::point2( 2.0f, 0.0f ) );
+    data.push_back( bezier::point2( 3.0f, 0.0f ) );
+    data.push_back( bezier::point2( 4.0f, 0.0f ) );
+    data.push_back( bezier::point2( 3.0f, 0.0f ) );
+
+    data.push_back( bezier::point2( 2.0f, 0.0f ) );
+    data.push_back( bezier::point2( 1.0f, 0.0f ) );
+
+    data.push_back( bezier::point2( 1.0f, 0.0f ) );
+    data.push_back( bezier::point2( 2.0f, 0.0f ) );
+
+    data.push_back( bezier::point2( 3.0f, 0.0f ) );
+    data.push_back( bezier::point2( 4.0f, 0.0f ) );
+    data.push_back( bezier::point2( 3.0f, 0.0f ) );
+    data.push_back( bezier::point2( 2.0f, 0.0f ) );
+    data.push_back( bezier::point2( 1.0f, 0.0f ) );
+    
+    data.push_back( bezier::point2( 1.0f, 0.0f ) );
+    data.push_back( bezier::point2( 2.0f, 0.0f ) );
+    data.push_back( bezier::point2( 3.0f, 0.0f ) );
+    data.push_back( bezier::point2( 4.0f, 0.0f ) );
+    data.push_back( bezier::point2( 3.0f, 0.0f ) );
+    data.push_back( bezier::point2( 2.0f, 0.0f ) );
+    data.push_back( bezier::point2( 1.0f, 0.0f ) );
+
+    data.push_back( bezier::point2( 1.0f, 0.0f ) );
+    data.push_back( bezier::point2( 2.0f, 0.0f ) );
+    data.push_back( bezier::point2( 3.0f, 0.0f ) );
+    data.push_back( bezier::point2( 4.0f, 0.0f ) );
+    data.push_back( bezier::point2( 3.0f, 0.0f ) );
+    data.push_back( bezier::point2( 2.0f, 0.0f ) );
+    data.push_back( bezier::point2( 1.0f, 0.0f ) );
+
+
+    bezier::fit_curve( std::begin(data), std::end(data), 0.001f, std::back_inserter(fitted_cubics) );
+
+    float val = 0.0f;
+
+    auto z0b = thrust::make_zip_iterator ( thrust::make_tuple( std::begin(v2), std::begin(fitted_cubics) )  );
+    auto z0e = thrust::make_zip_iterator ( thrust::make_tuple( std::end(v2), std::end(fitted_cubics) ) );
+
+    auto c00 = std::accumulate( z0b, z0e, 0.0f, [&]( float val, const thrust::tuple< Freestyle::Vec2d, bezier::point2 >& v ) -> float
+    {
+            return val + difference(thrust::get<0>(v),thrust::get<1>(v));
+    });
+
+    for (int32_t i = 0; i < v2.size(); ++i)
+    {
+        std::cout<< v2[i][0] << ", " << v2[i][1] << std::endl;
+        std::cout<< fitted_cubics[i].x << ", " << fitted_cubics[i].y << std::endl;
+        std::cout<< std::endl;
+    }
+
+    std::cout<<"error "<< max_error << std::endl;
 
     return 0;
 }
