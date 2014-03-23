@@ -1,0 +1,26 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "svd_unit_test", "svd_unit_test\svd_unit_test.vcxproj", "{A728AF2B-F19E-4668-9574-6DDCD9697F9E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "svd_streaming_test", "svd_streaming_test\svd_streaming_test.vcxproj", "{4E1567C4-E9C8-4F4B-8EDB-440C60D9A0E6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A728AF2B-F19E-4668-9574-6DDCD9697F9E}.Debug|x64.ActiveCfg = Debug|x64
+		{A728AF2B-F19E-4668-9574-6DDCD9697F9E}.Debug|x64.Build.0 = Debug|x64
+		{A728AF2B-F19E-4668-9574-6DDCD9697F9E}.Release|x64.ActiveCfg = Release|x64
+		{A728AF2B-F19E-4668-9574-6DDCD9697F9E}.Release|x64.Build.0 = Release|x64
+		{4E1567C4-E9C8-4F4B-8EDB-440C60D9A0E6}.Debug|x64.ActiveCfg = Debug|x64
+		{4E1567C4-E9C8-4F4B-8EDB-440C60D9A0E6}.Debug|x64.Build.0 = Debug|x64
+		{4E1567C4-E9C8-4F4B-8EDB-440C60D9A0E6}.Release|x64.ActiveCfg = Release|x64
+		{4E1567C4-E9C8-4F4B-8EDB-440C60D9A0E6}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
