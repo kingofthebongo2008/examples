@@ -18,7 +18,7 @@
 #pragma warning( disable : 592 )
 #endif
 
-// #define USE_ACCURATE_RSQRT_IN_JACOBI_CONJUGATION
+#define USE_ACCURATE_RSQRT_IN_JACOBI_CONJUGATION
 // #define PERFORM_STRICT_QUATERNION_RENORMALIZATION
 
 { // Begin block : Scope of qV (if not maintained)

@@ -44,7 +44,7 @@ namespace svd
     }
 
     //non trigonometric approximation of the givens angle
-    //given coefficients of a symetric matrix, returns c and s, such that they diagonalize this matrix
+    //given coefficients of a symmetric matrix, returns c and s, such that they diagonalize this matrix
     std::tuple<float, float> approximate_givens(float a11, float a12, float a22)
     {
         const auto sqrtf_5 = sqrtf(0.5f); // sin(pi/4), cos (pi/4)
@@ -301,6 +301,12 @@ namespace svd
     }
 }
 
+inline std::ostream& operator<<(std::ostream& s, svd::cpu_scalar scalar)
+{
+    s << scalar.f;
+    return s;
+}
+
 namespace svd
 {
     template <typename t> inline std::tuple< t, t > approximate_givens_quaternion( t a11, t a12, t a22 )
@@ -312,7 +318,7 @@ namespace svd
         
         //if sh squared is tiny, make sh = 0 and ch = 1. this comes from the several jacobi iterations
         sh = and( id, sh );
-        auto ch = blend ( one<t>(), a11 - a12, id );
+        auto ch = blend ( one<t>(), a11 - a22, id );
 
         auto sh_2 = sh * sh;
         auto ch_2 = ch * ch;
@@ -339,16 +345,23 @@ namespace svd
     template <typename t> struct matrix3x3
     {
         //row major
-
         t a11; t a12; t a13;
         t a21; t a22; t a23;
         t a31; t a32; t a33;
 
     };
 
+    template <typename t> struct symmetric_matrix3x3
+    {
+        //row major
+        t a11; //t a12; t a13;
+        t a21; t a22; //t a23;
+        t a31; t a32; t a33;
+    };
 
-    //(2,1), (3,1), (3,2)
-    //jacobi conjugation of symetric matrix
+
+    //(1,2), (1,3), (2,3)
+    //jacobi conjugation of a symmetric matrix
     template < typename t, int p, int q > inline void jacobi_conjugation
                                                         (   
                                                             t&  a11, //t&  a12, t&  a13,
@@ -358,84 +371,202 @@ namespace svd
     {
         using namespace math;
 
-        t* a[3][3] = { &a11, &a21, &a31, &a21, &a22, &a32, &a31, &a32, &a33 };
-        auto r = approximate_givens_quaternion<t> ( *a[p][p], *a[p][q], *a[q][q] );
-
-        auto ch = std::get<0>( r );
-        auto sh = std::get<1>( r );
-
-        auto ch_plus_sh_2 = sh * sh + ch * ch ;
-        auto ch_minus_sh_2 = ch * ch - sh * sh;
-        auto ch_sh_2 = ch * sh + ch * sh;
-
-        //Q matrix in the jaocobi method, formed from quaternion
-        auto r11 = ch_minus_sh_2;
-        auto r12 = zero<t>() - ch_sh_2; 
-        auto r21 = ch_sh_2 ;
-        auto r22 = ch_minus_sh_2;
-
-        auto c = r11;
-        auto s = r21;
-
-        if ( p == 0 && q == 1 )
+        if ( p == 1 && q == 2 )
         {
-            
+            auto r  = approximate_givens_quaternion<t> ( a11, a21, a22 );
+            auto ch = std::get<0>( r );
+            auto sh = std::get<1>( r );
+
+            auto ch_plus_sh_2  = sh * sh + ch * ch ;
+            auto ch_minus_sh_2 = ch * ch - sh * sh;
+            auto ch_sh_2       = ch * sh + ch * sh;
+
+            //Q matrix in the jaocobi method, formed from quaternion
+            auto r11 = ch_minus_sh_2;
+            auto r12 = ch_sh_2;             //zero<t>() - ch_sh_2; 
+            auto r21 = zero<t>() - ch_sh_2; //ch_sh_2 ;
+            auto r22 = ch_minus_sh_2;
+
+            auto c = r11;
+            auto s = r21;
+
+            auto t1 = a31;
+            auto t2 = a32;
+
+            a31 = ( c * t1 - s * t2 ) * ch_plus_sh_2;
+            a32 = ( s * t1 + c * t2 ) * ch_plus_sh_2;;
+            a33 = a33 * ch_plus_sh_2 * ch_plus_sh_2;
+
+            auto t3 = a11;
+            auto t4 = a21;
+            auto t5 = a22;
+
+            a11 = c * c * t3 - ( s * c + s * c) * t4 + s * s * t5;
+            a22 = s * s * t3 + ( s * c + s * c) * t4 + c * c * t5;
+            a21 = s * c * ( t3 - t5 ) + ( c * c - s * s ) * t4; 
+
+            std::cout<<a21<<std::endl;
         }
+        else if ( p == 2 && q == 3 )
+        {
+            auto r  = approximate_givens_quaternion<t> ( a22, a32, a33 );
+            auto ch = std::get<0>( r );
+            auto sh = std::get<1>( r );
+
+            auto ch_plus_sh_2  = sh * sh + ch * ch ;
+            auto ch_minus_sh_2 = ch * ch - sh * sh;
+            auto ch_sh_2       = ch * sh + ch * sh;
+
+            //Q matrix in the jaocobi method, formed from quaternion
+            auto r11 = ch_minus_sh_2;
+            auto r12 = zero<t>() - ch_sh_2; 
+            auto r21 = ch_sh_2 ;
+            auto r22 = ch_minus_sh_2;
+
+            auto c = r11;
+            auto s = r21;
+
+            auto t1 = a21;
+            auto t2 = a31;
+
+            a21 = ( c * t1 - s * t2 ) * ch_plus_sh_2;
+            a31 = ( s * t1 + c * t2 ) * ch_plus_sh_2;;
+            a11 = a11 * ch_plus_sh_2 * ch_plus_sh_2;
+
+            auto t3 = a22;
+            auto t4 = a32;
+            auto t5 = a33;
+
+            a22 = c * c * t3 - ( s * c + s * c) * t4 + s * s * t5;
+            a33 = s * s * t3 + ( s * c + s * c) * t4 + c * c * t5;
+            a32 = s * c * ( t3 - t5 ) + ( c * c - s * s ) * t4; 
+        }
+        else if ( p == 1 && q == 3 )
+        {
+            auto r  = approximate_givens_quaternion<t> ( a11, a31, a33 );
+            auto ch = std::get<0>( r );
+            auto sh = std::get<1>( r );
+
+            auto ch_plus_sh_2  = sh * sh + ch * ch ;
+            auto ch_minus_sh_2 = ch * ch - sh * sh;
+            auto ch_sh_2       = ch * sh + ch * sh;
+
+            //Q matrix in the jaocobi method, formed from quaternion
+            auto r11 = ch_minus_sh_2;
+            auto r12 = zero<t>() - ch_sh_2; 
+            auto r21 = ch_sh_2 ;
+            auto r22 = ch_minus_sh_2;
+
+            auto c = r11;
+            auto s = r21;
+
+            auto t1 = a32;
+            auto t2 = a21;
+
+            a21 = ( c * t1 - s * t2 ) * ch_plus_sh_2;
+            a32 = ( s * t1 + c * t2 ) * ch_plus_sh_2;
+            a22 = a22 * ch_plus_sh_2 * ch_plus_sh_2;
+
+            auto t3 = a33;
+            auto t4 = a31;
+            auto t5 = a11;
+
+            a11 = c * c * t3 - ( s * c + s * c) * t4 + s * s * t5;
+            a33 = s * s * t3 + ( s * c + s * c) * t4 + c * c * t5;
+            a31 = s * c * ( t3 - t5 ) + ( c * c - s * s ) * t4; 
+        }
+    }
+
+    //(1,2), (1,3), (2,3)
+    //jacobi conjugation of a symmetric matrix
+    template < typename t, int p, int q > inline void jacobi_conjugation ( symmetric_matrix3x3<t>& m )
+    {
+        return jacobi_conjugation<t, p, q> ( m.a11, m.a21, m.a22, m.a31, m.a32, m.a33 ) ;
+    }
+
+    template < typename t> inline symmetric_matrix3x3<t> create_symmetric_matrix ( const matrix3x3<t>& in  )
+    {
+        using namespace svd::math;
+
+        auto a11 = in.a11 * in.a11 + in.a21 * in.a21 + in.a31 * in.a31;
+        auto a12 = in.a11 * in.a12 + in.a21 * in.a22 + in.a31 * in.a32;
+        auto a13 = in.a11 * in.a13 + in.a21 * in.a23 + in.a31 * in.a33;
+
+        auto a21 = a12;
+        auto a22 = in.a12 * in.a12 + in.a22 * in.a22 + in.a32 * in.a32;
+        auto a23 = in.a12 * in.a13 + in.a22 * in.a23 + in.a32 * in.a33;
+
+        auto a31 = a13;
+        auto a32 = a23;
+        auto a33 = in.a13 * in.a13 + in.a23 * in.a23 + in.a33 * in.a33;
+
+
+        symmetric_matrix3x3<t> r = { a11, a21, a22, a31, a32, a33 };
+        return r;
+    }
+
+    template < typename t> inline matrix3x3<t> create_matrix 
+        ( 
+            t a11, t a12, t a13,
+            t a21, t a22, t a23,
+            t a31, t a32, t a33
+        )
+    {
+        using namespace svd::math;
+        matrix3x3<t> r =  { a11, a12, a13, a21, a22, a23, a31, a32, a33 };
+        return r;
     }
 }
 
 
 std::int32_t main(int argc, _TCHAR* argv[])
 {
-    auto a11 = svd::math::splat<svd::sse_vector>( 1.0f );
-    auto a12 = svd::math::splat<svd::sse_vector>( 0.0f );
-    auto a13 = svd::math::splat<svd::sse_vector>( 1.0f );
+    auto m11 = svd::math::splat<svd::cpu_scalar>( 2.0f );
+    auto m12 = svd::math::splat<svd::cpu_scalar>( -0.2f );
+    auto m13 = svd::math::splat<svd::cpu_scalar>( 1.0f );
 
-    auto a21 = svd::math::splat<svd::sse_vector>( 0.0f);
-    auto a22 = svd::math::splat<svd::sse_vector>( 1.0f);
-    auto a23 = svd::math::splat<svd::sse_vector>( 0.0f);
+    auto m21 = svd::math::splat<svd::cpu_scalar>( -0.2f);
+    auto m22 = svd::math::splat<svd::cpu_scalar>( 1.0f);
+    auto m23 = svd::math::splat<svd::cpu_scalar>( 0.0f);
 
-    auto a31 = svd::math::splat<svd::sse_vector>( 0.0f);
-    auto a32 = svd::math::splat<svd::sse_vector>( 0.0f);
-    auto a33 = svd::math::splat<svd::sse_vector>( 1.0f);
+    auto m31 = svd::math::splat<svd::cpu_scalar>( 1.0f);
+    auto m32 = svd::math::splat<svd::cpu_scalar>( 0.0f);
+    auto m33 = svd::math::splat<svd::cpu_scalar>( 1.0f);
 
+    auto m = svd::create_symmetric_matrix( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+
+    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m );
 
     using namespace svd::math;
-    auto ra = svd::approximate_givens_quaternion( a11, a12, a22 );
 
-    
-    svd::matrix3x3<svd::sse_vector> m =
-    { 
-        a11, a12, a13,
-        a21, a22, a23,
-        a31, a32, a33
-    };
+    auto a11 = m11 * m11 + m21 * m21 + m31 * m31;
+    auto a12 = m11 * m12 + m21 * m22 + m31 * m32;
+    auto a13 = m11 * m13 + m21 * m23 + m31 * m33;
 
-    /*
-    auto sum0 = svd::jacobi_conjugation< svd::sse_vector, 0, 1 > ( m.a11, m.a12, m.a13, m.a21, m.a22, m.a23, m.a31, m.a32, m.a33  );
-    auto sum1 = svd::jacobi_conjugation< svd::sse_vector, 0, 2 > ( m.a11, m.a12, m.a13, m.a21, m.a22, m.a23, m.a31, m.a32, m.a33  );
-    auto sum2 = svd::jacobi_conjugation< svd::sse_vector, 1, 2 > ( m.a11, m.a12, m.a13, m.a21, m.a22, m.a23, m.a31, m.a32, m.a33  );
-    
+    auto a21 = a12;
+    auto a22 = m12 * m12 + m22 * m22 + m32 * m32;
+    auto a23 = m12 * m13 + m22 * m23 + m32 * m33;
 
-    auto sum0 = svd::jacobi_conjugation< svd::sse_vector, 0, 1 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33  );
-    auto sum1 = svd::jacobi_conjugation< svd::sse_vector, 0, 2 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33  );
-    auto sum2 = svd::jacobi_conjugation< svd::sse_vector, 1, 2 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33  );
-    */
+    auto a31 = a13;
+    auto a32 = a23;
+    auto a33 = m13 * m13 + m23 * m23 + m33 * m33;
 
-    svd::jacobi_conjugation< svd::sse_vector, 0, 1 > ( a11, a21, a22, a31, a32, a33 );
-    svd::jacobi_conjugation< svd::sse_vector, 1, 2 > ( a11, a21, a22, a31, a32, a33 );
 
-    float buf0[4];
-    float buf1[4];
-    float buf2[4];
+    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( a11, a21, a22, a31, a32, a33 );
+    std::cout<<"a11:" << a11 << " a21:" << a21 << " a22:" << a22  << " a31:" << a31 << " a32:" << a32 << " a33:" << a33 << std::endl;
+    std::cout<<"sum:" << a21 * a21 + a31 * a31 + a32 * a32 << std::endl;
+   
+    std::cout<<std::endl;
 
-    _mm_storeu_ps(&buf0[0],a11);
-    _mm_storeu_ps(&buf1[0],a21);
-    _mm_storeu_ps(&buf2[0],a22);
 
-    _mm_storeu_ps(&buf0[0],a31);
-    _mm_storeu_ps(&buf1[0],a32);
-    _mm_storeu_ps(&buf2[0],a33);
+    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( a11, a21, a22, a31, a32, a33 );
+    std::cout<<"a11:" << a11 << " a21:" << a21 << " a22:" << a22  << " a31:" << a31 << " a32:" << a32 << " a33:" << a33 << std::endl;
+    std::cout<<"sum:" << a21 * a21 + a31 * a31 + a32 * a32 << std::endl;
+   
+    std::cout<<std::endl;
+
+
+
 
     
 

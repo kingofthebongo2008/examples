@@ -19,8 +19,8 @@
 #include <stdlib.h>
 
 #define PRINT_DEBUGGING_OUTPUT
-//#define USE_SCALAR_IMPLEMENTATION
-#define USE_SSE_IMPLEMENTATION
+#define USE_SCALAR_IMPLEMENTATION
+//#define USE_SSE_IMPLEMENTATION
 // #define USE_AVX_IMPLEMENTATION
 
 #define COMPUTE_V_AS_MATRIX
@@ -32,6 +32,7 @@
 
 int main(int argc,char* argv[])
 {
+    /*
     if(argc!=2){printf("Must specify an integer random seed as argument\n");exit(1);}
     srand(atoi(argv[1]));
 
@@ -58,6 +59,22 @@ int main(int argc,char* argv[])
     test_A13*=norm_inverse;
     test_A23*=norm_inverse;
     test_A33*=norm_inverse;
+
+    */
+
+    float test_A11,test_A21,test_A31,test_A12,test_A22,test_A32,test_A13,test_A23,test_A33;
+
+    test_A11 = 2.0f;
+    test_A12 = -0.2f;
+    test_A13 = 1.0f;
+
+    test_A21 = -0.2f;
+    test_A22 = 1.0f;
+    test_A23 = 0.0f;
+
+    test_A31 = 1.0f;
+    test_A32 = 0.0f;
+    test_A33 = 1.0f;
         
 #include "Singular_Value_Decomposition_Kernel_Declarations.hpp"
 
