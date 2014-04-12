@@ -377,14 +377,13 @@ namespace svd
             auto ch = std::get<0>( r );
             auto sh = std::get<1>( r );
 
-            auto ch_plus_sh_2  = sh * sh + ch * ch ;
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
 
             //Q matrix in the jaocobi method, formed from quaternion
             auto r11 = ch_minus_sh_2;
-            auto r12 = ch_sh_2;             //zero<t>() - ch_sh_2; 
-            auto r21 = zero<t>() - ch_sh_2; //ch_sh_2 ;
+            auto r12 = ch_sh_2;             
+            auto r21 = zero<t>() - ch_sh_2; 
             auto r22 = ch_minus_sh_2;
 
             auto c = r11;
@@ -393,19 +392,17 @@ namespace svd
             auto t1 = a31;
             auto t2 = a32;
 
-            a31 = ( c * t1 - s * t2 ) * ch_plus_sh_2;
-            a32 = ( s * t1 + c * t2 ) * ch_plus_sh_2;;
-            a33 = a33 * ch_plus_sh_2 * ch_plus_sh_2;
+            a31 = c * t1 - s * t2;
+            a32 = s * t1 + c * t2;
+            a33 = a33;
 
             auto t3 = a11;
             auto t4 = a21;
             auto t5 = a22;
 
-            a11 = c * c * t3 - ( s * c + s * c) * t4 + s * s * t5;
-            a22 = s * s * t3 + ( s * c + s * c) * t4 + c * c * t5;
+            a11 = s * s * t5 + c * c * t3 - ( s * c + s * c) * t4;
+            a22 = c * c * t5 + s * s * t3 + ( s * c + s * c) * t4;
             a21 = s * c * ( t3 - t5 ) + ( c * c - s * s ) * t4; 
-
-            std::cout<<a21<<std::endl;
         }
         else if ( p == 2 && q == 3 )
         {
@@ -413,14 +410,13 @@ namespace svd
             auto ch = std::get<0>( r );
             auto sh = std::get<1>( r );
 
-            auto ch_plus_sh_2  = sh * sh + ch * ch ;
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
 
             //Q matrix in the jaocobi method, formed from quaternion
             auto r11 = ch_minus_sh_2;
-            auto r12 = zero<t>() - ch_sh_2; 
-            auto r21 = ch_sh_2 ;
+            auto r12 = ch_sh_2;             
+            auto r21 = zero<t>() - ch_sh_2; 
             auto r22 = ch_minus_sh_2;
 
             auto c = r11;
@@ -429,32 +425,31 @@ namespace svd
             auto t1 = a21;
             auto t2 = a31;
 
-            a21 = ( c * t1 - s * t2 ) * ch_plus_sh_2;
-            a31 = ( s * t1 + c * t2 ) * ch_plus_sh_2;;
-            a11 = a11 * ch_plus_sh_2 * ch_plus_sh_2;
+            a21 = c * t1 - s * t2;
+            a31 = s * t1 + c * t2;;
+            a11 = a11;
 
             auto t3 = a22;
             auto t4 = a32;
             auto t5 = a33;
 
-            a22 = c * c * t3 - ( s * c + s * c) * t4 + s * s * t5;
-            a33 = s * s * t3 + ( s * c + s * c) * t4 + c * c * t5;
+            a22 = s * s * t5 + c * c * t3 - ( s * c + s * c) * t4;
+            a33 = c * c * t5 + s * s * t3 + ( s * c + s * c) * t4 ;
             a32 = s * c * ( t3 - t5 ) + ( c * c - s * s ) * t4; 
         }
         else if ( p == 1 && q == 3 )
         {
-            auto r  = approximate_givens_quaternion<t> ( a11, a31, a33 );
+            auto r  = approximate_givens_quaternion<t> ( a33, a31, a11 );
             auto ch = std::get<0>( r );
             auto sh = std::get<1>( r );
 
-            auto ch_plus_sh_2  = sh * sh + ch * ch ;
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
 
             //Q matrix in the jaocobi method, formed from quaternion
             auto r11 = ch_minus_sh_2;
-            auto r12 = zero<t>() - ch_sh_2; 
-            auto r21 = ch_sh_2 ;
+            auto r12 = ch_sh_2;             
+            auto r21 = zero<t>() - ch_sh_2; 
             auto r22 = ch_minus_sh_2;
 
             auto c = r11;
@@ -463,16 +458,16 @@ namespace svd
             auto t1 = a32;
             auto t2 = a21;
 
-            a21 = ( c * t1 - s * t2 ) * ch_plus_sh_2;
-            a32 = ( s * t1 + c * t2 ) * ch_plus_sh_2;
-            a22 = a22 * ch_plus_sh_2 * ch_plus_sh_2;
+            a32 = c * t1 - s * t2;
+            a21 = s * t1 + c * t2;
+            a22 = a22;
 
             auto t3 = a33;
             auto t4 = a31;
             auto t5 = a11;
 
-            a11 = c * c * t3 - ( s * c + s * c) * t4 + s * s * t5;
-            a33 = s * s * t3 + ( s * c + s * c) * t4 + c * c * t5;
+            a33 = s * s * t5 + c * c * t3 - ( s * c + s * c) * t4;
+            a11 = c * c * t5 + s * s * t3 + ( s * c + s * c) * t4;
             a31 = s * c * ( t3 - t5 ) + ( c * c - s * s ) * t4; 
         }
     }
@@ -481,7 +476,7 @@ namespace svd
     //jacobi conjugation of a symmetric matrix
     template < typename t, int p, int q > inline void jacobi_conjugation ( symmetric_matrix3x3<t>& m )
     {
-        return jacobi_conjugation<t, p, q> ( m.a11, m.a21, m.a22, m.a31, m.a32, m.a33 ) ;
+        jacobi_conjugation<t, p, q> ( m.a11, m.a21, m.a22, m.a31, m.a32, m.a33 ) ;
     }
 
     template < typename t> inline symmetric_matrix3x3<t> create_symmetric_matrix ( const matrix3x3<t>& in  )
@@ -521,6 +516,10 @@ namespace svd
 
 std::int32_t main(int argc, _TCHAR* argv[])
 {
+    using namespace svd;
+    using namespace svd::math;
+
+
     auto m11 = svd::math::splat<svd::cpu_scalar>( 2.0f );
     auto m12 = svd::math::splat<svd::cpu_scalar>( -0.2f );
     auto m13 = svd::math::splat<svd::cpu_scalar>( 1.0f );
@@ -535,35 +534,46 @@ std::int32_t main(int argc, _TCHAR* argv[])
 
     auto m = svd::create_symmetric_matrix( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
 
+    for (uint32_t i = 0; i < 4 ; i++)
+    {
     svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m );
+    std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
+    
+    svd::jacobi_conjugation< svd::cpu_scalar, 1, 3 > ( m );
+    std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
+
+    svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
+    std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
+
+
+    }
+    
+    //svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
+    //std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
+
+    //svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m );
+    //std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
+
+   int k=3;
+
+
+    /*
+
+    svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
+    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m );
+    svd::jacobi_conjugation< svd::cpu_scalar, 1, 3 > ( m );
+
+    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m );
+    svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
+    svd::jacobi_conjugation< svd::cpu_scalar, 1, 3 > ( m );
+
+    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2   > ( m );
+    svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
+    svd::jacobi_conjugation< svd::cpu_scalar, 1, 3 > ( m );
+    */
 
     using namespace svd::math;
 
-    auto a11 = m11 * m11 + m21 * m21 + m31 * m31;
-    auto a12 = m11 * m12 + m21 * m22 + m31 * m32;
-    auto a13 = m11 * m13 + m21 * m23 + m31 * m33;
-
-    auto a21 = a12;
-    auto a22 = m12 * m12 + m22 * m22 + m32 * m32;
-    auto a23 = m12 * m13 + m22 * m23 + m32 * m33;
-
-    auto a31 = a13;
-    auto a32 = a23;
-    auto a33 = m13 * m13 + m23 * m23 + m33 * m33;
-
-
-    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( a11, a21, a22, a31, a32, a33 );
-    std::cout<<"a11:" << a11 << " a21:" << a21 << " a22:" << a22  << " a31:" << a31 << " a32:" << a32 << " a33:" << a33 << std::endl;
-    std::cout<<"sum:" << a21 * a21 + a31 * a31 + a32 * a32 << std::endl;
-   
-    std::cout<<std::endl;
-
-
-    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( a11, a21, a22, a31, a32, a33 );
-    std::cout<<"a11:" << a11 << " a21:" << a21 << " a22:" << a22  << " a31:" << a31 << " a32:" << a32 << " a33:" << a33 << std::endl;
-    std::cout<<"sum:" << a21 * a21 + a31 * a31 + a32 * a32 << std::endl;
-   
-    std::cout<<std::endl;
 
 
 
