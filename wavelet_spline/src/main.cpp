@@ -327,9 +327,8 @@ namespace svd
         auto w = rsqrt ( x );
 
         //one iteration of newton rhapson.
-        //todo remove the loading of constant with alu 3 * x = x + x + x
-        //optional
-        w = half * w *  ( splat<t>(3.0f) - x * w * w  ) ;
+        //w = half * w  *  ( splat<t>(3.0f) - x * w * w  ) ;
+        w = half * w + half * w + half * w - half * w  *  x * w * w   ;
 
         sh = w * sh;
         ch = w * ch;
@@ -366,7 +365,8 @@ namespace svd
                                                         (   
                                                             t&  a11, //t&  a12, t&  a13,
                                                             t&  a21, t&  a22, //t&  a23,
-                                                            t&  a31, t&  a32, t&  a33 
+                                                            t&  a31, t&  a32, t&  a33
+                                                            //, t&  qx,  t&  qy,  t&  qz, t& qw
                                                         )
     {
         using namespace math;
@@ -387,22 +387,22 @@ namespace svd
             auto r22 = ch_minus_sh_2;
 
             auto c = r11;
-            auto s = r21;
+            auto s = r12;
 
             auto t1 = a31;
             auto t2 = a32;
 
-            a31 = c * t1 - s * t2;
-            a32 = s * t1 + c * t2;
+            a31 = c * t1 + s * t2;
+            a32 = c * t2 - s * t1;
             a33 = a33;
 
             auto t3 = a11;
             auto t4 = a21;
             auto t5 = a22;
 
-            a11 = s * s * t5 + c * c * t3 - ( s * c + s * c) * t4;
-            a22 = c * c * t5 + s * s * t3 + ( s * c + s * c) * t4;
-            a21 = s * c * ( t3 - t5 ) + ( c * c - s * s ) * t4; 
+            a11 = s * s * t5 + c * c * t3 + ( s * c + s * c) * t4;
+            a22 = c * c * t5 + s * s * t3 - ( s * c + s * c) * t4;
+            a21 = s * c * ( t5 - t3 ) + ( c * c - s * s ) * t4; 
         }
         else if ( p == 2 && q == 3 )
         {
@@ -420,22 +420,22 @@ namespace svd
             auto r22 = ch_minus_sh_2;
 
             auto c = r11;
-            auto s = r21;
+            auto s = r12;
 
             auto t1 = a21;
             auto t2 = a31;
 
-            a21 = c * t1 - s * t2;
-            a31 = s * t1 + c * t2;;
+            a21 = c * t1 + s * t2;
+            a31 = c * t2 - s * t1;
             a11 = a11;
 
             auto t3 = a22;
             auto t4 = a32;
             auto t5 = a33;
 
-            a22 = s * s * t5 + c * c * t3 - ( s * c + s * c) * t4;
-            a33 = c * c * t5 + s * s * t3 + ( s * c + s * c) * t4 ;
-            a32 = s * c * ( t3 - t5 ) + ( c * c - s * s ) * t4; 
+            a22 = s * s * t5 + c * c * t3 + ( s * c + s * c) * t4;
+            a33 = c * c * t5 + s * s * t3 - ( s * c + s * c) * t4;
+            a32 = s * c * ( t5 - t3 ) + ( c * c - s * s ) * t4; 
         }
         else if ( p == 1 && q == 3 )
         {
@@ -453,22 +453,22 @@ namespace svd
             auto r22 = ch_minus_sh_2;
 
             auto c = r11;
-            auto s = r21;
+            auto s = r12;
 
             auto t1 = a32;
             auto t2 = a21;
 
-            a32 = c * t1 - s * t2;
-            a21 = s * t1 + c * t2;
+            a32 = c * t1 + s * t2;
+            a21 = c * t2 - s * t1;
             a22 = a22;
 
             auto t3 = a33;
             auto t4 = a31;
             auto t5 = a11;
 
-            a33 = s * s * t5 + c * c * t3 - ( s * c + s * c) * t4;
-            a11 = c * c * t5 + s * s * t3 + ( s * c + s * c) * t4;
-            a31 = s * c * ( t3 - t5 ) + ( c * c - s * s ) * t4; 
+            a33 = s * s * t5 + c * c * t3 + ( s * c + s * c) * t4;
+            a11 = c * c * t5 + s * s * t3 - ( s * c + s * c) * t4;
+            a31 = s * c * ( t5 - t3 ) + ( c * c - s * s ) * t4; 
         }
     }
 
@@ -519,7 +519,6 @@ std::int32_t main(int argc, _TCHAR* argv[])
     using namespace svd;
     using namespace svd::math;
 
-
     auto m11 = svd::math::splat<svd::cpu_scalar>( 2.0f );
     auto m12 = svd::math::splat<svd::cpu_scalar>( -0.2f );
     auto m13 = svd::math::splat<svd::cpu_scalar>( 1.0f );
@@ -536,47 +535,16 @@ std::int32_t main(int argc, _TCHAR* argv[])
 
     for (uint32_t i = 0; i < 4 ; i++)
     {
-    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m );
-    std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
+        svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m );
+        std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
     
-    svd::jacobi_conjugation< svd::cpu_scalar, 1, 3 > ( m );
-    std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
+        svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
+        std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
 
-    svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
-    std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
-
-
+        svd::jacobi_conjugation< svd::cpu_scalar, 1, 3 > ( m );
+        std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
     }
     
-    //svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
-    //std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
-
-    //svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m );
-    //std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
-
-   int k=3;
-
-
-    /*
-
-    svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
-    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m );
-    svd::jacobi_conjugation< svd::cpu_scalar, 1, 3 > ( m );
-
-    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m );
-    svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
-    svd::jacobi_conjugation< svd::cpu_scalar, 1, 3 > ( m );
-
-    svd::jacobi_conjugation< svd::cpu_scalar, 1, 2   > ( m );
-    svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
-    svd::jacobi_conjugation< svd::cpu_scalar, 1, 3 > ( m );
-    */
-
-    using namespace svd::math;
-
-
-
-
 
     
 
