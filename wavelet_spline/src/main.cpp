@@ -358,6 +358,14 @@ namespace svd
         t a31; t a32; t a33;
     };
 
+    template <typename t> struct quaternion
+    {
+        t x;
+        t y;
+        t z;
+        t w;
+    };
+
 
     //(1,2), (1,3), (2,3)
     //jacobi conjugation of a symmetric matrix
@@ -365,118 +373,168 @@ namespace svd
                                                         (   
                                                             t&  a11, //t&  a12, t&  a13,
                                                             t&  a21, t&  a22, //t&  a23,
-                                                            t&  a31, t&  a32, t&  a33
-                                                            //, t&  qx,  t&  qy,  t&  qz, t& qw
+                                                            t&  a31, t&  a32, t&  a33,
+                                                            t&  qx,  t&  qy,  t&  qz, t& qw
                                                         )
     {
         using namespace math;
 
         if ( p == 1 && q == 2 )
         {
-            auto r  = approximate_givens_quaternion<t> ( a11, a21, a22 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            const auto r  = approximate_givens_quaternion<t> ( a11, a21, a22 );
+            const auto ch = std::get<0>( r );
+            const auto sh = std::get<1>( r );
 
-            auto ch_minus_sh_2 = ch * ch - sh * sh;
-            auto ch_sh_2       = ch * sh + ch * sh;
+            const auto ch_minus_sh_2 = ch * ch - sh * sh;
+            const auto ch_sh_2       = ch * sh + ch * sh;
 
             //Q matrix in the jaocobi method, formed from quaternion
-            auto r11 = ch_minus_sh_2;
-            auto r12 = ch_sh_2;             
-            auto r21 = zero<t>() - ch_sh_2; 
-            auto r22 = ch_minus_sh_2;
+            const auto r11 = ch_minus_sh_2;
+            const auto r12 = ch_sh_2;             
+            const auto r21 = zero<t>() - ch_sh_2; 
+            const auto r22 = ch_minus_sh_2;
 
-            auto c = r11;
-            auto s = r12;
+            const auto c = r11;
+            const auto s = r12;
 
-            auto t1 = a31;
-            auto t2 = a32;
+            const auto t1 = a31;
+            const auto t2 = a32;
 
             a31 = c * t1 + s * t2;
             a32 = c * t2 - s * t1;
             a33 = a33;
 
-            auto t3 = a11;
-            auto t4 = a21;
-            auto t5 = a22;
+            const auto t3 = a11;
+            const auto t4 = a21;
+            const auto t5 = a22;
 
             a11 = s * s * t5 + c * c * t3 + ( s * c + s * c) * t4;
             a22 = c * c * t5 + s * s * t3 - ( s * c + s * c) * t4;
             a21 = s * c * ( t5 - t3 ) + ( c * c - s * s ) * t4; 
+
+
+            //now create the apply the total quaternion transformation7
+            const auto q0 = qw;
+            const auto q1 = qx;
+            const auto q2 = qy;
+            const auto q3 = qz;
+
+            const auto r0 = ch;
+            const auto r1 = 0;
+            const auto r2 = 0;
+            const auto r3 = sh;
+
+            qw = r0 * q0 - r3 * q3;
+            qx = r0 * q1 + r3 * q3;
+            qy = r0 * q2 - r3 * q1;
+            qz = r0 * q3 + r3 * q0;
+
         }
         else if ( p == 2 && q == 3 )
         {
-            auto r  = approximate_givens_quaternion<t> ( a22, a32, a33 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            const auto r  = approximate_givens_quaternion<t> ( a22, a32, a33 );
+            const auto ch = std::get<0>( r );
+            const auto sh = std::get<1>( r );
 
-            auto ch_minus_sh_2 = ch * ch - sh * sh;
-            auto ch_sh_2       = ch * sh + ch * sh;
+            const auto ch_minus_sh_2 = ch * ch - sh * sh;
+            const auto ch_sh_2       = ch * sh + ch * sh;
 
             //Q matrix in the jaocobi method, formed from quaternion
-            auto r11 = ch_minus_sh_2;
-            auto r12 = ch_sh_2;             
-            auto r21 = zero<t>() - ch_sh_2; 
-            auto r22 = ch_minus_sh_2;
+            const auto r11 = ch_minus_sh_2;
+            const auto r12 = ch_sh_2;             
+            const auto r21 = zero<t>() - ch_sh_2; 
+            const auto r22 = ch_minus_sh_2;
 
-            auto c = r11;
-            auto s = r12;
+            const auto c = r11;
+            const auto s = r12;
 
-            auto t1 = a21;
-            auto t2 = a31;
+            const auto t1 = a21;
+            const auto t2 = a31;
 
             a21 = c * t1 + s * t2;
             a31 = c * t2 - s * t1;
             a11 = a11;
 
-            auto t3 = a22;
-            auto t4 = a32;
-            auto t5 = a33;
+            const auto t3 = a22;
+            const auto t4 = a32;
+            const auto t5 = a33;
 
             a22 = s * s * t5 + c * c * t3 + ( s * c + s * c) * t4;
             a33 = c * c * t5 + s * s * t3 - ( s * c + s * c) * t4;
             a32 = s * c * ( t5 - t3 ) + ( c * c - s * s ) * t4; 
+
+            //now create the apply the total quaternion transformation7
+            const auto q0 = qw;
+            const auto q1 = qx;
+            const auto q2 = qy;
+            const auto q3 = qz;
+
+            const auto r0 = ch;
+            const auto r1 = sh;
+            const auto r2 = 0;
+            const auto r3 = 0;
+
+            qw = r0 * q0 - r1 * q1;
+            qx = r0 * q1 + r1 * q0;
+            qy = r0 * q2 + r1 * q3;
+            qz = r0 * q3 - r1 * q2;
         }
         else if ( p == 1 && q == 3 )
         {
-            auto r  = approximate_givens_quaternion<t> ( a33, a31, a11 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            const auto r  = approximate_givens_quaternion<t> ( a33, a31, a11 );
+            const auto ch = std::get<0>( r );
+            const auto sh = std::get<1>( r );
 
-            auto ch_minus_sh_2 = ch * ch - sh * sh;
-            auto ch_sh_2       = ch * sh + ch * sh;
+            const auto ch_minus_sh_2 = ch * ch - sh * sh;
+            const auto ch_sh_2       = ch * sh + ch * sh;
 
             //Q matrix in the jaocobi method, formed from quaternion
-            auto r11 = ch_minus_sh_2;
-            auto r12 = ch_sh_2;             
-            auto r21 = zero<t>() - ch_sh_2; 
-            auto r22 = ch_minus_sh_2;
+            const auto r11 = ch_minus_sh_2;
+            const auto r12 = ch_sh_2;             
+            const auto r21 = zero<t>() - ch_sh_2; 
+            const auto r22 = ch_minus_sh_2;
 
-            auto c = r11;
-            auto s = r12;
+            const auto c = r11;
+            const auto s = r12;
 
-            auto t1 = a32;
-            auto t2 = a21;
+            const auto t1 = a32;
+            const auto t2 = a21;
 
             a32 = c * t1 + s * t2;
             a21 = c * t2 - s * t1;
             a22 = a22;
 
-            auto t3 = a33;
-            auto t4 = a31;
-            auto t5 = a11;
+            const auto t3 = a33;
+            const auto t4 = a31;
+            const auto t5 = a11;
 
             a33 = s * s * t5 + c * c * t3 + ( s * c + s * c) * t4;
             a11 = c * c * t5 + s * s * t3 - ( s * c + s * c) * t4;
             a31 = s * c * ( t5 - t3 ) + ( c * c - s * s ) * t4; 
+
+            //now create the apply the total quaternion transformation7
+            const auto q0 = qw;
+            const auto q1 = qx;
+            const auto q2 = qy;
+            const auto q3 = qz;
+
+            const auto r0 = ch;
+            const auto r1 = 0;
+            const auto r2 = sh;
+            const auto r3 = 0;
+
+            qw = r0 * q0 - r2 * q2;
+            qx = r0 * q1 - r2 * q3;
+            qy = r0 * q2 + r2 * q0;
+            qz = r0 * q3 + r2 * q1;
         }
     }
 
     //(1,2), (1,3), (2,3)
     //jacobi conjugation of a symmetric matrix
-    template < typename t, int p, int q > inline void jacobi_conjugation ( symmetric_matrix3x3<t>& m )
+    template < typename t, int p, int q > inline void jacobi_conjugation ( symmetric_matrix3x3<t>& m, quaternion<t>& quaternion )
     {
-        jacobi_conjugation<t, p, q> ( m.a11, m.a21, m.a22, m.a31, m.a32, m.a33 ) ;
+        jacobi_conjugation< t, p, q > ( m.a11, m.a21, m.a22, m.a31, m.a32, m.a33, quaternion.x, quaternion.y, quaternion.z, quaternion.w) ;
     }
 
     template < typename t> inline symmetric_matrix3x3<t> create_symmetric_matrix ( const matrix3x3<t>& in  )
@@ -511,6 +569,14 @@ namespace svd
         matrix3x3<t> r =  { a11, a12, a13, a21, a22, a23, a31, a32, a33 };
         return r;
     }
+
+    template <typename t> inline quaternion<t> create_quaternion( t qx, t qy, t qz, t qw)
+    {
+        using namespace svd::math;
+
+        quaternion<t> r = { qx, qy, qz, qw };
+        return r;
+    }
 }
 
 
@@ -531,17 +597,24 @@ std::int32_t main(int argc, _TCHAR* argv[])
     auto m32 = svd::math::splat<svd::cpu_scalar>( 0.0f);
     auto m33 = svd::math::splat<svd::cpu_scalar>( 1.0f);
 
+    auto qx = svd::math::splat<svd::cpu_scalar>( 0.0f );
+    auto qy = svd::math::splat<svd::cpu_scalar>( 0.0f );
+    auto qz = svd::math::splat<svd::cpu_scalar>( 0.0f );
+    auto qw = svd::math::splat<svd::cpu_scalar>( 1.0f );
+
+    auto q = svd::create_quaternion ( qx, qy, qz, qw );
+
     auto m = svd::create_symmetric_matrix( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
 
     for (uint32_t i = 0; i < 4 ; i++)
     {
-        svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m );
+        svd::jacobi_conjugation< svd::cpu_scalar, 1, 2 > ( m, q );
         std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
     
-        svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m );
+        svd::jacobi_conjugation< svd::cpu_scalar, 2, 3 > ( m, q );
         std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
 
-        svd::jacobi_conjugation< svd::cpu_scalar, 1, 3 > ( m );
+        svd::jacobi_conjugation< svd::cpu_scalar, 1, 3 > ( m, q );
         std::cout<<"sum:" << m.a21 * m.a21 + m.a31 * m.a31 + m.a32 * m.a32 << std::endl;
     }
     

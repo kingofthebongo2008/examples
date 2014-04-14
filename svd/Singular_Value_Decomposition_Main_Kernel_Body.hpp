@@ -146,6 +146,14 @@
 #undef VTMP2
 #undef VTMP3
 
+#ifdef PRINT_DEBUGGING_OUTPUT
+#ifdef USE_SCALAR_IMPLEMENTATION
+    std::cout<<"Scalar S ="<<std::endl;
+    std::cout<<std::setw(12)<<Ss11.f<<std::endl;
+    std::cout<<std::setw(12)<<Ss21.f<<"  "<<std::setw(12)<<Ss22.f<<std::endl;
+    std::cout<<std::setw(12)<<Ss31.f<<"  "<<std::setw(12)<<Ss32.f<<"  "<<std::setw(12)<<Ss33.f<<std::endl;
+#endif
+#endif
         // Second Jacobi conjugation
 
 #define SS11 Ss22
@@ -202,6 +210,15 @@
 #undef VTMP2
 #undef VTMP3
 
+#ifdef PRINT_DEBUGGING_OUTPUT
+#ifdef USE_SCALAR_IMPLEMENTATION
+    std::cout<<"Scalar S ="<<std::endl;
+    std::cout<<std::setw(12)<<Ss11.f<<std::endl;
+    std::cout<<std::setw(12)<<Ss21.f<<"  "<<std::setw(12)<<Ss22.f<<std::endl;
+    std::cout<<std::setw(12)<<Ss31.f<<"  "<<std::setw(12)<<Ss32.f<<"  "<<std::setw(12)<<Ss33.f<<std::endl;
+#endif
+#endif
+
         // Third Jacobi conjugation
 
 #define SS11 Ss33
@@ -257,6 +274,15 @@
 #undef VTMP1
 #undef VTMP2
 #undef VTMP3
+
+#ifdef PRINT_DEBUGGING_OUTPUT
+#ifdef USE_SCALAR_IMPLEMENTATION
+    std::cout<<"Scalar S ="<<std::endl;
+    std::cout<<std::setw(12)<<Ss11.f<<std::endl;
+    std::cout<<std::setw(12)<<Ss21.f<<"  "<<std::setw(12)<<Ss22.f<<std::endl;
+    std::cout<<std::setw(12)<<Ss31.f<<"  "<<std::setw(12)<<Ss32.f<<"  "<<std::setw(12)<<Ss33.f<<std::endl;
+#endif
+#endif
     }
 
 #ifdef PRINT_DEBUGGING_OUTPUT
@@ -395,7 +421,7 @@
 #ifdef COMPUTE_V_AS_MATRIX
 #ifdef PRINT_DEBUGGING_OUTPUT
 #ifdef USE_SCALAR_IMPLEMENTATION
-    std::cout<<"Scalar V ="<<std::endl;
+    std::cout<<"Scalar V ="<<std::endl; 
     std::cout<<std::setw(12)<<Sv11.f<<"  "<<std::setw(12)<<Sv12.f<<"  "<<std::setw(12)<<Sv13.f<<std::endl;
     std::cout<<std::setw(12)<<Sv21.f<<"  "<<std::setw(12)<<Sv22.f<<"  "<<std::setw(12)<<Sv23.f<<std::endl;
     std::cout<<std::setw(12)<<Sv31.f<<"  "<<std::setw(12)<<Sv32.f<<"  "<<std::setw(12)<<Sv33.f<<std::endl;
