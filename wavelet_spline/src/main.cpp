@@ -576,16 +576,23 @@ namespace svd
         return r;
     }
 
-    template <typename t> inline quaternion<t> normalize( const quaternion<t>& t )
+    template <typename t> inline quaternion<t> normalize( const quaternion<t>& q )
     {
+        using namespace math;
         using namespace svd::math;
-        auto norm_l2 = t.x * t.x + t.y * t.y + t.z * t.z + t.w * t.w;
-        auto divisor = rsqrt(norm_l2);
+        
+        auto half = svd::math::splat<t> ( 0.5f );
+        
+        auto x = q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
+        auto w = rsqrt( x );
 
+        //one iteration of newton rhapson.
+        w = w + ( w * half ) - ( ( w * half )  *  w * w * x  );
 
-        return t;
+        return create_quaternion( q.x * w, q.y * w, q.z * w, q.w * w);
     }
 
+    //obtain A = USV' 
     template < typename t > inline quaternion<t> compute( const matrix3x3<t>& in )
     {
         // initial value of v as a quaternion
@@ -597,7 +604,8 @@ namespace svd
         auto v = svd::create_quaternion ( vx, vy, vz, vw );
         auto m = svd::create_symmetric_matrix( in );
 
-        //4 iterations of jacobi conjugation to obtain AV
+
+        //4 iterations of jacobi conjugation to obtain V
         for (auto i = 0; i < 4 ; ++i)
         {
             svd::jacobi_conjugation< t, 1, 2 > ( m, v );
@@ -605,7 +613,9 @@ namespace svd
             svd::jacobi_conjugation< t, 1, 3 > ( m, v );
         }
 
-        v = normalize(v);
+        v = normalize<t>(v);
+
+
         return v;
     }
 }
@@ -627,7 +637,7 @@ std::int32_t main(int argc, _TCHAR* argv[])
     auto m32 = svd::math::splat<svd::cpu_scalar>( 0.0f);
     auto m33 = svd::math::splat<svd::cpu_scalar>( 1.0f);
 
-    auto v = svd::compute( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+    auto v = svd::compute<svd::cpu_scalar>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     
     return 0;
 }
