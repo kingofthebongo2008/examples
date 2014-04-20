@@ -47,7 +47,7 @@ namespace svd
     //given coefficients of a symmetric matrix, returns c and s, such that they diagonalize this matrix
     std::tuple<float, float> approximate_givens(float a11, float a12, float a22)
     {
-        const auto sqrtf_5 = sqrtf(0.5f); // sin(pi/4), cos (pi/4)
+        auto sqrtf_5 = sqrtf(0.5f); // sin(pi/4), cos (pi/4)
         auto b =  a12 * a12 < ( a11 - a22 ) * ( a11 - a22 );
         auto w =  1.0f / sqrtf( a12 * a12  + ( a11 - a22 ) * ( a11 - a22 ) ) ;
         auto s = b ? w * a12 : sqrtf_5;
@@ -96,11 +96,6 @@ namespace svd
         template <typename t> inline t operator*( t a, t b )
         {
             return mul ( a, b );
-        }
-
-        template <typename t> inline t dot3( t a1, t a2, t a3, t b1, t b2, t b3)
-        {
-            return a1 * b1 + a2 * b2 + a3 * b3;
         }
     }
 }
@@ -332,7 +327,8 @@ namespace svd
         auto w = rsqrt ( x );
 
         //one iteration of newton rhapson.
-        w = w + ( w * half ) - ( ( w * half )  *  w * w * x  );
+        //w = half * w  *  ( splat<t>(3.0f) - x * w * w  ) ;
+        w = half * w + half * w + half * w - half * w  *  x * w * w   ;
 
         sh = w * sh;
         ch = w * ch;
@@ -429,7 +425,7 @@ namespace svd
             auto r3 = sh;
 
             qw = r0 * q0 - r3 * q3;
-            qx = r0 * q1 + r3 * q2;
+            qx = r0 * q1 + r3 * q3;
             qy = r0 * q2 - r3 * q1;
             qz = r0 * q3 + r3 * q0;
 
@@ -581,101 +577,36 @@ namespace svd
         return r;
     }
 
-    template <typename t> inline quaternion<t> normalize( const quaternion<t>& q )
+    template <typename t> inline quaternion<t> normalize( const quaternion<t>& t )
     {
-        using namespace math;
         using namespace svd::math;
-        
-        auto half = svd::math::splat<t> ( 0.5f );
-        
-        auto x = q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
-        auto w = rsqrt( x );
+        auto norm_l2 = t.x * t.x + t.y * t.y + t.z * t.z + t.w * t.w;
+        auto divisor = rsqrt(norm_l2);
 
-        //one iteration of newton rhapson.
-        w = w + ( w * half ) - ( ( w * half )  *  w * w * x  );
 
-        return create_quaternion( q.x * w, q.y * w, q.z * w, q.w * w);
+        return t;
     }
 
-    //obtain A = USV' 
     template < typename t > inline quaternion<t> compute( const matrix3x3<t>& in )
     {
         // initial value of v as a quaternion
-        auto vx = svd::math::splat<t>( 0.0f );
-        auto vy = svd::math::splat<t>( 0.0f );
-        auto vz = svd::math::splat<t>( 0.0f );
-        auto vw = svd::math::splat<t>( 1.0f );
+        auto vx = svd::math::splat<svd::cpu_scalar>( 0.0f );
+        auto vy = svd::math::splat<svd::cpu_scalar>( 0.0f );
+        auto vz = svd::math::splat<svd::cpu_scalar>( 0.0f );
+        auto vw = svd::math::splat<svd::cpu_scalar>( 1.0f );
 
         auto v = svd::create_quaternion ( vx, vy, vz, vw );
         auto m = svd::create_symmetric_matrix( in );
 
-        //4 iterations of jacobi conjugation to obtain V
-        for (auto i = 0; i < 4 ; ++i)
+        //4 iterations of jacobi conjugation to obtain AV
+        for (uint32_t i = 0; i < 4 ; i++)
         {
             svd::jacobi_conjugation< t, 1, 2 > ( m, v );
             svd::jacobi_conjugation< t, 2, 3 > ( m, v );
             svd::jacobi_conjugation< t, 1, 3 > ( m, v );
         }
 
-        //normalize the quaternion. this is optional
-        v = normalize<t>(v);
-
-        using namespace svd::math;
-
-        //convert quaternion v to matrix {
-        auto tmp1 = v.x * v.x;
-        auto tmp2 = v.y * v.y;
-        auto tmp3 = v.z * v.z;
-
-        auto v11  = v.w * v.w;
-        auto v22  = v11 - tmp1;
-        auto v33  = v22 - tmp2;
-
-        v33 = v33 + tmp3;
-
-        v22 = v22 + tmp2;
-        v22 = v22 - tmp3;
-
-        v11 = v11 + tmp1;
-        v11 = v11 - tmp2;
-        v11 = v11 - tmp3;
-
-        tmp1 = v.x + v.x;
-        tmp2 = v.y + v.y;
-        tmp3 = v.z + v.z;
-
-        auto v32 = v.w * tmp1;
-        auto v13 = v.w * tmp2;
-        auto v21 = v.w * tmp3;
-
-        tmp1 = v.y * tmp1;
-        tmp2 = v.z * tmp2;
-        tmp3 = v.x * tmp3;
-
-        auto v12 = tmp1 - v21;
-        auto v23 = tmp2 - v32;
-        auto v31 = tmp3 - v13;
-
-        v21 = v21 + tmp1;
-        v32 = v32 + tmp2;
-        v13 = v13 + tmp3;
-        //} convert quaternion to matrix
-
-        // compute AV
-
-        auto a11 = dot3( in.a11, in.a12, in.a13, v11, v21, v31 );
-        auto a12 = dot3( in.a11, in.a12, in.a13, v12, v22, v32 );
-        auto a13 = dot3( in.a11, in.a12, in.a13, v13, v23, v33 );
-
-        auto a21 = dot3( in.a21, in.a22, in.a23, v11, v21, v31 );
-        auto a22 = dot3( in.a21, in.a22, in.a23, v12, v22, v33 );
-        auto a23 = dot3( in.a21, in.a22, in.a23, v13, v23, v33 );
-
-        auto a31 = dot3( in.a31, in.a32, in.a33, v11, v21, v31 );
-        auto a32 = dot3( in.a31, in.a32, in.a33, v12, v22, v32 );
-        auto a33 = dot3( in.a31, in.a32, in.a33, v13, v23, v33 );
-
-
+        v = normalize(v);
         return v;
     }
 }
@@ -697,7 +628,7 @@ std::int32_t main(int argc, _TCHAR* argv[])
     auto m32 = svd::math::splat<svd::cpu_scalar>( 0.0f);
     auto m33 = svd::math::splat<svd::cpu_scalar>( 1.0f);
 
-    auto v = svd::compute<svd::cpu_scalar>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+    auto v = svd::compute( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     
     return 0;
 }
