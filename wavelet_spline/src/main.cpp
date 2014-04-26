@@ -82,6 +82,7 @@ namespace svd
         template <typename t> inline t splat( float f );
 
         template <typename t> inline t and ( t a, t mask );
+        template <typename t> inline t xor ( t a, t b );
 
         template <typename t> inline t operator+( t a, t b )
         {
@@ -97,6 +98,9 @@ namespace svd
         {
             return mul ( a, b );
         }
+
+        template <typename t> inline t operator<( t a, t b );
+
 
         template <typename t> inline t dot3( t a1, t a2, t a3, t b1, t b2, t b3)
         {
@@ -211,6 +215,13 @@ namespace svd
             return r;
         }
 
+        template <> inline cpu_scalar operator<( cpu_scalar a, cpu_scalar b )
+        {
+            cpu_scalar r;
+            r.u = a.f < b.f ? 0xffffffff : 0;
+            return r;
+        }
+
         // r = (mask == 0) ? a : b;
         template <> inline cpu_scalar blend( cpu_scalar a, cpu_scalar b, cpu_scalar mask )
         {
@@ -225,6 +236,13 @@ namespace svd
         {
             cpu_scalar r;
             r.u = a.u & mask.u;
+            return r;
+        }
+
+        template <> inline cpu_scalar xor( cpu_scalar a, cpu_scalar b )
+        {
+            cpu_scalar r;
+            r.u = a.u ^ b.u;
             return r;
         }
     }
@@ -302,6 +320,11 @@ namespace svd
         template <> inline sse_vector and( sse_vector a, sse_vector mask )
         {
             return _mm_and_ps( a, mask );
+        }
+
+        template <> inline sse_vector xor( sse_vector a, sse_vector b )
+        {
+            return _mm_xor_ps( a, b );
         }
     }
 }
@@ -597,6 +620,26 @@ namespace svd
         return create_quaternion( q.x * w, q.y * w, q.z * w, q.w * w);
     }
 
+    template <typename t> inline void conditional_swap( t c, t& x, t& y )
+    {
+        using namespace math;
+        auto t = xor( x, y );
+        auto m = and( c, t );
+        x = xor ( x, m );
+        y = xor ( y, m );
+    }
+
+    //returns -1.0f or 1.0f depending on c
+    //used for conditional_negative_swap
+    template <typename t> inline t negative_conditional_swap_multiplier( t c )
+    {
+        using namespace math;
+        auto two = splat<t>(-2.0f);
+        auto m = and( c, two );
+        return one<t>() + m;
+    }
+
+
     //obtain A = USV' 
     template < typename t > inline quaternion<t> compute( const matrix3x3<t>& in )
     {
@@ -608,6 +651,8 @@ namespace svd
 
         auto v = svd::create_quaternion ( vx, vy, vz, vw );
         auto m = svd::create_symmetric_matrix( in );
+
+        //1. Compute the V matrix as a quaternion
 
         //4 iterations of jacobi conjugation to obtain V
         for (auto i = 0; i < 4 ; ++i)
@@ -675,6 +720,73 @@ namespace svd
         auto a32 = dot3( in.a31, in.a32, in.a33, v12, v22, v32 );
         auto a33 = dot3( in.a31, in.a32, in.a33, v13, v23, v33 );
 
+        //2. sort the singular values
+
+        //compute the norms of the columns for comparison
+        auto rho1 = dot3( a11, a21, a31, a11, a21, a31 );
+        auto rho2 = dot3( a12, a22, a32, a12, a22, a32 );
+        auto rho3 = dot3( a13, a23, a33, a13, a23, a33 );
+
+        auto c = rho1 < rho2;
+
+        // Swap columns 1-2 if necessary
+        conditional_swap( c, a11, a12 );
+        conditional_swap( c, a21, a22 );
+        conditional_swap( c, a31, a32 );
+        
+        //either -1 or 1
+        auto multiplier = negative_conditional_swap_multiplier( c );
+
+        // If columns 1-2 have been swapped, negate 2nd column of A and V so that V is still a rotation
+        a12 = a12 * multiplier;
+        a22 = a22 * multiplier;
+        a32 = a32 * multiplier;
+
+        // If columns 1-2 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
+        // do v*vr, where vr= (1, 0, 0, -c) -> this represents column swap as a quaternion, see the paper for more details
+        
+        auto half = svd::math::splat<t> ( 0.5f );
+        c = multiplier * half - half;
+
+        auto w = v.w;
+        auto x = v.x;
+        auto y = v.y;
+        auto z = v.z;
+
+        v.w = w + c * z;
+        v.x = x - c * y;
+        v.y = y + c * x;
+        v.z = z - c * w;
+
+        c = rho1 < rho3;
+
+        // Swap columns 1-3 if necessary
+        conditional_swap( c, a11, a13 );
+        conditional_swap( c, a21, a23 );
+        conditional_swap( c, a31, a33 );
+
+        multiplier = negative_conditional_swap_multiplier( c );
+
+        // If columns 1-3 have been swapped, negate 1st column of A and V so that V is still a rotation
+        a11 = a11 * multiplier;
+        a21 = a21 * multiplier;
+        a31 = a31 * multiplier;
+
+        // If columns 1-3 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
+        // do v*vr, where vr= (1, 0, -c, 1) -> this represents column swap as a quaternion, see the paper for more details
+        c = multiplier * half - half;
+
+        w = v.w;
+        x = v.x;
+        y = v.y;
+        z = v.z;
+
+        v.w = w + c * y;
+        v.x = x + c * z;
+        v.y = y - c * w;
+        v.z = z - c * x;
+
+
 
         return v;
     }
@@ -682,6 +794,7 @@ namespace svd
 
 std::int32_t main(int argc, _TCHAR* argv[])
 {
+    
     using namespace svd;
     using namespace svd::math;
 
@@ -699,6 +812,24 @@ std::int32_t main(int argc, _TCHAR* argv[])
 
     auto v = svd::compute<svd::cpu_scalar>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     
+    /*
+
+    using namespace svd;
+    using namespace svd::math;
+
+    auto m11 = svd::math::splat<svd::cpu_scalar>( 2.0f );
+    auto m12 = svd::math::splat<svd::cpu_scalar>( -0.2f );
+
+    const auto rho1 = dot3( m11, m11, m11, m11, m11, m11 );
+    const auto rho2 = dot3( m12, m12, m12, m12, m12, m12 );
+
+    auto c = rho2 < rho1;
+    
+    conditional_swap( c, m11, m12 );
+
+    std::cout<< m11.f << m12.f;
+    */
+
     return 0;
 }
 
