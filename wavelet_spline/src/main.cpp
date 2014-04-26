@@ -773,7 +773,7 @@ namespace svd
         a31 = a31 * multiplier;
 
         // If columns 1-3 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
-        // do v*vr, where vr= (1, 0, -c, 1) -> this represents column swap as a quaternion, see the paper for more details
+        // do v*vr, where vr= (1, 0, -c, 0) -> this represents column swap as a quaternion, see the paper for more details
         c = multiplier * half - half;
 
         w = v.w;
@@ -785,6 +785,36 @@ namespace svd
         v.x = x + c * z;
         v.y = y - c * w;
         v.z = z - c * x;
+
+        c = rho2 < rho3;
+
+        // Swap columns 2-3 if necessary
+        conditional_swap( c, a12, a13 );
+        conditional_swap( c, a22, a23 );
+        conditional_swap( c, a32, a33 );
+
+        multiplier = negative_conditional_swap_multiplier( c );
+
+        // If columns 1-3 have been swapped, negate 1st column of A and V so that V is still a rotation
+        a13 = a13 * multiplier;
+        a23 = a23 * multiplier;
+        a33 = a33 * multiplier;
+
+        // If columns 2-3 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
+        // do v*vr, where vr= (1, -c, 0, 0) -> this represents column swap as a quaternion, see the paper for more details
+        c = multiplier * half - half;
+
+        w = v.w;
+        x = v.x;
+        y = v.y;
+        z = v.z;
+
+        v.w = w + c * x;
+        v.x = x - c * w;
+        v.y = y - c * z;
+        v.z = z + c * y;
+
+
 
 
 
