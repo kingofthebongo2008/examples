@@ -639,6 +639,58 @@ namespace svd
         return one<t>() + m;
     }
 
+    template < typename t, uint32_t axis > inline void conditional_swap( quaternion<t>& v, t c )
+    {
+        using namespace svd::math;
+
+        if (axis == 3 )
+        {
+            // If columns 1-2 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
+            // do v*vr, where vr= (1, 0, 0, -c) -> this represents column swap as a quaternion, see the paper for more details
+
+            auto w = v.w;
+            auto x = v.x;
+            auto y = v.y;
+            auto z = v.z;
+
+            v.w = w + c * z;
+            v.x = x - c * y;
+            v.y = y + c * x;
+            v.z = z - c * w;
+        }
+        else if ( axis == 2 )
+        {
+            // If columns 1-3 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
+            // do v*vr, where vr= (1, 0, -c, 0) -> this represents column swap as a quaternion, see the paper for more details
+
+            auto w = v.w;
+            auto x = v.x;
+            auto y = v.y;
+            auto z = v.z;
+
+            v.w = w + c * y;
+            v.x = x + c * z;
+            v.y = y - c * w;
+            v.z = z - c * x;
+
+        }
+        else if ( axis == 1 )
+        {
+            // If columns 2-3 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
+            // do v*vr, where vr= (1, -c, 0, 0) -> this represents column swap as a quaternion, see the paper for more details
+
+            auto w = v.w;
+            auto x = v.x;
+            auto y = v.y;
+            auto z = v.z;
+
+            v.w = w + c * x;
+            v.x = x - c * w;
+            v.y = y - c * z;
+            v.z = z + c * y;
+        }
+    }
+
 
     //obtain A = USV' 
     template < typename t > inline quaternion<t> compute( const matrix3x3<t>& in )
@@ -744,19 +796,9 @@ namespace svd
 
         // If columns 1-2 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
         // do v*vr, where vr= (1, 0, 0, -c) -> this represents column swap as a quaternion, see the paper for more details
-        
+       
         auto half = svd::math::splat<t> ( 0.5f );
-        c = multiplier * half - half;
-
-        auto w = v.w;
-        auto x = v.x;
-        auto y = v.y;
-        auto z = v.z;
-
-        v.w = w + c * z;
-        v.x = x - c * y;
-        v.y = y + c * x;
-        v.z = z - c * w;
+        conditional_swap<t, 3>( v, multiplier * half - half );
 
         c = rho1 < rho3;
 
@@ -774,17 +816,7 @@ namespace svd
 
         // If columns 1-3 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
         // do v*vr, where vr= (1, 0, -c, 0) -> this represents column swap as a quaternion, see the paper for more details
-        c = multiplier * half - half;
-
-        w = v.w;
-        x = v.x;
-        y = v.y;
-        z = v.z;
-
-        v.w = w + c * y;
-        v.x = x + c * z;
-        v.y = y - c * w;
-        v.z = z - c * x;
+        conditional_swap<t, 2>( v, multiplier * half - half );
 
         c = rho2 < rho3;
 
@@ -795,28 +827,14 @@ namespace svd
 
         multiplier = negative_conditional_swap_multiplier( c );
 
-        // If columns 1-3 have been swapped, negate 1st column of A and V so that V is still a rotation
+        // If columns 2-3 have been swapped, negate 3rd column of A and V so that V is still a rotation
         a13 = a13 * multiplier;
         a23 = a23 * multiplier;
         a33 = a33 * multiplier;
 
         // If columns 2-3 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
         // do v*vr, where vr= (1, -c, 0, 0) -> this represents column swap as a quaternion, see the paper for more details
-        c = multiplier * half - half;
-
-        w = v.w;
-        x = v.x;
-        y = v.y;
-        z = v.z;
-
-        v.w = w + c * x;
-        v.x = x - c * w;
-        v.y = y - c * z;
-        v.z = z + c * y;
-
-
-
-
+        conditional_swap<t, 1>( v, multiplier * half - half );
 
         return v;
     }
