@@ -11,50 +11,6 @@
 
 namespace svd
 {
-    //given a and b, returns c and s such that, givens rotation
-    // [ c  s ] T [ a ]     =  [ r ]
-    // [ -s c ]   [ b ]        [ 0 ]
-
-    inline std::tuple<float, float> givens(float a, float b )
-    {
-        if ( b == 0.0f )
-        {
-            return std::make_tuple( 1.0f, 0.0f );
-        }
-        else
-        {
-            if ( abs(b) > abs(a) )
-            {
-                auto tau = -a / b;
-                auto s = 1.0f / sqrtf( 1 + tau * tau );
-                auto c = s * tau;
-
-                return std::make_tuple( c, s );
-            }
-            else
-            {
-                auto tau = -b / a;
-                auto c = 1 / sqrtf( 1 + tau * tau );
-                auto s = c * tau;
-
-                return std::make_tuple( c, s );
-            }
-
-        }
-    }
-
-    //non trigonometric approximation of the givens angle
-    //given coefficients of a symmetric matrix, returns c and s, such that they diagonalize this matrix
-    std::tuple<float, float> approximate_givens(float a11, float a12, float a22)
-    {
-        const auto sqrtf_5 = sqrtf(0.5f); // sin(pi/4), cos (pi/4)
-        auto b =  a12 * a12 < ( a11 - a22 ) * ( a11 - a22 );
-        auto w =  1.0f / sqrtf( a12 * a12  + ( a11 - a22 ) * ( a11 - a22 ) ) ;
-        auto s = b ? w * a12 : sqrtf_5;
-        auto c = b ? w * ( a11 - a22 ) : sqrtf_5;
-        return std::make_tuple( c, s );
-    }
-
     const float four_gamma_squared      =   static_cast<float> ( sqrt(8.)+3. );
     const float sine_pi_over_eight      =   static_cast<float> ( .5*sqrt( 2. - sqrt(2.) ) );
     const float cosine_pi_over_eight    =   static_cast<float> ( .5*sqrt( 2. + sqrt(2.) ) );
@@ -691,9 +647,212 @@ namespace svd
         }
     }
 
+    template <typename t> inline std::tuple< t, t > givens_quaternion( t a1, t a2 )
+    {
+        using namespace math;
+
+        auto half = splat<t> ( 0.5f );
+
+        auto id = cmp_ge( a2 * a2,  splat<t> ( small_number ) );
+        auto sh = and( id, a2 );
+
+        auto ch = max ( a1, zero<t>() - a1 );
+        auto c = cmp_le( a1, zero<t>() );
+        ch = max ( ch, splat<t>(small_number ) );
+
+        // compute sqrt(ch * ch + sh * sh )
+        auto x = ch * ch + sh * sh;
+        auto w = rsqrt( x );
+        //one iteration of newton rhapson.
+        w = w + ( w * half ) - ( ( w * half )  *  w * w * x  );
+        w = x * w; 
+
+        auto rho = w;
+        ch = ch + rho;
+
+        conditional_swap(c, ch, sh );
+
+        x = ch * ch + sh * sh;
+        w = rsqrt( x );
+        //one iteration of newton rhapson.
+        w = w + ( w * half ) - ( ( w * half )  *  w * w * x  );
+
+        ch = w * ch;
+        sh = w * sh;
+
+        return std::make_pair ( ch, sh );
+    }
+
+    //(1,2), (1,3), (2,3)
+    //jacobi conjugation of a symmetric matrix
+    template < typename t, int p, int q > inline void givens_conjugation
+                                                        (   
+                                                            t&  a11, t&  a12, t&  a13,
+                                                            t&  a21, t&  a22, t&  a23,
+                                                            t&  a31, t&  a32, t&  a33,
+                                                            t&  qx,  t&  qy,  t&  qz, t& qw
+                                                        )
+    {
+        using namespace math;
+
+        if ( p == 1 && q == 2 )
+        {
+            auto r  = givens_quaternion<t> ( a11, a21 );
+            auto ch = std::get<0>( r );
+            auto sh = std::get<1>( r );
+
+            auto ch_minus_sh_2 = ch * ch - sh * sh;
+            auto ch_sh_2       = ch * sh + ch * sh;
+
+            //Q matrix in the jaocobi method, formed from quaternion
+            auto r11 = ch_minus_sh_2;
+            auto r12 = ch_sh_2;             
+            auto r21 = zero<t>() - ch_sh_2; 
+            auto r22 = ch_minus_sh_2;
+
+            auto c = r11;
+            auto s = r12;
+
+            auto t11 = a11;
+            auto t12 = a12;
+            auto t13 = a13;
+
+            auto t21 = a21;
+            auto t22 = a22;
+            auto t23 = a23;
+
+            a11 = c * t11 + s * t21;
+            a21 = c * t21 - s * t11;   
+
+            a12 = c * t12 + s * t22;
+            a22 = c * t22 - s * t12;
+            
+            a13 = c * t13 + s * t23;
+            a23 = c * t23 - s * t13;
+
+            //now create the apply the total quaternion transformation7
+            auto q0 = qw;
+            auto q1 = qx;
+            auto q2 = qy;
+            auto q3 = qz;
+
+            auto r0 = ch;
+            auto r1 = 0;
+            auto r2 = 0;
+            auto r3 = sh;
+
+            qw = r0 * q0 - r3 * q3;
+            qx = r0 * q1 + r3 * q2;
+            qy = r0 * q2 - r3 * q1;
+            qz = r0 * q3 + r3 * q0;
+
+        }
+        else if ( p == 2 && q == 3 )
+        {
+            auto r  = givens_quaternion<t> ( a22, a32 );
+            auto ch = std::get<0>( r );
+            auto sh = std::get<1>( r );
+
+            auto ch_minus_sh_2 = ch * ch - sh * sh;
+            auto ch_sh_2       = ch * sh + ch * sh;
+
+            //Q matrix in the jaocobi method, formed from quaternion
+            auto r11 = ch_minus_sh_2;
+            auto r12 = ch_sh_2;             
+            auto r21 = zero<t>() - ch_sh_2; 
+            auto r22 = ch_minus_sh_2;
+
+            auto c = r11;
+            auto s = r12;
+
+            auto t11 = a21;
+            auto t12 = a22;
+            auto t13 = a23;
+
+            auto t21 = a31;
+            auto t22 = a32;
+            auto t23 = a33;
+
+            a21 = c * t11 + s * t21;
+            a31 = c * t21 - s * t11;   
+
+            a22 = c * t12 + s * t22;
+            a32 = c * t22 - s * t12;
+            
+            a23 = c * t13 + s * t23;
+            a33 = c * t23 - s * t13;
+
+            //now create the apply the total quaternion transformation7
+            auto q0 = qw;
+            auto q1 = qx;
+            auto q2 = qy;
+            auto q3 = qz;
+
+            auto r0 = ch;
+            auto r1 = sh;
+            auto r2 = 0;
+            auto r3 = 0;
+
+            qw = r0 * q0 - r1 * q1;
+            qx = r0 * q1 + r1 * q0;
+            qy = r0 * q2 + r1 * q3;
+            qz = r0 * q3 - r1 * q2;
+        }
+        else if ( p == 1 && q == 3 )
+        {
+            auto r  = givens_quaternion<t> ( a11, a31 );
+            auto ch = std::get<0>( r );
+            auto sh = std::get<1>( r );
+
+            auto ch_minus_sh_2 = ch * ch - sh * sh;
+            auto ch_sh_2       = ch * sh + ch * sh;
+
+            //Q matrix in the jaocobi method, formed from quaternion
+            auto r11 = ch_minus_sh_2;
+            auto r12 = ch_sh_2;             
+            auto r21 = zero<t>() - ch_sh_2; 
+            auto r22 = ch_minus_sh_2;
+
+            auto c = r11;
+            auto s = r12;
+
+            auto t11 = a11;
+            auto t12 = a12;
+            auto t13 = a13;
+
+            auto t21 = a31;
+            auto t22 = a32;
+            auto t23 = a33;
+
+            a11 = c * t11 + s * t21;
+            a31 = c * t21 - s * t11;   
+
+            a12 = c * t12 + s * t22;
+            a32 = c * t22 - s * t12;
+            
+            a13 = c * t13 + s * t23;
+            a33 = c * t23 - s * t13;
+
+            //now create the apply the total quaternion transformation7
+            auto q0 = qw;
+            auto q1 = qx;
+            auto q2 = qy;
+            auto q3 = qz;
+
+            auto r0 = ch;
+            auto r1 = 0;
+            auto r2 = sh;
+            auto r3 = 0;
+
+            qw = r0 * q0 - r2 * q2;
+            qx = r0 * q1 - r2 * q3;
+            qy = r0 * q2 + r2 * q0;
+            qz = r0 * q3 + r2 * q1;
+        }
+    }
 
     //obtain A = USV' 
-    template < typename t > inline quaternion<t> compute( const matrix3x3<t>& in )
+    template < typename t > inline std::pair< quaternion<t>, quaternion<t> > compute( const matrix3x3<t>& in )
     {
         // initial value of v as a quaternion
         auto vx = svd::math::splat<t>( 0.0f );
@@ -701,7 +860,9 @@ namespace svd
         auto vz = svd::math::splat<t>( 0.0f );
         auto vw = svd::math::splat<t>( 1.0f );
 
+        auto u = svd::create_quaternion ( vx, vy, vz, vw );
         auto v = svd::create_quaternion ( vx, vy, vz, vw );
+
         auto m = svd::create_symmetric_matrix( in );
 
         //1. Compute the V matrix as a quaternion
@@ -836,7 +997,16 @@ namespace svd
         // do v*vr, where vr= (1, -c, 0, 0) -> this represents column swap as a quaternion, see the paper for more details
         conditional_swap<t, 1>( v, multiplier * half - half );
 
-        return v;
+        //normalize the quaternion, because it can get denormalized form swapping
+        v = normalize(v);
+
+        svd::givens_conjugation< t, 1, 2 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
+        svd::givens_conjugation< t, 1, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
+        svd::givens_conjugation< t, 2, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
+
+        u = normalize(u);
+
+        return std::make_pair(u, v );
     }
 }
 
@@ -858,7 +1028,7 @@ std::int32_t main(int argc, _TCHAR* argv[])
     auto m32 = svd::math::splat<svd::cpu_scalar>( 0.0f);
     auto m33 = svd::math::splat<svd::cpu_scalar>( 1.0f);
 
-    auto v = svd::compute<svd::cpu_scalar>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+    auto uv = svd::compute<svd::cpu_scalar>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     
     /*
 
