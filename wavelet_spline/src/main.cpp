@@ -576,6 +576,25 @@ namespace svd
         return create_quaternion( q.x * w, q.y * w, q.z * w, q.w * w);
     }
 
+    template <typename t> inline void normalize( quaternion<t>& q )
+    {
+        using namespace math;
+        using namespace svd::math;
+        
+        auto half = svd::math::splat<t> ( 0.5f );
+        
+        auto x = q.x * q.x + q.y * q.y + q.z * q.z + q.w * q.w;
+        auto w = rsqrt( x );
+
+        //one iteration of newton rhapson.
+        w = w + ( w * half ) - ( ( w * half )  *  w * w * x  );
+
+        q.x = q.x * w;
+        q.y = q.y * w;
+        q.z = q.z * w;
+        q.w = q.w * w;
+    }
+
     template <typename t> inline void conditional_swap( t c, t& x, t& y )
     {
         using namespace math;
@@ -866,7 +885,7 @@ namespace svd
         }
 
         //normalize the quaternion. this is optional
-        v = normalize<t>(v);
+        normalize<t>(v);
 
         using namespace svd::math;
 
@@ -988,8 +1007,10 @@ namespace svd
         conditional_swap<t, 1>( v, multiplier * half - half );
 
         //normalize the quaternion, because it can get denormalized form swapping
-        v = normalize(v);
+        normalize(v);
 
+
+        //3. compute qr factorization
         svd::givens_conjugation< t, 1, 2 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
         svd::givens_conjugation< t, 1, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
         svd::givens_conjugation< t, 2, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
