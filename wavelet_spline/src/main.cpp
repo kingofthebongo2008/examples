@@ -731,20 +731,16 @@ namespace svd
             a23 = c * t23 - s * t13;
 
             //now create the apply the total quaternion transformation7
-            auto q0 = qw;
-            auto q1 = qx;
-            auto q2 = qy;
-            auto q3 = qz;
+            auto w = qw;
+            auto x = qx;
+            auto y = qy;
+            auto z = qz;
 
-            auto r0 = ch;
-            auto r1 = 0;
-            auto r2 = 0;
-            auto r3 = sh;
-
-            qw = r0 * q0 - r3 * q3;
-            qx = r0 * q1 + r3 * q2;
-            qy = r0 * q2 - r3 * q1;
-            qz = r0 * q3 + r3 * q0;
+            //use the fact, that x,y,z = 0
+            qw = ch * w;
+            qx = x;
+            qy = x;
+            qz = sh * w;
 
         }
         else if ( p == 2 && q == 3 )
@@ -783,20 +779,17 @@ namespace svd
             a33 = c * t23 - s * t13;
 
             //now create the apply the total quaternion transformation7
-            auto q0 = qw;
-            auto q1 = qx;
-            auto q2 = qy;
-            auto q3 = qz;
+            auto w = qw;
+            auto x = qx;
+            auto y = qy;
+            auto z = qz;
 
-            auto r0 = ch;
-            auto r1 = sh;
-            auto r2 = 0;
-            auto r3 = 0;
+            //Quaternion[ ch, 0, 0, sh]
+            qw = ch * w - sh * x;
+            qx = ch * x + sh * w;
+            qy = ch * y + sh * z;
+            qz = ch * z - sh * y;
 
-            qw = r0 * q0 - r1 * q1;
-            qx = r0 * q1 + r1 * q0;
-            qy = r0 * q2 + r1 * q3;
-            qz = r0 * q3 - r1 * q2;
         }
         else if ( p == 1 && q == 3 )
         {
@@ -834,20 +827,17 @@ namespace svd
             a33 = c * t23 - s * t13;
 
             //now create the apply the total quaternion transformation7
-            auto q0 = qw;
-            auto q1 = qx;
-            auto q2 = qy;
-            auto q3 = qz;
+            auto w = qw;
+            auto x = qx;
+            auto y = qy;
+            auto z = qz;
 
-            auto r0 = ch;
-            auto r1 = 0;
-            auto r2 = sh;
-            auto r3 = 0;
+            //use the fact, that x = 0 and y = 0 from the previous iteration
+            qw = ch * w;
+            qx = sh * z;
+            qy = zero<t>()-sh * w;
+            qz = ch * z;
 
-            qw = r0 * q0 - r2 * q2;
-            qx = r0 * q1 - r2 * q3;
-            qy = r0 * q2 + r2 * q0;
-            qz = r0 * q3 + r2 * q1;
         }
     }
 
@@ -1004,9 +994,7 @@ namespace svd
         svd::givens_conjugation< t, 1, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
         svd::givens_conjugation< t, 2, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
 
-        u = normalize(u);
-
-        return std::make_pair(u, v );
+        return std::make_pair( u, v );
     }
 }
 
@@ -1022,11 +1010,11 @@ std::int32_t main(int argc, _TCHAR* argv[])
 
     auto m21 = svd::math::splat<svd::cpu_scalar>( -0.2f);
     auto m22 = svd::math::splat<svd::cpu_scalar>( 1.0f);
-    auto m23 = svd::math::splat<svd::cpu_scalar>( 0.0f);
+    auto m23 = svd::math::splat<svd::cpu_scalar>( 6.0f);
 
-    auto m31 = svd::math::splat<svd::cpu_scalar>( 1.0f);
+    auto m31 = svd::math::splat<svd::cpu_scalar>( 15.0f);
     auto m32 = svd::math::splat<svd::cpu_scalar>( 0.0f);
-    auto m33 = svd::math::splat<svd::cpu_scalar>( 1.0f);
+    auto m33 = svd::math::splat<svd::cpu_scalar>( 8.0f);
 
     auto uv = svd::compute<svd::cpu_scalar>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     

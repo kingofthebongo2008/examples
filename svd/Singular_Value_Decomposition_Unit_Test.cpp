@@ -70,11 +70,11 @@ int main(int argc,char* argv[])
 
     test_A21 = -0.2f;
     test_A22 = 1.0f;
-    test_A23 = 0.0f;
+    test_A23 = 6.0f;
 
-    test_A31 = 1.0f;
+    test_A31 = 15.0f;
     test_A32 = 0.0f;
-    test_A33 = 1.0f;
+    test_A33 = 8.0f;
         
 #include "Singular_Value_Decomposition_Kernel_Declarations.hpp"
 
