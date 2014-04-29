@@ -842,7 +842,7 @@ namespace svd
     }
 
     //obtain A = USV' 
-    template < typename t > inline std::pair< quaternion<t>, quaternion<t> > compute( const matrix3x3<t>& in )
+    template < typename t > inline std::tuple< quaternion<t>, t, t, t, quaternion<t> > compute( const matrix3x3<t>& in )
     {
         // initial value of v as a quaternion
         auto vx = svd::math::splat<t>( 0.0f );
@@ -916,7 +916,7 @@ namespace svd
         auto a13 = dot3( in.a11, in.a12, in.a13, v13, v23, v33 );
 
         auto a21 = dot3( in.a21, in.a22, in.a23, v11, v21, v31 );
-        auto a22 = dot3( in.a21, in.a22, in.a23, v12, v22, v33 );
+        auto a22 = dot3( in.a21, in.a22, in.a23, v12, v22, v32 );
         auto a23 = dot3( in.a21, in.a22, in.a23, v13, v23, v33 );
 
         auto a31 = dot3( in.a31, in.a32, in.a33, v11, v21, v31 );
@@ -994,7 +994,7 @@ namespace svd
         svd::givens_conjugation< t, 1, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
         svd::givens_conjugation< t, 2, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
 
-        return std::make_pair( u, v );
+        return std::make_tuple( u, a11, a22, a33, v );
     }
 }
 
@@ -1016,7 +1016,7 @@ std::int32_t main(int argc, _TCHAR* argv[])
     auto m32 = svd::math::splat<svd::cpu_scalar>( 0.0f);
     auto m33 = svd::math::splat<svd::cpu_scalar>( 8.0f);
 
-    auto uv = svd::compute<svd::cpu_scalar>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+    auto urv = svd::compute<svd::cpu_scalar>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     
     /*
 
