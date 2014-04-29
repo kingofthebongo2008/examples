@@ -784,7 +784,7 @@ namespace svd
             auto y = qy;
             auto z = qz;
 
-            //Quaternion[ ch, 0, 0, sh]
+            //Quaternion[ ch, sh, 0, 0] -> q * r
             qw = ch * w - sh * x;
             qx = ch * x + sh * w;
             qy = ch * y + sh * z;
