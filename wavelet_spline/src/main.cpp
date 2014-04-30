@@ -252,7 +252,7 @@ namespace svd
 
         template <> inline sse_vector rsqrt( sse_vector a )
         {
-            return _mm_rsqrt_ss(a);
+            return _mm_rsqrt_ps(a);
         }
 
         template <> inline sse_vector cmp_ge( sse_vector a, sse_vector b )
@@ -282,12 +282,22 @@ namespace svd
         {
             return _mm_xor_ps( a, b );
         }
+
+        template <> inline sse_vector operator<( sse_vector a, sse_vector b )
+        {
+            return _mm_cmplt_ps( a, b);
+        }
     }
 }
 
 inline std::ostream& operator<<(std::ostream& s, svd::cpu_scalar scalar)
 {
     s << scalar.f;
+    return s;
+}
+
+inline std::ostream& operator<<(std::ostream& s, svd::sse_vector scalar)
+{
     return s;
 }
 
@@ -1025,19 +1035,19 @@ std::int32_t main(int argc, _TCHAR* argv[])
     using namespace svd;
     using namespace svd::math;
 
-    auto m11 = svd::math::splat<svd::cpu_scalar>( 2.0f );
-    auto m12 = svd::math::splat<svd::cpu_scalar>( -0.2f );
-    auto m13 = svd::math::splat<svd::cpu_scalar>( 1.0f );
+    auto m11 = svd::math::splat<svd::sse_vector>( 2.0f );
+    auto m12 = svd::math::splat<svd::sse_vector>( -0.2f );
+    auto m13 = svd::math::splat<svd::sse_vector>( 1.0f );
 
-    auto m21 = svd::math::splat<svd::cpu_scalar>( -0.2f);
-    auto m22 = svd::math::splat<svd::cpu_scalar>( 1.0f);
-    auto m23 = svd::math::splat<svd::cpu_scalar>( 6.0f);
+    auto m21 = svd::math::splat<svd::sse_vector>( -0.2f);
+    auto m22 = svd::math::splat<svd::sse_vector>( 1.0f);
+    auto m23 = svd::math::splat<svd::sse_vector>( 6.0f);
 
-    auto m31 = svd::math::splat<svd::cpu_scalar>( 15.0f);
-    auto m32 = svd::math::splat<svd::cpu_scalar>( 0.0f);
-    auto m33 = svd::math::splat<svd::cpu_scalar>( 8.0f);
+    auto m31 = svd::math::splat<svd::sse_vector>( 15.0f);
+    auto m32 = svd::math::splat<svd::sse_vector>( 0.0f);
+    auto m33 = svd::math::splat<svd::sse_vector>( 8.0f);
 
-    auto urv = svd::compute<svd::cpu_scalar>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+    auto urv = svd::compute<svd::sse_vector>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     
     /*
 
