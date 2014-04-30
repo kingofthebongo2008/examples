@@ -331,7 +331,7 @@ namespace svd
         sh = blend ( sh, splat<t>( sine_pi_over_eight ), b );
         ch = blend ( ch, splat<t>( cosine_pi_over_eight ), b );
 
-        return std::make_tuple<t,t>( ch, sh );
+        return std::make_tuple<t,t>( std::move(ch), std::move(sh) );
     }
 
     template <typename t> struct matrix3x3
@@ -357,6 +357,13 @@ namespace svd
         t y;
         t z;
         t w;
+    };
+
+    template <typename t> struct vector3
+    {
+        t x;
+        t y;
+        t z;
     };
 
 
@@ -866,24 +873,25 @@ namespace svd
             qx = sh * z;
             qy = zero<t>()-sh * w;
             qz = ch * z;
-
         }
     }
 
     //obtain A = USV' 
-    template < typename t > inline std::tuple< quaternion<t>, t, t, t, quaternion<t> > compute( const matrix3x3<t>& in )
+    template < typename t > inline void compute( const matrix3x3<t>& in, quaternion<t>& u, vector3<t>& s, quaternion<t>& v )
     {
+        using namespace svd::math;
+
         // initial value of v as a quaternion
-        auto vx = svd::math::splat<t>( 0.0f );
-        auto vy = svd::math::splat<t>( 0.0f );
-        auto vz = svd::math::splat<t>( 0.0f );
-        auto vw = svd::math::splat<t>( 1.0f );
+        auto vx = splat<t>( 0.0f );
+        auto vy = splat<t>( 0.0f );
+        auto vz = splat<t>( 0.0f );
+        auto vw = splat<t>( 1.0f );
 
-        auto u = svd::create_quaternion ( vx, vy, vz, vw );
-        auto v = svd::create_quaternion ( vx, vy, vz, vw );
+        u = create_quaternion ( vx, vy, vz, vw );
+        v = create_quaternion ( vx, vy, vz, vw );
 
-        auto m = svd::create_symmetric_matrix( in );
-
+        auto m = create_symmetric_matrix( in );
+        
         //1. Compute the V matrix as a quaternion
 
         //4 iterations of jacobi conjugation to obtain V
@@ -896,8 +904,6 @@ namespace svd
 
         //normalize the quaternion. this is optional
         normalize<t>(v);
-
-        using namespace svd::math;
 
         //convert quaternion v to matrix {
         auto tmp1 = v.x * v.x;
@@ -1025,7 +1031,20 @@ namespace svd
         svd::givens_conjugation< t, 1, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
         svd::givens_conjugation< t, 2, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
 
-        return std::make_tuple( u, a11, a22, a33, v );
+        s.x = a11;
+        s.y = a22;
+        s.z = a33;
+
+    }
+
+    //obtain A = USV' 
+    template < typename t > inline std::tuple< quaternion<t>, vector3<t>, quaternion<t> > compute( const matrix3x3<t>& in )
+    {
+        quaternion<t> u;
+        quaternion<t> v;
+        vector3<t>    s;
+        compute( in, u, s, v );
+        return std::make_tuple ( u, s, v );
     }
 }
 
@@ -1035,19 +1054,21 @@ std::int32_t main(int argc, _TCHAR* argv[])
     using namespace svd;
     using namespace svd::math;
 
-    auto m11 = svd::math::splat<svd::sse_vector>( 2.0f );
-    auto m12 = svd::math::splat<svd::sse_vector>( -0.2f );
-    auto m13 = svd::math::splat<svd::sse_vector>( 1.0f );
+    typedef svd::sse_vector number;
 
-    auto m21 = svd::math::splat<svd::sse_vector>( -0.2f);
-    auto m22 = svd::math::splat<svd::sse_vector>( 1.0f);
-    auto m23 = svd::math::splat<svd::sse_vector>( 6.0f);
+    auto m11 = svd::math::splat<number>( 2.0f );
+    auto m12 = svd::math::splat<number>( -0.2f );
+    auto m13 = svd::math::splat<number>( 1.0f );
 
-    auto m31 = svd::math::splat<svd::sse_vector>( 15.0f);
-    auto m32 = svd::math::splat<svd::sse_vector>( 0.0f);
-    auto m33 = svd::math::splat<svd::sse_vector>( 8.0f);
+    auto m21 = svd::math::splat<number>( -0.2f);
+    auto m22 = svd::math::splat<number>( 1.0f);
+    auto m23 = svd::math::splat<number>( 6.0f);
 
-    auto urv = svd::compute<svd::sse_vector>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+    auto m31 = svd::math::splat<number>( 15.0f);
+    auto m32 = svd::math::splat<number>( 0.0f);
+    auto m33 = svd::math::splat<number>( 8.0f);
+
+    auto urv = svd::compute<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     
     /*
 
