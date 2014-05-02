@@ -1038,7 +1038,7 @@ namespace svd
     }
 
     //obtain A = USV' 
-    template < typename t > inline std::tuple< quaternion<t>, vector3<t>, quaternion<t> > compute( const matrix3x3<t>& in )
+    template < typename t > inline std::tuple< quaternion<t>, vector3<t>, quaternion<t> > compute_as_quaternion( const matrix3x3<t>& in )
     {
         quaternion<t> u;
         quaternion<t> v;
@@ -1054,7 +1054,7 @@ std::int32_t main(int argc, _TCHAR* argv[])
     using namespace svd;
     using namespace svd::math;
 
-    typedef svd::sse_vector number;
+    typedef svd::cpu_scalar number;
 
     auto m11 = svd::math::splat<number>( 2.0f );
     auto m12 = svd::math::splat<number>( -0.2f );
@@ -1068,26 +1068,8 @@ std::int32_t main(int argc, _TCHAR* argv[])
     auto m32 = svd::math::splat<number>( 0.0f);
     auto m33 = svd::math::splat<number>( 8.0f);
 
-    auto urv = svd::compute<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+    auto urv = svd::compute_as_quaternion<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     
-    /*
-
-    using namespace svd;
-    using namespace svd::math;
-
-    auto m11 = svd::math::splat<svd::cpu_scalar>( 2.0f );
-    auto m12 = svd::math::splat<svd::cpu_scalar>( -0.2f );
-
-    const auto rho1 = dot3( m11, m11, m11, m11, m11, m11 );
-    const auto rho2 = dot3( m12, m12, m12, m12, m12, m12 );
-
-    auto c = rho2 < rho1;
-    
-    conditional_swap( c, m11, m12 );
-
-    std::cout<< m11.f << m12.f;
-    */
-
     return 0;
 }
 
