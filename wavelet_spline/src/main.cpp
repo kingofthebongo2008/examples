@@ -1214,6 +1214,18 @@ namespace svd
         s.y = a22;
         s.z = a33;
 
+        vv.a11 = v11;
+        vv.a12 = v12;
+        vv.a13 = v13;
+
+        vv.a21 = v21;
+        vv.a22 = v22;
+        vv.a23 = v23;
+
+        vv.a31 = v31;
+        vv.a32 = v32;
+        vv.a33 = v33;
+
     }
 
     //obtain A = USV' 
