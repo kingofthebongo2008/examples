@@ -1097,6 +1097,9 @@ namespace svd
             a13 = c * t13 + s * t23;
             a23 = c * t23 - s * t13;
 
+            //u = { { c, -s, 0}, {  s, c, 0}, { 0, 0, 1 } }
+            //u1.u
+
             auto k11 = u11;
             auto k12 = u12;
             auto k13 = u13;
@@ -1120,8 +1123,6 @@ namespace svd
             u31 = c * k31 + s * k32;
             u32 = c * k32 - s * k31;
             u33 = k33;
-
-
         }
         else if ( p == 2 && q == 3 )
         {
@@ -1157,6 +1158,35 @@ namespace svd
             
             a23 = c * t13 + s * t23;
             a33 = c * t23 - s * t13;
+
+            //u = { { c, -s, 0}, {  s, c, 0}, { 0, 0, 1 } }
+            //u1.u
+
+            auto k11 = u11;
+            auto k12 = u12;
+            auto k13 = u13;
+
+            auto k21 = u21;
+            auto k22 = u22;
+            auto k23 = u23;
+
+            auto k31 = u31;
+            auto k32 = u32;
+            auto k33 = u33;
+
+            //u = { { 1, 0, 0}, {  0, c, -s}, { 0, s, c } }
+            //u1.u
+            u11 = k11;
+            u12 = c * k12 + s * k13;
+            u13 = c * k13 - s * k12;
+
+            u21 = k21;
+            u22 = c * k22 + s * k23;
+            u23 = c * k23 - s * k22;
+
+            u31 = k31;
+            u32 = c * k32 + s * k33;
+            u33 = c * k33 - s * k32;
         }
         else if ( p == 1 && q == 3 )
         {
@@ -1192,6 +1222,37 @@ namespace svd
             
             a13 = c * t13 + s * t23;
             a33 = c * t23 - s * t13;
+
+
+            //u = { { c, -s, 0}, {  s, c, 0}, { 0, 0, 1 } }
+            //u1.u
+
+            auto k11 = u11;
+            auto k12 = u12;
+            auto k13 = u13;
+
+            auto k21 = u21;
+            auto k22 = u22;
+            auto k23 = u23;
+
+            auto k31 = u31;
+            auto k32 = u32;
+            auto k33 = u33;
+
+            
+            //u = { { c, 0, -s}, {  0, 1, 0}, { s, 0, c } }
+            //u1.u
+            u11 = c * k11 + s * k13;
+            u12 = k12;
+            u13 = c * k13 - s * k11;
+
+            u21 = c * k21 + s * k23;
+            u22 = k22;
+            u23 = c * k23 - s * k21;
+
+            u31 = c * k31 + s * k33;
+            u32 = k32;
+            u33 = c * k33 - s * k31;
         }
     }
 
