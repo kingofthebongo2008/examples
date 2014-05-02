@@ -1142,7 +1142,11 @@ namespace svd
         conditional_swap( c, a11, a12 );
         conditional_swap( c, a21, a22 );
         conditional_swap( c, a31, a32 );
-        
+
+        conditional_swap( c, v11, v12 );
+        conditional_swap( c, v21, v22 );
+        conditional_swap( c, v31, v32 );
+
         //either -1 or 1
         auto multiplier = negative_conditional_swap_multiplier( c );
 
@@ -1151,11 +1155,9 @@ namespace svd
         a22 = a22 * multiplier;
         a32 = a32 * multiplier;
 
-        // If columns 1-2 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
-        // do v*vr, where vr= (1, 0, 0, -c) -> this represents column swap as a quaternion, see the paper for more details
-       
-        auto half = svd::math::splat<t> ( 0.5f );
-        conditional_swap<t, 3>( v, multiplier * half - half );
+        v12 = v12 * multiplier;
+        v22 = v22 * multiplier;
+        v32 = v32 * multiplier;
 
         c = rho1 < rho3;
 
@@ -1164,6 +1166,11 @@ namespace svd
         conditional_swap( c, a21, a23 );
         conditional_swap( c, a31, a33 );
 
+        conditional_swap( c, v11, v13 );
+        conditional_swap( c, v21, v23 );
+        conditional_swap( c, v31, v33 );
+
+
         multiplier = negative_conditional_swap_multiplier( c );
 
         // If columns 1-3 have been swapped, negate 1st column of A and V so that V is still a rotation
@@ -1171,9 +1178,9 @@ namespace svd
         a21 = a21 * multiplier;
         a31 = a31 * multiplier;
 
-        // If columns 1-3 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
-        // do v*vr, where vr= (1, 0, -c, 0) -> this represents column swap as a quaternion, see the paper for more details
-        conditional_swap<t, 2>( v, multiplier * half - half );
+        v11 = v11 * multiplier;
+        v21 = v21 * multiplier;
+        v31 = v31 * multiplier;
 
         c = rho2 < rho3;
 
@@ -1182,6 +1189,11 @@ namespace svd
         conditional_swap( c, a22, a23 );
         conditional_swap( c, a32, a33 );
 
+        conditional_swap( c, v12, v13 );
+        conditional_swap( c, v22, v23 );
+        conditional_swap( c, v32, v33 );
+
+
         multiplier = negative_conditional_swap_multiplier( c );
 
         // If columns 2-3 have been swapped, negate 3rd column of A and V so that V is still a rotation
@@ -1189,13 +1201,9 @@ namespace svd
         a23 = a23 * multiplier;
         a33 = a33 * multiplier;
 
-        // If columns 2-3 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
-        // do v*vr, where vr= (1, -c, 0, 0) -> this represents column swap as a quaternion, see the paper for more details
-        conditional_swap<t, 1>( v, multiplier * half - half );
-
-        //normalize the quaternion, because it can get denormalized form swapping
-        normalize(v);
-
+        v13 = v13 * multiplier;
+        v23 = v23 * multiplier;
+        v33 = v33 * multiplier;
 
         //3. compute qr factorization
         svd::givens_conjugation< t, 1, 2 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
