@@ -1057,7 +1057,7 @@ namespace svd
 
                                                             t&  u11, t&  u12, t&  u13,
                                                             t&  u21, t&  u22, t&  u23,
-                                                            t&  u31, t&  u32, t&  u33,
+                                                            t&  u31, t&  u32, t&  u33
                                                         )
     {
         using namespace math;
@@ -1096,6 +1096,32 @@ namespace svd
             
             a13 = c * t13 + s * t23;
             a23 = c * t23 - s * t13;
+
+            auto k11 = u11;
+            auto k12 = u12;
+            auto k13 = u13;
+
+            auto k21 = u21;
+            auto k22 = u22;
+            auto k23 = u23;
+
+            auto k31 = u31;
+            auto k32 = u32;
+            auto k33 = u33;
+
+            u11 = c * k11 + s * k12;
+            u12 = c * k12 - s * k11;
+            u13 = k13;
+
+            u21 = c * k21 + s * k22;
+            u22 = c * k22 - s * k21;
+            u23 = k23;
+
+            u31 = c * k31 + s * k32;
+            u32 = c * k32 - s * k31;
+            u33 = k33;
+
+
         }
         else if ( p == 2 && q == 3 )
         {
@@ -1131,14 +1157,6 @@ namespace svd
             
             a23 = c * t13 + s * t23;
             a33 = c * t23 - s * t13;
-
-            //now create the apply the total quaternion transformation7
-            auto w = qw;
-            auto x = qx;
-            auto y = qy;
-            auto z = qz;
-
-            //Quaternion[ ch, sh, 0, 0] -> q * r
         }
         else if ( p == 1 && q == 3 )
         {
@@ -1192,6 +1210,18 @@ namespace svd
         auto v = create_quaternion ( vx, vy, vz, vw );
 
         auto m = create_symmetric_matrix( in );
+
+        uu.a11 = splat<t>(1.0f);
+        uu.a12 = splat<t>(0.0f);
+        uu.a13 = splat<t>(0.0f);
+
+        uu.a21 = splat<t>(0.0f);
+        uu.a22 = splat<t>(1.0f);
+        uu.a23 = splat<t>(0.0f);
+
+        uu.a31 = splat<t>(0.0f);
+        uu.a32 = splat<t>(0.0f);
+        uu.a33 = splat<t>(1.0f);
         
         //1. Compute the V matrix as a quaternion
 
@@ -1336,9 +1366,9 @@ namespace svd
         v33 = v33 * multiplier;
 
         //3. compute qr factorization
-        svd::givens_conjugation< t, 1, 2 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
-        svd::givens_conjugation< t, 1, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
-        svd::givens_conjugation< t, 2, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
+        svd::givens_conjugation< t, 1, 2 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, uu.a11, uu.a12, uu.a13, uu.a21, uu.a22, uu.a23, uu.a31, uu.a32, uu.a33 );
+        svd::givens_conjugation< t, 1, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, uu.a11, uu.a12, uu.a13, uu.a21, uu.a22, uu.a23, uu.a31, uu.a32, uu.a33 );
+        svd::givens_conjugation< t, 2, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, uu.a11, uu.a12, uu.a13, uu.a21, uu.a22, uu.a23, uu.a31, uu.a32, uu.a33 );
 
         s.x = a11;
         s.y = a22;
