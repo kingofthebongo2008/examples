@@ -1112,6 +1112,7 @@ namespace svd
             auto k32 = u32;
             auto k33 = u33;
 
+            /*
             u11 = c * k11 + s * k12;
             u12 = c * k12 - s * k11;
             u13 = k13;
@@ -1123,6 +1124,21 @@ namespace svd
             u31 = c * k31 + s * k32;
             u32 = c * k32 - s * k31;
             u33 = k33;
+            */
+
+            //explore the fact that initially we have identity matrix
+
+            u11 = c;
+            u12 = zero<t>() - s;
+            u13 = zero<t>();
+
+            u21 = s;
+            u22 = c;
+            u23 = zero<t>();
+
+            u31 = zero<t>();
+            u32 = zero<t>();
+            u33 = splat<t>(1.0f);
         }
         else if ( p == 2 && q == 3 )
         {
@@ -1242,6 +1258,8 @@ namespace svd
             
             //u = { { c, 0, -s}, {  0, 1, 0}, { s, 0, c } }
             //u1.u
+
+            /*
             u11 = c * k11 + s * k13;
             u12 = k12;
             u13 = c * k13 - s * k11;
@@ -1253,6 +1271,21 @@ namespace svd
             u31 = c * k31 + s * k33;
             u32 = k32;
             u33 = c * k33 - s * k31;
+            */
+
+            //explore the special structure from the previous iteration
+            u11 = c * k11;
+            u12 = k12;
+            u13 = zero<t>() - s * k11;
+
+            u21 = zero<t>() - c * k12;
+            u22 = k11;
+            u23 = s * k12;
+
+            u31 = s;
+            u32 = zero<t>();
+            u33 = c;
+
         }
     }
 
