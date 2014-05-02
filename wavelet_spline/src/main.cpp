@@ -1044,7 +1044,178 @@ namespace svd
         quaternion<t> v;
         vector3<t>    s;
         compute( in, u, s, v );
-        return std::make_tuple ( u, s, v );
+        return std::make_tuple ( std::move(u), std::move(s), std::move(v) );
+    }
+
+    //obtain A = USV' 
+    template < typename t > inline void compute( const matrix3x3<t>& in, matrix3x3<t>& uu, vector3<t>& s, matrix3x3<t>& vv )
+    {
+        using namespace svd::math;
+
+        // initial value of v as a quaternion
+        auto vx = splat<t>( 0.0f );
+        auto vy = splat<t>( 0.0f );
+        auto vz = splat<t>( 0.0f );
+        auto vw = splat<t>( 1.0f );
+
+        auto u = create_quaternion ( vx, vy, vz, vw );
+        auto v = create_quaternion ( vx, vy, vz, vw );
+
+        auto m = create_symmetric_matrix( in );
+        
+        //1. Compute the V matrix as a quaternion
+
+        //4 iterations of jacobi conjugation to obtain V
+        for (auto i = 0; i < 4 ; ++i)
+        {
+            svd::jacobi_conjugation< t, 1, 2 > ( m, v );
+            svd::jacobi_conjugation< t, 2, 3 > ( m, v );
+            svd::jacobi_conjugation< t, 1, 3 > ( m, v );
+        }
+
+        //normalize the quaternion. this is optional
+        normalize<t>(v);
+
+        //convert quaternion v to matrix {
+        auto tmp1 = v.x * v.x;
+        auto tmp2 = v.y * v.y;
+        auto tmp3 = v.z * v.z;
+
+        auto v11  = v.w * v.w;
+        auto v22  = v11 - tmp1;
+        auto v33  = v22 - tmp2;
+
+        v33 = v33 + tmp3;
+
+        v22 = v22 + tmp2;
+        v22 = v22 - tmp3;
+
+        v11 = v11 + tmp1;
+        v11 = v11 - tmp2;
+        v11 = v11 - tmp3;
+
+        tmp1 = v.x + v.x;
+        tmp2 = v.y + v.y;
+        tmp3 = v.z + v.z;
+
+        auto v32 = v.w * tmp1;
+        auto v13 = v.w * tmp2;
+        auto v21 = v.w * tmp3;
+
+        tmp1 = v.y * tmp1;
+        tmp2 = v.z * tmp2;
+        tmp3 = v.x * tmp3;
+
+        auto v12 = tmp1 - v21;
+        auto v23 = tmp2 - v32;
+        auto v31 = tmp3 - v13;
+
+        v21 = v21 + tmp1;
+        v32 = v32 + tmp2;
+        v13 = v13 + tmp3;
+        //} convert quaternion to matrix
+
+        // compute AV
+
+        auto a11 = dot3( in.a11, in.a12, in.a13, v11, v21, v31 );
+        auto a12 = dot3( in.a11, in.a12, in.a13, v12, v22, v32 );
+        auto a13 = dot3( in.a11, in.a12, in.a13, v13, v23, v33 );
+
+        auto a21 = dot3( in.a21, in.a22, in.a23, v11, v21, v31 );
+        auto a22 = dot3( in.a21, in.a22, in.a23, v12, v22, v32 );
+        auto a23 = dot3( in.a21, in.a22, in.a23, v13, v23, v33 );
+
+        auto a31 = dot3( in.a31, in.a32, in.a33, v11, v21, v31 );
+        auto a32 = dot3( in.a31, in.a32, in.a33, v12, v22, v32 );
+        auto a33 = dot3( in.a31, in.a32, in.a33, v13, v23, v33 );
+
+        //2. sort the singular values
+
+        //compute the norms of the columns for comparison
+        auto rho1 = dot3( a11, a21, a31, a11, a21, a31 );
+        auto rho2 = dot3( a12, a22, a32, a12, a22, a32 );
+        auto rho3 = dot3( a13, a23, a33, a13, a23, a33 );
+
+        auto c = rho1 < rho2;
+
+        // Swap columns 1-2 if necessary
+        conditional_swap( c, a11, a12 );
+        conditional_swap( c, a21, a22 );
+        conditional_swap( c, a31, a32 );
+        
+        //either -1 or 1
+        auto multiplier = negative_conditional_swap_multiplier( c );
+
+        // If columns 1-2 have been swapped, negate 2nd column of A and V so that V is still a rotation
+        a12 = a12 * multiplier;
+        a22 = a22 * multiplier;
+        a32 = a32 * multiplier;
+
+        // If columns 1-2 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
+        // do v*vr, where vr= (1, 0, 0, -c) -> this represents column swap as a quaternion, see the paper for more details
+       
+        auto half = svd::math::splat<t> ( 0.5f );
+        conditional_swap<t, 3>( v, multiplier * half - half );
+
+        c = rho1 < rho3;
+
+        // Swap columns 1-3 if necessary
+        conditional_swap( c, a11, a13 );
+        conditional_swap( c, a21, a23 );
+        conditional_swap( c, a31, a33 );
+
+        multiplier = negative_conditional_swap_multiplier( c );
+
+        // If columns 1-3 have been swapped, negate 1st column of A and V so that V is still a rotation
+        a11 = a11 * multiplier;
+        a21 = a21 * multiplier;
+        a31 = a31 * multiplier;
+
+        // If columns 1-3 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
+        // do v*vr, where vr= (1, 0, -c, 0) -> this represents column swap as a quaternion, see the paper for more details
+        conditional_swap<t, 2>( v, multiplier * half - half );
+
+        c = rho2 < rho3;
+
+        // Swap columns 2-3 if necessary
+        conditional_swap( c, a12, a13 );
+        conditional_swap( c, a22, a23 );
+        conditional_swap( c, a32, a33 );
+
+        multiplier = negative_conditional_swap_multiplier( c );
+
+        // If columns 2-3 have been swapped, negate 3rd column of A and V so that V is still a rotation
+        a13 = a13 * multiplier;
+        a23 = a23 * multiplier;
+        a33 = a33 * multiplier;
+
+        // If columns 2-3 have been swapped, also update quaternion representation of V (the quaternion may become un-normalized after this)
+        // do v*vr, where vr= (1, -c, 0, 0) -> this represents column swap as a quaternion, see the paper for more details
+        conditional_swap<t, 1>( v, multiplier * half - half );
+
+        //normalize the quaternion, because it can get denormalized form swapping
+        normalize(v);
+
+
+        //3. compute qr factorization
+        svd::givens_conjugation< t, 1, 2 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
+        svd::givens_conjugation< t, 1, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
+        svd::givens_conjugation< t, 2, 3 > ( a11, a12, a13, a21, a22, a23, a31, a32, a33, u.x, u.y, u.z, u.w );
+
+        s.x = a11;
+        s.y = a22;
+        s.z = a33;
+
+    }
+
+    //obtain A = USV' 
+    template < typename t > inline std::tuple< matrix3x3<t>, vector3<t>, matrix3x3<t> > compute_as_matrix( const matrix3x3<t>& in )
+    {
+        matrix3x3<t> u;
+        matrix3x3<t> v;
+        vector3<t>    s;
+        compute( in, u, s, v );
+        return std::make_tuple ( std::move(u), std::move(s), std::move(v) );
     }
 }
 
@@ -1068,7 +1239,7 @@ std::int32_t main(int argc, _TCHAR* argv[])
     auto m32 = svd::math::splat<number>( 0.0f);
     auto m33 = svd::math::splat<number>( 8.0f);
 
-    auto urv = svd::compute_as_quaternion<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+    auto urv = svd::compute_as_matrix<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     
     return 0;
 }
