@@ -1047,6 +1047,136 @@ namespace svd
         return std::make_tuple ( std::move(u), std::move(s), std::move(v) );
     }
 
+    //(1,2), (1,3), (2,3)
+    //jacobi conjugation of a symmetric matrix
+    template < typename t, int p, int q > inline void givens_conjugation
+                                                        (   
+                                                            t&  a11, t&  a12, t&  a13,
+                                                            t&  a21, t&  a22, t&  a23,
+                                                            t&  a31, t&  a32, t&  a33,
+
+                                                            t&  u11, t&  u12, t&  u13,
+                                                            t&  u21, t&  u22, t&  u23,
+                                                            t&  u31, t&  u32, t&  u33,
+                                                        )
+    {
+        using namespace math;
+
+        if ( p == 1 && q == 2 )
+        {
+            auto r  = givens_quaternion<t> ( a11, a21 );
+            auto ch = std::get<0>( r );
+            auto sh = std::get<1>( r );
+
+            auto ch_minus_sh_2 = ch * ch - sh * sh;
+            auto ch_sh_2       = ch * sh + ch * sh;
+
+            //Q matrix in the jaocobi method, formed from quaternion
+            auto r11 = ch_minus_sh_2;
+            auto r12 = ch_sh_2;             
+            auto r21 = zero<t>() - ch_sh_2; 
+            auto r22 = ch_minus_sh_2;
+
+            auto c = r11;
+            auto s = r12;
+
+            auto t11 = a11;
+            auto t12 = a12;
+            auto t13 = a13;
+
+            auto t21 = a21;
+            auto t22 = a22;
+            auto t23 = a23;
+
+            a11 = c * t11 + s * t21;
+            a21 = c * t21 - s * t11;   
+
+            a12 = c * t12 + s * t22;
+            a22 = c * t22 - s * t12;
+            
+            a13 = c * t13 + s * t23;
+            a23 = c * t23 - s * t13;
+        }
+        else if ( p == 2 && q == 3 )
+        {
+            auto r  = givens_quaternion<t> ( a22, a32 );
+            auto ch = std::get<0>( r );
+            auto sh = std::get<1>( r );
+
+            auto ch_minus_sh_2 = ch * ch - sh * sh;
+            auto ch_sh_2       = ch * sh + ch * sh;
+
+            //Q matrix in the jaocobi method, formed from quaternion
+            auto r11 = ch_minus_sh_2;
+            auto r12 = ch_sh_2;             
+            auto r21 = zero<t>() - ch_sh_2; 
+            auto r22 = ch_minus_sh_2;
+
+            auto c = r11;
+            auto s = r12;
+
+            auto t11 = a21;
+            auto t12 = a22;
+            auto t13 = a23;
+
+            auto t21 = a31;
+            auto t22 = a32;
+            auto t23 = a33;
+
+            a21 = c * t11 + s * t21;
+            a31 = c * t21 - s * t11;   
+
+            a22 = c * t12 + s * t22;
+            a32 = c * t22 - s * t12;
+            
+            a23 = c * t13 + s * t23;
+            a33 = c * t23 - s * t13;
+
+            //now create the apply the total quaternion transformation7
+            auto w = qw;
+            auto x = qx;
+            auto y = qy;
+            auto z = qz;
+
+            //Quaternion[ ch, sh, 0, 0] -> q * r
+        }
+        else if ( p == 1 && q == 3 )
+        {
+            auto r  = givens_quaternion<t> ( a11, a31 );
+            auto ch = std::get<0>( r );
+            auto sh = std::get<1>( r );
+
+            auto ch_minus_sh_2 = ch * ch - sh * sh;
+            auto ch_sh_2       = ch * sh + ch * sh;
+
+            //Q matrix in the jaocobi method, formed from quaternion
+            auto r11 = ch_minus_sh_2;
+            auto r12 = ch_sh_2;             
+            auto r21 = zero<t>() - ch_sh_2; 
+            auto r22 = ch_minus_sh_2;
+
+            auto c = r11;
+            auto s = r12;
+
+            auto t11 = a11;
+            auto t12 = a12;
+            auto t13 = a13;
+
+            auto t21 = a31;
+            auto t22 = a32;
+            auto t23 = a33;
+
+            a11 = c * t11 + s * t21;
+            a31 = c * t21 - s * t11;   
+
+            a12 = c * t12 + s * t22;
+            a32 = c * t22 - s * t12;
+            
+            a13 = c * t13 + s * t23;
+            a33 = c * t23 - s * t13;
+        }
+    }
+
     //obtain A = USV' 
     template < typename t > inline void compute( const matrix3x3<t>& in, matrix3x3<t>& uu, vector3<t>& s, matrix3x3<t>& vv )
     {
