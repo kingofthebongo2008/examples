@@ -98,6 +98,7 @@
       <SDLCheck>true</SDLCheck>
       <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>../include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

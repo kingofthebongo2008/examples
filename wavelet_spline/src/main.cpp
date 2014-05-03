@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <xmmintrin.h>
+#include <immintrin.h>
 
 
 namespace svd
@@ -286,6 +287,90 @@ namespace svd
         template <> inline sse_vector operator<( sse_vector a, sse_vector b )
         {
             return _mm_cmplt_ps( a, b);
+        }
+    }
+}
+
+namespace svd
+{
+    typedef __m256 avx_vector;
+
+    namespace math
+    {
+        template <> inline avx_vector splat( float f )
+        {
+            return _mm256_set_ps(f, f, f, f, f, f, f, f );
+        }
+
+        template <> inline avx_vector zero( )
+        {
+            return _mm256_setzero_ps();
+        }
+
+        template <> inline avx_vector one( )
+        {
+            return _mm256_set_ps(1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f);
+        }
+
+        template <> inline avx_vector add( avx_vector a, avx_vector b )
+        {
+            return _mm256_add_ps(a, b);
+        }
+
+        template <> inline avx_vector sub( avx_vector a, avx_vector b )
+        {
+            return _mm256_sub_ps(a, b);
+        }
+
+        template <> inline avx_vector mul( avx_vector a, avx_vector b )
+        {
+            return _mm256_mul_ps(a, b);
+        }
+
+        template <> inline avx_vector madd( avx_vector a, avx_vector b, avx_vector c )
+        {
+            return add( mul(a, b ), c );
+        }
+
+        template <> inline avx_vector max( avx_vector a, avx_vector b )
+        {
+            return _mm256_max_ps(a, b);
+        }
+
+        template <> inline avx_vector rsqrt( avx_vector a )
+        {
+            return _mm256_rsqrt_ps(a);
+        }
+
+        template <> inline avx_vector cmp_ge( avx_vector a, avx_vector b )
+        {
+            return _mm256_cmp_ps(a, b, _CMP_GE_OS);
+        }
+
+        template <> inline avx_vector cmp_le( avx_vector a, avx_vector b )
+        {
+            return _mm256_cmp_ps(a, b, _CMP_LE_OS);
+        }
+
+        // r = (mask == 0) ? a : b;
+        template <> inline avx_vector blend( avx_vector a, avx_vector b, avx_vector mask )
+        {
+            return _mm256_blendv_ps( a, b, mask) ;
+        }
+
+        template <> inline avx_vector and( avx_vector a, avx_vector mask )
+        {
+            return _mm256_and_ps( a, mask );
+        }
+
+        template <> inline avx_vector xor( avx_vector a, avx_vector b )
+        {
+            return _mm256_xor_ps( a, b );
+        }
+
+        template <> inline avx_vector operator<( avx_vector a, avx_vector b )
+        {
+            return _mm256_cmp_ps(a, b, _CMP_LT_OS);
         }
     }
 }
@@ -1498,7 +1583,7 @@ std::int32_t main(int argc, _TCHAR* argv[])
     using namespace svd;
     using namespace svd::math;
 
-    typedef svd::cpu_scalar number;
+    typedef svd::avx_vector number;
 
     auto m11 = svd::math::splat<number>( 2.0f );
     auto m12 = svd::math::splat<number>( -0.2f );
@@ -1513,6 +1598,8 @@ std::int32_t main(int argc, _TCHAR* argv[])
     auto m33 = svd::math::splat<number>( 8.0f);
 
     auto urv = svd::compute_as_matrix<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+
+    auto urv1 = svd::compute_as_quaternion<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     
     return 0;
 }
