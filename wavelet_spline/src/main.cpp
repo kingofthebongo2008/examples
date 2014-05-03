@@ -1122,7 +1122,7 @@ namespace svd
     }
 
     //obtain A = USV' 
-    template < typename t > inline std::tuple< quaternion<t>, vector3<t>, quaternion<t> > compute_as_quaternion( const matrix3x3<t>& in )
+    template < typename t > inline std::tuple< quaternion<t>, vector3<t>, quaternion<t> > compute_as_quaternion_rusv( const matrix3x3<t>& in )
     {
         quaternion<t> u;
         quaternion<t> v;
@@ -1130,6 +1130,31 @@ namespace svd
         compute( in, u, s, v );
         return std::make_tuple ( std::move(u), std::move(s), std::move(v) );
     }
+
+    //obtain A = USV' 
+    template < typename t > inline std::tuple< quaternion<t>, quaternion<t> > compute_as_quaternion_ruv( const matrix3x3<t>& in )
+    {
+        quaternion<t> u;
+        quaternion<t> v;
+        vector3<t>    s;
+        compute( in, u, s, v );
+        return std::make_tuple ( std::move(u), std::move(v) );
+    }
+
+    //obtain A = USV' 
+    template < typename t > inline std::tuple< quaternion<t>, vector3<t>, quaternion<t> > compute_as_quaternion_usv( const matrix3x3<t>& in, quaternion<t>& u, vector3<t>& s, quaternion<t>& v )
+    {
+        compute( in, u, s, v );
+     }
+
+    //obtain A = USV' 
+    template < typename t > inline std::tuple< quaternion<t>, quaternion<t> > compute_as_quaternion_uv( const matrix3x3<t>& in, quaternion<t>& u, quaternion<t>& v )
+    {
+        
+        vector3<t>    s;
+        compute( in, u, s, v );
+    }
+
 
     //(1,2), (1,3), (2,3)
     //jacobi conjugation of a symmetric matrix
@@ -1567,13 +1592,36 @@ namespace svd
     }
 
     //obtain A = USV' 
-    template < typename t > inline std::tuple< matrix3x3<t>, vector3<t>, matrix3x3<t> > compute_as_matrix( const matrix3x3<t>& in )
+    template < typename t > inline std::tuple< matrix3x3<t>, vector3<t>, matrix3x3<t> > compute_as_matrix_rusv( const matrix3x3<t>& in )
     {
         matrix3x3<t> u;
         matrix3x3<t> v;
         vector3<t>    s;
         compute( in, u, s, v );
         return std::make_tuple ( std::move(u), std::move(s), std::move(v) );
+    }
+
+    //obtain A = USV' 
+    template < typename t > inline std::tuple< matrix3x3<t>, vector3<t>, matrix3x3<t> > compute_as_matrix_usv( const matrix3x3<t>& in, matrix3x3<t>& u, vector3<t>& s, matrix3x3<t>& v)
+    {
+        compute( in, u, s, v );
+    }
+
+    //obtain A = USV' 
+    template < typename t > inline std::tuple< matrix3x3<t>, matrix3x3<t> > compute_as_matrix_ruv( const matrix3x3<t>& in )
+    {
+        matrix3x3<t> u;
+        matrix3x3<t> v;
+        vector3<t>    s;
+        compute( in, u, s, v );
+        return std::make_tuple ( std::move(u), std::move(v) );
+    }
+
+    //obtain A = USV' 
+    template < typename t > inline std::tuple< matrix3x3<t>, vector3<t>, matrix3x3<t> > compute_as_matrix_usv( const matrix3x3<t>& in, matrix3x3<t>& u, matrix3x3<t>& v)
+    {
+        vector3<t>    s;
+        compute( in, u, s, v );
     }
 }
 
@@ -1597,9 +1645,9 @@ std::int32_t main(int argc, _TCHAR* argv[])
     auto m32 = svd::math::splat<number>( 0.0f);
     auto m33 = svd::math::splat<number>( 8.0f);
 
-    auto urv = svd::compute_as_matrix<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+    auto urv = svd::compute_as_matrix_rusv<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
 
-    auto urv1 = svd::compute_as_quaternion<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+    auto urv1 = svd::compute_as_quaternion_rusv<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
     
     return 0;
 }
