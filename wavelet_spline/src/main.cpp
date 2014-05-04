@@ -1,12 +1,5 @@
 ﻿#include "precompiled.h"
 
-
-/*
-#include <iostream>
-#include <numeric>
-#include <vector>
-*/
-
 #include <svd/svd.h>
 
 

@@ -163,6 +163,7 @@
     <ClInclude Include="../src/precompiled.h" />
     <ClInclude Include="../src/targetver.h" />
     <ClInclude Include="..\include\svd\svd.h" />
+    <ClInclude Include="..\include\svd\svd_math.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/main.cpp">
