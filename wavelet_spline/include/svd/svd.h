@@ -13,7 +13,9 @@
 /*
 Reference implementation of paper:
 
-Computing the Singular Value Decomposition of 3 x 3matrices with minimal branching and elementary floating point operations 
+Computing the Singular Value Decomposition of 3 x 3 matrices with minimal branching and elementary floating point operations 
+
+Notes: For production usage please consider inlining all functions into one. This will eliminate parameter passing 
 
 */
 
@@ -514,7 +516,7 @@ namespace svd
             a21 = s * c * ( t5 - t3 ) + ( c * c - s * s ) * t4; 
 
 
-            //now create the apply the total quaternion transformation7
+            //now create the apply the total quaternion transformation
             auto q0 = qw;
             auto q1 = qx;
             auto q2 = qy;
@@ -564,7 +566,7 @@ namespace svd
             a33 = c * c * t5 + s * s * t3 - ( s * c + s * c) * t4;
             a32 = s * c * ( t5 - t3 ) + ( c * c - s * s ) * t4; 
 
-            //now create the apply the total quaternion transformation7
+            //now create the apply the total quaternion transformation
             auto q0 = qw;
             auto q1 = qx;
             auto q2 = qy;
