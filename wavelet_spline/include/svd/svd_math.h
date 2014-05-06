@@ -19,6 +19,7 @@ namespace svd
     {
         template <typename t> inline t add( t a, t b );
         template <typename t> inline t sub( t a, t b );
+        template <typename t> inline t div( t a, t b );
         template <typename t> inline t mul( t a, t b );
         template <typename t> inline t madd( t a, t b, t c );
         template <typename t> inline t max( t a, t b );
@@ -50,6 +51,11 @@ namespace svd
         template <typename t> inline t operator*( t a, t b )
         {
             return mul ( a, b );
+        }
+
+        template <typename t> inline t operator/( t a, t b )
+        {
+            return div ( a, b );
         }
 
         template <typename t> inline t operator<( t a, t b );
@@ -125,6 +131,13 @@ namespace svd
         {
             cpu_scalar r;
             r.f = a.f * b.f;
+            return r;
+        }
+
+        template <> inline cpu_scalar div( cpu_scalar a, cpu_scalar b )
+        {
+            cpu_scalar r;
+            r.f = a.f / b.f;
             return r;
         }
 

@@ -1182,7 +1182,7 @@ namespace svd
     }
 
     //obtain A = USV' 
-    template < typename t > inline std::tuple< matrix3x3<t>, vector3<t>, matrix3x3<t> > compute_as_matrix_usv( const matrix3x3<t>& in, matrix3x3<t>& u, vector3<t>& s, matrix3x3<t>& v)
+    template < typename t > inline void compute_as_matrix_usv( const matrix3x3<t>& in, matrix3x3<t>& u, vector3<t>& s, matrix3x3<t>& v)
     {
         compute( in, u, s, v );
     }
@@ -1198,7 +1198,7 @@ namespace svd
     }
 
     //obtain A = USV' 
-    template < typename t > inline std::tuple< matrix3x3<t>, vector3<t>, matrix3x3<t> > compute_as_matrix_usv( const matrix3x3<t>& in, matrix3x3<t>& u, matrix3x3<t>& v)
+    template < typename t > inline void compute_as_matrix_uv( const matrix3x3<t>& in, matrix3x3<t>& u, matrix3x3<t>& v)
     {
         vector3<t>    s;
         compute( in, u, s, v );

@@ -96,7 +96,6 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <FloatingPointModel>Precise</FloatingPointModel>
       <AdditionalIncludeDirectories>../include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <EnableEnhancedInstructionSet>AdvancedVectorExtensions</EnableEnhancedInstructionSet>
     </ClCompile>
@@ -164,6 +163,8 @@
     <ClInclude Include="../src/targetver.h" />
     <ClInclude Include="..\include\svd\svd.h" />
     <ClInclude Include="..\include\svd\svd_math.h" />
+    <ClInclude Include="..\include\svd\svd_rotation.h" />
+    <ClInclude Include="..\include\svd\svd_types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="../src/main.cpp">
