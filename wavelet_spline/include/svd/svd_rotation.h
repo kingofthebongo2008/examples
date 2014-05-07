@@ -40,7 +40,6 @@ namespace svd
             cq.z = cq.z + q[i].z;
         }
         
-
         cp.x = cp.x / math::splat<t>(3.0f);
         cp.y = cp.y / math::splat<t>(3.0f);
         cp.z = cp.z / math::splat<t>(3.0f);
@@ -63,6 +62,8 @@ namespace svd
             y[i].z = q[i].z - cq.z;
         }
 
+        //compute x.transpose(y)
+        
         //x0x y0x + x1x y1x + x2x y2x
         auto s11 = dot3( x[0].x, x[1].x, x[2].x, y[0].x, y[1].x, y[2].x );
 
