@@ -1,0 +1,2064 @@
+﻿<html xmlns:v="urn:schemas-microsoft-com:vml"
+xmlns:o="urn:schemas-microsoft-com:office:office"
+xmlns:dt="uuid:C2F41010-65B3-11d1-A29F-00AA00C14882"
+xmlns="http://www.w3.org/TR/REC-html40">
+
+<head>
+<meta http-equiv=Content-Type content="text/html; charset=UTF-8">
+<!--[if !mso]>
+<style>
+v\:* {behavior:url(#default#VML);}
+o\:* {behavior:url(#default#VML);}
+b\:* {behavior:url(#default#VML);}
+.shape {behavior:url(#default#VML);}
+</style>
+<![endif]-->
+<link rel="stylesheet" type="text/css" href="./css/validationEngine.jquery.css" />
+    <script type="text/javascript" src="./js/jquery-1.8.2.min.js"></script>
+    <script type="text/javascript" src="./js/languages/jquery.validationEngine-en.js"></script>
+    <script type="text/javascript" src="./js/jquery.validationEngine.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            // Define a custom validation function.
+            $.validationEngineLanguage.allRules['test_value'] = {
+                "func": function (field, rules, i, options) {
+                    return (field.val() == 'test');
+                },
+                "alertText": "* Value must be 'test'."
+            };
+
+            // Initiate the validation engine.
+            $('#form').validationEngine();
+        });
+    </script>
+
+<title>Заявки</title>
+<style>
+<!--
+ /* Font Definitions */
+@font-face
+	{font-family:Arial;
+	panose-1:2 11 6 4 2 2 2 2 2 4;}
+@font-face
+	{font-family:"Trebuchet MS";
+	panose-1:2 11 6 3 2 2 2 2 2 4;}
+@font-face
+	{font-family:"Times New Roman";
+	panose-1:2 2 6 3 5 4 5 2 3 4;}
+ /* Style Definitions */
+p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-right:0pt;
+	text-indent:0pt;
+	margin-top:0pt;
+	margin-bottom:6.0pt;
+	line-height:119%;
+	text-align:left;
+	font-family:Arial;
+	font-size:8.8888pt;
+	color:black;}
+p.MsoOrganizationName, li.MsoOrganizationName, div.MsoOrganizationName
+	{margin-right:0pt;
+	text-indent:0pt;
+	margin-top:0pt;
+	margin-bottom:0pt;
+	line-height:119%;
+	text-align:left;
+	font-family:Arial;
+	font-size:30.0pt;
+	color:black;}
+p.MsoTagline, li.MsoTagline, div.MsoTagline
+	{margin-right:0pt;
+	text-indent:0pt;
+	margin-top:0pt;
+	margin-bottom:0pt;
+	line-height:119%;
+	text-align:left;
+	font-family:Arial;
+	font-size:12.0185pt;
+	color:yellow;}
+ol
+	{margin-top:0in;
+	margin-bottom:0in;
+	margin-left:-2197in;}
+ul
+	{margin-top:0in;
+	margin-bottom:0in;
+	margin-left:-2197in;}
+@page
+	{size:8.-2019in 11.2232in;}
+-->
+</style>
+</head>
+
+<body link=maroon vlink="#666666" bgcolor=white background=image336.gif
+style='margin:0'>
+<!--[if gte mso 9]><xml>
+ <v:background id="_x0000_s3073" o:bwmode="white" fillcolor="white [7]">
+  <v:fill src="image336.gif" o:title="J0143744" color2="black [0]" type="tile"/>
+ </v:background></xml><![endif]-->
+
+<div style='position:absolute;width:13.1614in;height:12.0053in'>
+<![if !pub]>
+
+<form id="form" action="index.php" method="post">
+
+<![endif]><!--[if gte vml 1]><v:rect id="_x0000_s1075" alt="" style='position:absolute;
+ left:135pt;top:0;width:812.25pt;height:78pt;z-index:13;visibility:visible;
+ mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+ mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' fillcolor="green"
+ stroked="f" strokecolor="black [0]" strokeweight="1pt" o:cliptowrap="t">
+ <v:stroke>
+  <o:left v:ext="view" color="black [0]" weight="1pt" joinstyle="miter"/>
+  <o:top v:ext="view" color="black [0]" weight="1pt" joinstyle="miter"/>
+  <o:right v:ext="view" color="black [0]" weight="1pt" joinstyle="miter"/>
+  <o:bottom v:ext="view" color="black [0]" weight="1pt" joinstyle="miter"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <v:path insetpenok="f"/>
+ <o:lock v:ext="edit" shapetype="t"/>
+ <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+</v:rect><![endif]--><![if !vml]><span style='position:absolute;z-index:13;
+left:180px;top:0px;width:1083px;height:104px'><img width=1083 height=104
+src=image569.png v:shapes="_x0000_s1075"></span><![endif]><!--[if gte vml 1]><v:rect
+ id="_x0000_s1076" style='position:absolute;left:.1pt;top:0;width:135pt;
+ height:78pt;z-index:14;visibility:visible;mso-wrap-edited:f;
+ mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+ mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' fillcolor="white [7]"
+ stroked="f" strokecolor="black [0]" strokeweight="1pt" o:cliptowrap="t">
+ <v:stroke>
+  <o:left v:ext="view" color="black [0]" weight="1pt" joinstyle="miter"/>
+  <o:top v:ext="view" color="black [0]" weight="1pt" joinstyle="miter"/>
+  <o:right v:ext="view" color="black [0]" weight="1pt" joinstyle="miter"/>
+  <o:bottom v:ext="view" color="red [1]" weight="1.5pt" joinstyle="miter"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <v:path insetpenok="f"/>
+ <o:lock v:ext="edit" shapetype="t"/>
+ <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+</v:rect><![endif]--><![if !vml]><span style='position:absolute;z-index:14;
+left:0px;top:0px;width:180px;height:104px'><img width=180 height=104
+src=image568.png v:shapes="_x0000_s1076"></span><![endif]><!--[if gte vml 1]><v:line
+ id="_x0000_s1077" style='position:absolute;flip:x;z-index:15;visibility:visible;
+ mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+ mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' from="134.25pt,0"
+ to="134.25pt,862.5pt" strokecolor="red [1]" strokeweight="1.5pt" o:cliptowrap="t">
+ <v:stroke>
+  <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <v:path insetpenok="f"/>
+</v:line><![endif]--><![if !vml]><span style='position:absolute;z-index:15;
+left:178px;top:-1px;width:2px;height:1152px'><img width=2 height=1152
+src=image319.png v:shapes="_x0000_s1077"></span><![endif]><!--[if gte vml 1]><v:shapetype
+ id="_x0000_t202" coordsize="21600,21600" o:spt="202" path="m,l,21600r21600,l21600,xe">
+ <v:stroke joinstyle="miter"/>
+ <v:path gradientshapeok="t" o:connecttype="rect"/>
+</v:shapetype><v:shape id="_x0000_s1078" type="#_x0000_t202" style='position:absolute;
+ left:142.5pt;top:9.75pt;width:420pt;height:31.5pt;z-index:16;visibility:visible;
+ mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+ mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+ fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+ o:cliptowrap="t">
+ <v:fill color2="white [7]"/>
+ <v:stroke>
+  <o:left v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:top v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:right v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:bottom v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <v:path insetpenok="f"/>
+ <o:lock v:ext="edit" shapetype="t"/>
+ <v:textbox style='mso-column-margin:5.7pt' inset="2.85pt,2.85pt,2.85pt,2.85pt"/>
+</v:shape><![endif]--><![if !vml]><span style='position:absolute;z-index:16;
+left:190px;top:13px;width:560px;height:42px'>
+
+<table cellpadding=0 cellspacing=0>
+ <tr>
+  <td width=560 height=42 valign=middle style='vertical-align:top'><![endif]>
+  <div v:shape="_x0000_s1078" style='padding:2.85pt 2.85pt 2.85pt 2.85pt'
+  class=shape>
+  <p class=MsoOrganizationName style='text-align:center;text-align:center'><span
+  lang=bg style='font-size:22.0pt;line-height:119%;font-family:Arial;
+  color:white;font-weight:bold;language:bg'>Сдружение Маратон</span></p>
+  </div>
+  <![if !vml]></td>
+ </tr>
+</table>
+
+</span><![endif]><!--[if gte vml 1]><v:group id="_x0000_s1079" style='position:absolute;
+ left:4.16pt;top:85.8pt;width:131.25pt;height:99.9pt;z-index:17' coordorigin="1052662,1026040"
+ coordsize="16001,12687">
+ <v:rect id="_x0000_s1080" alt="" style='position:absolute;left:1052662;top:1026040;
+  width:16002;height:3201;visibility:hidden;mso-wrap-edited:f;
+  mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="white [7]" stroked="f" strokecolor="black [0]" insetpen="t"
+  o:cliptowrap="t">
+  <v:stroke dashstyle="1 1" endcap="round">
+   <o:left v:ext="view" dashstyle="1 1" color="black [0]" joinstyle="miter"
+    endcap="round" insetpen="t"/>
+   <o:top v:ext="view" dashstyle="1 1" color="black [0]" joinstyle="miter"
+    endcap="round" insetpen="t"/>
+   <o:right v:ext="view" dashstyle="1 1" color="black [0]" joinstyle="miter"
+    endcap="round" insetpen="t"/>
+   <o:bottom v:ext="view" dashstyle="1 1" color="black [0]" joinstyle="miter"
+    endcap="round" insetpen="t"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:shape id="_x0000_s1081" type="#_x0000_t202" alt="" style='position:absolute;
+  left:1054546;top:1026155;width:13662;height:2971;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="white [7]" stroked="f" strokecolor="black [0]" o:cliptowrap="t">
+  <v:stroke dashstyle="dash">
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox style='mso-column-margin:5.76pt' inset="2.88pt,2.88pt,2.88pt,2.88pt">
+   <div dir=ltr>
+   <p class=MsoNormal style='line-height:113%'><span lang=bg style='font-size:
+   10.0pt;line-height:113%;font-family:Arial;color:black;font-weight:bold;
+   language:bg'>Начало</span></p>
+   </div>
+  </v:textbox>
+ </v:shape><v:rect id="_x0000_s1082" style='position:absolute;left:1053119;
+  top:1027260;width:762;height:762;visibility:visible;mso-wrap-edited:f;
+  mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' fillcolor="red [1]"
+  stroked="f" strokecolor="black [0]" insetpen="t" o:cliptowrap="t">
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:rect id="_x0000_s1083" alt="" href="../index.htm" style='position:absolute;
+  left:1052662;top:1026040;width:16002;height:3201;visibility:visible;
+  mso-wrap-edited:f' filled="f" fillcolor="white [7]" stroked="f" insetpen="t"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:path strokeok="f" fillok="f"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:shape id="_x0000_s1084" type="#_x0000_t202" alt="" style='position:absolute;
+  left:1054546;top:1029355;width:13662;height:2972;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="white [7]" stroked="f" strokecolor="black [0]" o:cliptowrap="t">
+  <v:stroke dashstyle="dash">
+   <o:left v:ext="view" dashstyle="dash" color="black [0]" joinstyle="miter"
+    insetpen="t"/>
+   <o:top v:ext="view" dashstyle="dash" color="black [0]" joinstyle="miter"
+    insetpen="t"/>
+   <o:right v:ext="view" dashstyle="dash" color="black [0]" joinstyle="miter"
+    insetpen="t"/>
+   <o:bottom v:ext="view" dashstyle="dash" color="black [0]" joinstyle="miter"
+    insetpen="t"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox style='mso-column-margin:5.76pt' inset="2.88pt,2.88pt,2.88pt,2.88pt">
+   <div dir=ltr>
+   <p class=MsoNormal style='line-height:113%'><span lang=bg style='font-size:
+   10.0pt;line-height:113%;font-family:Arial;color:black;font-weight:bold;
+   language:bg'>Календар 2014</span></p>
+   </div>
+  </v:textbox>
+ </v:shape><v:rect id="_x0000_s1085" style='position:absolute;left:1053119;
+  top:1030460;width:762;height:762;visibility:visible;mso-wrap-edited:f;
+  mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' fillcolor="red [1]"
+  stroked="f" strokecolor="black [0]" insetpen="t" o:cliptowrap="t">
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"
+    insetpen="t"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"
+    insetpen="t"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"
+    insetpen="t"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"
+    insetpen="t"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:rect id="_x0000_s1086" alt="" href="Page531.htm" style='position:absolute;
+  left:1052662;top:1029241;width:16002;height:3200;visibility:visible;
+  mso-wrap-edited:f' filled="f" fillcolor="white [7]" stroked="f" insetpen="t"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" joinstyle="miter" insetpen="t"/>
+   <o:top v:ext="view" joinstyle="miter" insetpen="t"/>
+   <o:right v:ext="view" joinstyle="miter" insetpen="t"/>
+   <o:bottom v:ext="view" joinstyle="miter" insetpen="t"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:path strokeok="f" fillok="f"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:shape id="_x0000_s1087" type="#_x0000_t202" alt="" style='position:absolute;
+  left:1054546;top:1032555;width:13662;height:2972;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="white [7]" stroked="f" strokecolor="black [0]" o:cliptowrap="t">
+  <v:stroke dashstyle="dash">
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox style='mso-column-margin:5.76pt' inset="2.88pt,2.88pt,2.88pt,2.88pt">
+   <div dir=ltr>
+   <p class=MsoNormal style='line-height:113%'><span lang=en-US
+   style='font-size:10.0pt;line-height:113%;font-family:Arial;color:black;
+   font-weight:bold;language:en-US'>Pirin Run</span></p>
+   </div>
+  </v:textbox>
+ </v:shape><v:rect id="_x0000_s1088" style='position:absolute;left:1053119;
+  top:1033660;width:762;height:762;visibility:visible;mso-wrap-edited:f;
+  mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' fillcolor="red [1]"
+  stroked="f" strokecolor="black [0]" insetpen="t" o:cliptowrap="t">
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:rect id="_x0000_s1089" alt="" href="Page466.htm" style='position:absolute;
+  left:1052662;top:1032441;width:16002;height:3201;visibility:visible;
+  mso-wrap-edited:f' filled="f" fillcolor="white [7]" stroked="f" insetpen="t"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:path strokeok="f" fillok="f"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:shape id="_x0000_s1090" type="#_x0000_t202" alt="" style='position:absolute;
+  left:1054547;top:1035756;width:13661;height:2972;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="white [7]" stroked="f" strokecolor="black [0]" insetpen="t"
+  o:cliptowrap="t">
+  <v:stroke dashstyle="dash">
+   <o:left v:ext="view" dashstyle="dash" color="black [0]" joinstyle="miter"
+    insetpen="t"/>
+   <o:top v:ext="view" dashstyle="dash" color="black [0]" joinstyle="miter"
+    insetpen="t"/>
+   <o:right v:ext="view" dashstyle="dash" color="black [0]" joinstyle="miter"
+    insetpen="t"/>
+   <o:bottom v:ext="view" dashstyle="dash" color="black [0]" joinstyle="miter"
+    insetpen="t"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox style='mso-column-margin:5.76pt' inset="2.88pt,2.88pt,2.88pt,2.88pt">
+   <div dir=ltr>
+   <p class=MsoNormal style='line-height:113%'><span lang=bg style='font-size:
+   14.0pt;line-height:113%;font-family:Arial;color:black;font-weight:bold;
+   language:bg'>Заявки </span><span lang=de style='font-size:14.0pt;line-height:
+   113%;font-family:Arial;color:black;font-weight:bold;language:de'>/Entries</span></p>
+   </div>
+  </v:textbox>
+ </v:shape><v:rect id="_x0000_s1091" style='position:absolute;left:1053119;
+  top:1036861;width:762;height:762;visibility:visible;mso-wrap-edited:f;
+  mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' fillcolor="yellow [2]"
+  stroked="f" strokecolor="black [0]" insetpen="t" o:cliptowrap="t">
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"
+    insetpen="t"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"
+    insetpen="t"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"
+    insetpen="t"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"
+    insetpen="t"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect></v:group><![endif]--><![if !vml]><span style='position:absolute;
+z-index:17;left:6px;top:114px;width:175px;height:134px'><map
+name=MicrosoftOfficeMap0><area shape=Rect
+coords="0, 68, 175, 101" href="Page466.htm"><area shape=Rect
+coords="0, 34, 175, 68" href="Page531.htm"><area shape=Rect
+coords="0, 0, 175, 34" href="../index.htm"></map><img border=0 width=175
+height=134 src=image322.png usemap="#MicrosoftOfficeMap0" v:shapes="_x0000_s1079 _x0000_s1081 _x0000_s1082 _x0000_s1083 _x0000_s1084 _x0000_s1085 _x0000_s1086 _x0000_s1087 _x0000_s1088 _x0000_s1089 _x0000_s1090 _x0000_s1091"></span><![endif]><!--[if gte vml 1]><v:rect
+ id="_x0000_s1092" style='position:absolute;left:30pt;top:.75pt;width:75pt;
+ height:76.05pt;z-index:18;mso-wrap-distance-left:2.88pt;
+ mso-wrap-distance-top:2.88pt;mso-wrap-distance-right:2.88pt;
+ mso-wrap-distance-bottom:2.88pt' o:preferrelative="t" filled="f" fillcolor="white [7]"
+ stroked="f" strokecolor="black [0]" o:cliptowrap="t">
+ <v:fill color2="white [7]"/>
+ <v:stroke color2="white [7]">
+  <o:left v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:top v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:right v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:bottom v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:imagedata src="image494.jpg" o:title="logo Marathon"/>
+ <v:shadow color="#ccc [4]"/>
+ <v:path o:extrusionok="f" insetpenok="f"/>
+ <o:lock v:ext="edit" aspectratio="t"/>
+</v:rect><![endif]--><![if !vml]><span style='position:absolute;z-index:18;
+left:40px;top:1px;width:100px;height:101px'><img width=100 height=101
+src=image4941.jpg v:shapes="_x0000_s1092"></span><![endif]><!--[if gte vml 1]><v:shape
+ id="_x0000_s1093" type="#_x0000_t202" style='position:absolute;left:142.5pt;
+ top:41.25pt;width:420pt;height:22.5pt;z-index:19;visibility:visible;
+ mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+ mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+ fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+ o:cliptowrap="t">
+ <v:fill color2="white [7]"/>
+ <v:stroke>
+  <o:left v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:top v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:right v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:bottom v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <v:path insetpenok="f"/>
+ <o:lock v:ext="edit" shapetype="t"/>
+ <v:textbox style='mso-column-margin:5.7pt' inset="2.85pt,2.85pt,2.85pt,2.85pt"/>
+</v:shape><![endif]--><![if !vml]><span style='position:absolute;z-index:19;
+left:190px;top:55px;width:560px;height:30px'>
+
+<table cellpadding=0 cellspacing=0>
+ <tr>
+  <td width=560 height=30 style='vertical-align:top'><![endif]>
+  <div v:shape="_x0000_s1093" style='padding:2.85pt 2.85pt 2.85pt 2.85pt'
+  class=shape>
+  <p class=MsoTagline style='text-align:center;text-align:center'><span
+  lang=bg style='font-size:11.0pt;line-height:119%;font-family:"Trebuchet MS";
+  language:bg'>Планинско бягане</span><span lang=en-US style='font-size:11.0pt;
+  line-height:119%;font-family:"Trebuchet MS";language:en-US'>. </span><span
+  lang=bg style='font-size:11.0pt;line-height:119%;font-family:"Trebuchet MS";
+  language:bg'>Ски бягане. Планинско </span><span lang=bg style='font-size:
+  11.0pt;line-height:119%;font-family:"Trebuchet MS";language:bg'>колоездене. Маратон.</span></p>
+  </div>
+  <![if !vml]></td>
+ </tr>
+</table>
+
+</span><![endif]><!--[if gte vml 1]><v:rect id="_x0000_s1094" style='position:absolute;
+ left:219pt;top:315pt;width:277.68pt;height:488.16pt;z-index:20;visibility:hidden;
+ mso-wrap-edited:f' stroked="f" o:cliptowrap="t">
+ <v:fill recolor="t" rotate="t"/>
+ <v:stroke joinstyle="round">
+  <o:left v:ext="view" weight="0" on="t"/>
+  <o:top v:ext="view" weight="0" on="t"/>
+  <o:right v:ext="view" weight="0" on="t"/>
+  <o:bottom v:ext="view" weight="0" on="t"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:imagedata cropbottom="16777215f" cropright="16777215f"/>
+ <v:path gradientshapeok="f" insetpenok="f" o:connecttype="segments"/>
+ <o:lock v:ext="edit" shapetype="t"/>
+ <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+</v:rect><![endif]--><!--[if gte vml 1]><v:rect id="_x0000_s1095" style='position:absolute;
+ left:135pt;top:78pt;width:812.25pt;height:142.29pt;z-index:21;
+ mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+ mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt'
+ o:preferrelative="t" filled="f" fillcolor="white [7]" stroked="f"
+ strokecolor="black [0]" o:cliptowrap="t">
+ <v:fill color2="white [7]"/>
+ <v:stroke color2="white [7]">
+  <o:left v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:top v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:right v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:bottom v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:imagedata src="image551.jpg" o:title="Picture1"/>
+ <v:shadow color="#ccc [4]"/>
+ <v:path o:extrusionok="f" insetpenok="f"/>
+ <o:lock v:ext="edit" aspectratio="t"/>
+</v:rect><![endif]--><![if !vml]><span style='position:absolute;z-index:21;
+left:180px;top:104px;width:1083px;height:190px'><img width=1083 height=190
+src=image5511.jpg v:shapes="_x0000_s1095"></span><![endif]><!--[if gte vml 1]><v:group
+ id="_x0000_s1096" style='position:absolute;left:180.75pt;top:328.31pt;width:89.25pt;
+ height:13.69pt;z-index:22' coordorigin="1084112,1047678" coordsize="20573,1714">
+ <v:rect id="_x0000_s1097" style='position:absolute;left:1084112;top:1047678;
+  width:20574;height:1714;visibility:hidden;mso-wrap-edited:f;
+  mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:imagedata cropbottom="16777215f" cropright="16777215f"/>
+  <v:shadow color="#ccc [4]"/>
+  <v:path gradientshapeok="f" o:connecttype="segments"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:shape id="_x0000_s1098" type="#_x0000_t202" style='position:absolute;
+  left:1087743;top:1047678;width:16943;height:1714;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox style='mso-column-margin:5.7pt' inset="0,0,0,0">
+   <div dir=ltr>
+   <p class=MsoNormal><span lang=en-US style='font-size:10.0pt;line-height:
+   119%;font-family:Arial;language:en-US'>RILA RUN 2014</span></p>
+   </div>
+  </v:textbox>
+ </v:shape><v:shapetype id="_x0000_t201" coordsize="21600,21600" o:spt="201"
+  path="m,l,21600r21600,l21600,xe">
+  <v:stroke joinstyle="miter"/>
+  <v:path shadowok="f" o:extrusionok="f" strokeok="f" fillok="f" o:connecttype="rect"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+ </v:shapetype><v:shape id="_x0000_s1099" type="#_x0000_t201" style='position:absolute;
+  left:1084112;top:1047678;width:3631;height:1221;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+  strokecolor="black [0]" o:cliptowrap="t">
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <o:lock v:ext="edit" rotation="t" text="t"/>
+ </v:shape></v:group><![endif]--><![if !vml]><span style='position:absolute;
+z-index:22;left:241px;top:438px;width:119px;height:19px'><![endif]><![if !vml]><img
+width=119 height=19 src=image417.png v:shapes="_x0000_s1096 _x0000_s1098"></span><![endif]><![if !pub]><span
+style='position:absolute;top:328.31pt;left:180.75pt;z-index:22'><![endif]>
+
+<input type="checkbox" name="events[]" class="validate[minCheckbox[1]]" id="Checkbox1" value = "1" v:shapes="_x0000_s1099" />
+
+<![if !pub]></span><![endif]><!--[if gte vml 1]><v:group id="_x0000_s1100"
+ style='position:absolute;left:180.75pt;top:348.9pt;width:116.25pt;height:14.1pt;
+ z-index:23' coordorigin="1084112,1051244" coordsize="20574,1714">
+ <v:rect id="_x0000_s1101" style='position:absolute;left:1084112;top:1051244;
+  width:20574;height:1714;visibility:hidden;mso-wrap-edited:f;
+  mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:imagedata cropbottom="16777215f" cropright="16777215f"/>
+  <v:shadow color="#ccc [4]"/>
+  <v:path gradientshapeok="f" o:connecttype="segments"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:shape id="_x0000_s1102" type="#_x0000_t202" style='position:absolute;
+  left:1086900;top:1051244;width:17786;height:1714;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox style='mso-column-margin:5.7pt' inset="0,0,0,0">
+   <div dir=ltr>
+   <p class=MsoNormal><span lang=en-US style='font-size:10.0pt;line-height:
+   119%;font-family:Arial;language:en-US'>VITOSHA RUN 2014</span></p>
+   </div>
+  </v:textbox>
+ </v:shape><v:shape id="_x0000_s1103" type="#_x0000_t201" style='position:absolute;
+  left:1084112;top:1051244;width:2788;height:1185;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+  strokecolor="black [0]" o:cliptowrap="t">
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <o:lock v:ext="edit" rotation="t" text="t"/>
+ </v:shape></v:group><![endif]--><![if !vml]><span style='position:absolute;
+z-index:23;left:241px;top:465px;width:155px;height:19px'><![endif]><![if !vml]><img
+width=155 height=19 src=image367.png v:shapes="_x0000_s1100 _x0000_s1102"></span><![endif]><![if !pub]><span
+style='position:absolute;top:348.9pt;left:180.75pt;z-index:23'><![endif]>
+
+<input type="checkbox" name="events[]" class="validate[minCheckbox[1]]" id="Checkbox2" value="2" v:shapes="_x0000_s1103" />
+
+<![if !pub]></span><![endif]><!--[if gte vml 1]><v:group id="_x0000_s1104"
+ style='position:absolute;left:180.75pt;top:369.71pt;width:122.25pt;height:14.29pt;
+ z-index:24' coordorigin="1084112,1054301" coordsize="20574,1714">
+ <v:rect id="_x0000_s1105" style='position:absolute;left:1084112;top:1054301;
+  width:20574;height:1714;visibility:hidden;mso-wrap-edited:f;
+  mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:imagedata cropbottom="16777215f" cropright="16777215f"/>
+  <v:shadow color="#ccc [4]"/>
+  <v:path gradientshapeok="f" o:connecttype="segments"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:shape id="_x0000_s1106" type="#_x0000_t202" style='position:absolute;
+  left:1086763;top:1054301;width:17923;height:1714;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox style='mso-column-margin:5.7pt' inset="0,0,0,0">
+   <div dir=ltr>
+   <p class=MsoNormal><span lang=en-US style='font-size:10.0pt;line-height:
+   119%;font-family:Arial;language:en-US'>OSOGOVO RUN 2014</span></p>
+   </div>
+  </v:textbox>
+ </v:shape><v:shape id="_x0000_s1107" type="#_x0000_t201" style='position:absolute;
+  left:1084112;top:1054301;width:2651;height:1170;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+  strokecolor="black [0]" o:cliptowrap="t">
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <o:lock v:ext="edit" rotation="t" text="t"/>
+ </v:shape></v:group><![endif]--><![if !vml]><span style='position:absolute;
+z-index:24;left:241px;top:493px;width:163px;height:20px'><![endif]><![if !vml]><img
+width=163 height=20 src=image413.png v:shapes="_x0000_s1104 _x0000_s1106"></span><![endif]><![if !pub]><span
+style='position:absolute;top:369.71pt;left:180.75pt;z-index:24'><![endif]>
+
+<input type="checkbox" name="events[]" class="validate[minCheckbox[1]]" id="Checkbox3" value ="3" v:shapes="_x0000_s1107" />
+
+<![if !pub]></span><![endif]><!--[if gte vml 1]><v:group id="_x0000_s1108"
+ style='position:absolute;left:180.75pt;top:306pt;width:95.25pt;height:15pt;
+ z-index:25' coordorigin="1084112,1047879" coordsize="20574,1714">
+ <v:rect id="_x0000_s1109" style='position:absolute;left:1084112;top:1047879;
+  width:20574;height:1715;visibility:hidden;mso-wrap-edited:f;
+  mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:imagedata cropbottom="16777215f" cropright="16777215f"/>
+  <v:shadow color="#ccc [4]"/>
+  <v:path gradientshapeok="f" o:connecttype="segments"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:shape id="_x0000_s1110" type="#_x0000_t202" style='position:absolute;
+  left:1087514;top:1047879;width:17172;height:1715;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox style='mso-column-margin:5.7pt' inset="0,0,0,0">
+   <div dir=ltr>
+   <p class=MsoNormal><span lang=en-US style='font-size:10.0pt;line-height:
+   119%;font-family:Arial;language:en-US'>PIRIN RUN 2014</span></p>
+   </div>
+  </v:textbox>
+ </v:shape><v:shape id="_x0000_s1111" type="#_x0000_t201" style='position:absolute;
+  left:1084112;top:1047879;width:3402;height:1114;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+  strokecolor="black [0]" o:cliptowrap="t">
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <o:lock v:ext="edit" rotation="t" text="t"/>
+ </v:shape></v:group><![endif]--><![if !vml]><span style='position:absolute;
+z-index:25;left:241px;top:408px;width:127px;height:20px'><![endif]><![if !vml]><img
+width=127 height=20 src=image408.png v:shapes="_x0000_s1108 _x0000_s1110"></span><![endif]><![if !pub]><span
+style='position:absolute;top:306.0pt;left:180.75pt;z-index:25'><![endif]>
+
+<input type="checkbox" name="events[]" class="validate[minCheckbox[1]]" id="events" value="0" v:shapes="_x0000_s1111"/>
+
+<![if !pub]></span><![endif]><!--[if gte vml 1]><v:shape id="_x0000_s1112"
+ type="#_x0000_t202" style='position:absolute;left:180.75pt;top:279.75pt;
+ width:132pt;height:18pt;z-index:26;visibility:visible;mso-wrap-edited:f;
+ mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+ mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+ fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+ o:cliptowrap="t">
+ <v:fill color2="white [7]"/>
+ <v:stroke>
+  <o:left v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:top v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:right v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:bottom v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <o:lock v:ext="edit" shapetype="t"/>
+ <v:textbox style='mso-column-margin:5.7pt' inset="2.85pt,2.85pt,2.85pt,2.85pt"/>
+</v:shape><![endif]--><![if !vml]><span style='position:absolute;z-index:26;
+left:241px;top:373px;width:176px;height:24px'>
+
+<table cellpadding=0 cellspacing=0>
+ <tr>
+  <td width=176 height=24 style='vertical-align:top'><![endif]>
+  <div v:shape="_x0000_s1112" style='padding:2.85pt 2.85pt 2.85pt 2.85pt'
+  class=shape>
+  <p class=MsoNormal><span lang=bg style='font-size:10.0pt;line-height:119%;
+  font-family:Arial;language:bg'>Проява / </span><span lang=en-US
+  style='font-size:10.0pt;line-height:119%;font-family:Arial;language:en-US'>Event</span><span
+  lang=bg style='font-size:10.0pt;line-height:119%;font-family:Arial;
+  language:bg'>:</span></p>
+  </div>
+  <![if !vml]></td>
+ </tr>
+</table>
+
+</span><![endif]><!--[if gte vml 1]><v:shape id="_x0000_s1113" type="#_x0000_t202"
+ style='position:absolute;left:180.75pt;top:240pt;width:347.36pt;height:24.12pt;
+ z-index:27;visibility:visible;mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;
+ mso-wrap-distance-top:2.88pt;mso-wrap-distance-right:2.88pt;
+ mso-wrap-distance-bottom:2.88pt' filled="f" fillcolor="black [0]" stroked="f"
+ strokecolor="black [0]" strokeweight="0" o:cliptowrap="t">
+ <v:fill color2="white [7]"/>
+ <v:stroke>
+  <o:left v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:top v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:right v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:bottom v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <o:lock v:ext="edit" shapetype="t"/>
+ <v:textbox style='mso-column-margin:5.7pt' inset="2.85pt,2.85pt,2.85pt,2.85pt"/>
+</v:shape><![endif]--><![if !vml]><span style='position:absolute;z-index:27;
+left:241px;top:320px;width:464px;height:33px'>
+
+<table cellpadding=0 cellspacing=0>
+ <tr>
+  <td width=464 height=33 style='vertical-align:top'><![endif]>
+  <div v:shape="_x0000_s1113" style='padding:2.85pt 2.85pt 2.85pt 2.85pt'
+  class=shape>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-size:14.0pt;line-height:119%;font-family:Arial;language:bg'>Заявка за участие / </span><span
+  lang=de style='font-size:14.0pt;line-height:119%;font-family:Arial;
+  language:de'>Entry form </span></p>
+  </div>
+  <![if !vml]></td>
+ </tr>
+</table>
+
+</span><![endif]><!--[if gte vml 1]><v:group id="_x0000_s1139" style='position:absolute;
+ left:153pt;top:531pt;width:416.25pt;height:316.35pt;z-index:39' coordorigin="1061180,1079944"
+ coordsize="52863,40176">
+ <v:shape id="_x0000_s1140" type="#_x0000_t202" style='position:absolute;
+  left:1061180;top:1079944;width:51054;height:7239;mso-wrap-distance-left:2.88pt;
+  mso-wrap-distance-top:2.88pt;mso-wrap-distance-right:2.88pt;
+  mso-wrap-distance-bottom:2.88pt' filled="f" fillcolor="white [7]" stroked="f"
+  strokecolor="black [0]" o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <v:textbox style='mso-column-margin:2mm' inset="2.88pt,2.88pt,2.88pt,2.88pt">
+   <div dir=ltr>
+   <p class=MsoNormal style='text-align:justify;text-justify:newspaper;
+   text-kashida-space:50%;text-align:justify;text-justify:newspaper;text-kashida-space:
+   50%'><span lang=bg style='font-size:9.0pt;line-height:119%;font-family:Arial;
+   language:bg'>* Плащането се извършва при регистрацията на място в брой. За да се ползва отстъпка трябва да са избрани няколко прояви в една заявка и сумата да се плати при първото от заявените участия / </span><span
+   lang=en-US style='font-size:9.0pt;line-height:119%;font-family:Arial;
+   language:en-US'>Pa</span><span lang=de style='font-size:9.0pt;line-height:
+   119%;font-family:Arial;language:de'>y</span><span lang=en-US
+   style='font-size:9.0pt;line-height:119%;font-family:Arial;language:en-US'>ment</span><span
+   lang=bg style='font-size:9.0pt;line-height:119%;font-family:Arial;
+   language:bg'> </span><span lang=de style='font-size:9.0pt;line-height:119%;
+   font-family:Arial;language:de'>is</span><span lang=bg style='font-size:9.0pt;
+   line-height:119%;font-family:Arial;language:bg'> </span><span lang=de
+   style='font-size:9.0pt;line-height:119%;font-family:Arial;language:de'>due upon registration on site in cash. To recieve a discount several events in an entry must be selected and the amount to be paid at first part</span><span
+   lang=en-US style='font-size:9.0pt;line-height:119%;font-family:Arial;
+   language:en-US'>icipation</span><span lang=de style='font-size:9.0pt;
+   line-height:119%;font-family:Arial;language:de'> </span><span lang=en-US
+   style='font-size:9.0pt;line-height:119%;font-family:Arial;language:en-US'>entered</span><span
+   lang=de style='font-size:9.0pt;line-height:119%;font-family:Arial;
+   language:de'>.</span></p>
+   </div>
+  </v:textbox>
+ </v:shape><v:group id="_x0000_s1141" style='position:absolute;left:1061180;
+  top:1088326;width:52864;height:31794' coordorigin="1061180,1088898"
+  coordsize="52863,31794">
+  <v:shape id="_x0000_s1142" type="#_x0000_t202" style='position:absolute;
+   left:1073086;top:1088898;width:7063;height:2047;visibility:visible;
+   mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+   mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+   fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+   o:cliptowrap="t">
+   <v:fill color2="white [7]"/>
+   <v:stroke>
+    <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <o:lock v:ext="edit" shapetype="t"/>
+   <v:textbox style='mso-column-margin:5.7pt' inset="2.85pt,2.85pt,2.85pt,2.85pt">
+    <div dir=ltr>
+    <p class=MsoNormal style='text-align:right;text-align:right'><span lang=bg
+    style='font-size:8.0pt;line-height:119%;font-family:Arial;language:bg'>Име</span><span
+    lang=en-US style='font-size:8.0pt;line-height:119%;font-family:Arial;
+    language:en-US'> </span><span lang=de style='font-size:8.0pt;line-height:
+    119%;font-family:Arial;language:de'>/ Name</span><span lang=bg
+    style='font-size:8.0pt;line-height:119%;font-family:Arial;language:bg'>:</span></p>
+    </div>
+   </v:textbox>
+  </v:shape><v:shape id="_x0000_s1143" type="#_x0000_t201" style='position:absolute;
+   left:1080912;top:1088898;width:32956;height:2190;visibility:visible;
+   mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+   mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+   strokecolor="black [0]" o:cliptowrap="t">
+   <v:stroke color2="white [7]">
+    <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <v:path insetpenok="f"/>
+   <o:lock v:ext="edit" rotation="t" text="t"/>
+  </v:shape><v:shape id="_x0000_s1144" type="#_x0000_t202" style='position:absolute;
+   left:1068133;top:1091812;width:12016;height:2181;visibility:visible;
+   mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+   mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+   fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+   o:cliptowrap="t">
+   <v:fill color2="white [7]"/>
+   <v:stroke>
+    <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <o:lock v:ext="edit" shapetype="t"/>
+   <v:textbox style='mso-column-margin:5.7pt' inset="2.85pt,2.85pt,2.85pt,2.85pt">
+    <div dir=ltr>
+    <p class=MsoNormal style='text-align:right;text-align:right'><span lang=bg
+    style='font-size:8.0pt;line-height:119%;font-family:Arial;language:bg'>Фамилия / </span><span
+    lang=de style='font-size:8.0pt;line-height:119%;font-family:Arial;
+    language:de'>Surname</span><span lang=bg style='font-size:8.0pt;line-height:
+    119%;font-family:Arial;language:bg'>:</span></p>
+    </div>
+   </v:textbox>
+  </v:shape><v:shape id="_x0000_s1145" type="#_x0000_t201" style='position:absolute;
+   left:1080912;top:1091812;width:32956;height:2191;visibility:visible;
+   mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+   mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+   strokecolor="black [0]" o:cliptowrap="t">
+   <v:stroke color2="white [7]">
+    <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <v:path insetpenok="f"/>
+   <o:lock v:ext="edit" rotation="t" text="t"/>
+  </v:shape><v:shape id="_x0000_s1146" type="#_x0000_t202" style='position:absolute;
+   left:1063085;top:1094994;width:17145;height:2286;visibility:visible;
+   mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+   mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+   fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+   o:cliptowrap="t">
+   <v:fill color2="white [7]"/>
+   <v:stroke>
+    <o:left v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+    <o:top v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+    <o:right v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+    <o:bottom v:ext="view" color="black [0]" weight="0" joinstyle="miter"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <v:path insetpenok="f"/>
+   <o:lock v:ext="edit" shapetype="t"/>
+   <v:textbox style='mso-column-margin:5.7pt' inset="2.85pt,2.85pt,2.85pt,2.85pt">
+    <div dir=ltr>
+    <p class=MsoNormal style='text-align:right;text-align:right'><span lang=bg
+    style='font-size:8.0pt;line-height:119%;font-family:Arial;language:bg'>Година на раждане </span><span
+    lang=de style='font-size:8.0pt;line-height:119%;font-family:Arial;
+    language:de'>/ </span><span lang=en-US style='font-size:8.0pt;line-height:
+    119%;font-family:Arial;language:en-US'>Year</span><span lang=de
+    style='font-size:8.0pt;line-height:119%;font-family:Arial;language:de'> of birth</span><span
+    lang=bg style='font-size:8.0pt;line-height:119%;font-family:Arial;
+    language:bg'>:</span></p>
+    </div>
+   </v:textbox>
+  </v:shape><v:shape id="_x0000_s1147" type="#_x0000_t201" style='position:absolute;
+   left:1080992;top:1094994;width:6001;height:2286' stroked="f" insetpen="t"
+   o:cliptowrap="t">
+   <v:path insetpenok="f"/>
+   <o:lock v:ext="edit" rotation="t" text="t"/>
+  </v:shape><v:shape id="_x0000_s1148" type="#_x0000_t202" style='position:absolute;
+   left:1073848;top:1098042;width:6301;height:2257;visibility:visible;
+   mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+   mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+   fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+   o:cliptowrap="t">
+   <v:fill color2="white [7]"/>
+   <v:stroke>
+    <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <o:lock v:ext="edit" shapetype="t"/>
+   <v:textbox style='mso-column-margin:5.7pt' inset="2.85pt,2.85pt,2.85pt,2.85pt">
+    <div dir=ltr>
+    <p class=MsoNormal style='text-align:right;text-align:right'><span lang=bg
+    style='font-size:8.0pt;line-height:119%;font-family:Arial;language:bg'>Клуб / </span><span
+    lang=en-US style='font-size:8.0pt;line-height:119%;font-family:Arial;
+    language:en-US'>Club:</span></p>
+    </div>
+   </v:textbox>
+  </v:shape><v:shape id="_x0000_s1149" type="#_x0000_t201" style='position:absolute;
+   left:1081087;top:1098146;width:32957;height:2191;visibility:visible;
+   mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+   mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+   strokecolor="black [0]" o:cliptowrap="t">
+   <v:stroke color2="white [7]">
+    <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <v:path insetpenok="f"/>
+   <o:lock v:ext="edit" rotation="t" text="t"/>
+  </v:shape><v:shape id="_x0000_s1150" type="#_x0000_t202" style='position:absolute;
+   left:1070800;top:1101090;width:9349;height:1905;visibility:visible;
+   mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+   mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+   fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+   o:cliptowrap="t">
+   <v:fill color2="white [7]"/>
+   <v:stroke>
+    <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <o:lock v:ext="edit" shapetype="t"/>
+   <v:textbox style='mso-column-margin:5.7pt' inset="2.85pt,2.85pt,2.85pt,2.85pt">
+    <div dir=ltr>
+    <p class=MsoNormal style='text-align:right;text-align:right'><span lang=bg
+    style='font-size:8.0pt;line-height:119%;font-family:Arial;language:bg'>Телефон / </span><span
+    lang=en-US style='font-size:8.0pt;line-height:119%;font-family:Arial;
+    language:en-US'>Phone:</span></p>
+    </div>
+   </v:textbox>
+  </v:shape><v:shape id="_x0000_s1151" type="#_x0000_t202" style='position:absolute;
+   left:1074610;top:1104023;width:5539;height:2000;visibility:visible;
+   mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+   mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+   fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+   o:cliptowrap="t">
+   <v:fill color2="white [7]"/>
+   <v:stroke>
+    <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <o:lock v:ext="edit" shapetype="t"/>
+   <v:textbox style='mso-column-margin:5.7pt' inset="2.85pt,2.85pt,2.85pt,2.85pt">
+    <div dir=ltr>
+    <p class=MsoNormal style='text-align:right;text-align:right'><span
+    lang=en-US style='font-size:8.0pt;line-height:119%;font-family:Arial;
+    language:en-US'>E-mail:</span></p>
+    </div>
+   </v:textbox>
+  </v:shape><v:shape id="_x0000_s1152" type="#_x0000_t201" style='position:absolute;
+   left:1081087;top:1101223;width:32957;height:2191;visibility:visible;
+   mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+   mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+   strokecolor="black [0]" o:cliptowrap="t">
+   <v:stroke color2="white [7]">
+    <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <v:path insetpenok="f"/>
+   <o:lock v:ext="edit" rotation="t" text="t"/>
+  </v:shape><v:shape id="_x0000_s1153" type="#_x0000_t201" style='position:absolute;
+   left:1081087;top:1104138;width:32957;height:2190;visibility:visible;
+   mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+   mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+   strokecolor="black [0]" o:cliptowrap="t">
+   <v:stroke color2="white [7]">
+    <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <v:path insetpenok="f"/>
+   <o:lock v:ext="edit" rotation="t" text="t"/>
+  </v:shape><v:shape id="_x0000_s1154" type="#_x0000_t202" style='position:absolute;
+   left:1061180;top:1107376;width:51054;height:13316;mso-wrap-distance-left:2.88pt;
+   mso-wrap-distance-top:2.88pt;mso-wrap-distance-right:2.88pt;
+   mso-wrap-distance-bottom:2.88pt' filled="f" fillcolor="white [7]"
+   strokecolor="red [1]" strokeweight="1.5pt" o:cliptowrap="t">
+   <v:fill color2="white [7]"/>
+   <v:stroke color2="white [7]">
+    <o:left v:ext="view" color="red [1]" color2="white [7]" weight="2.25pt"
+     joinstyle="miter"/>
+    <o:top v:ext="view" color="red [1]" color2="white [7]" weight="2.25pt"
+     joinstyle="miter"/>
+    <o:right v:ext="view" color="red [1]" color2="white [7]" weight="2.25pt"
+     joinstyle="miter"/>
+    <o:bottom v:ext="view" color="red [1]" color2="white [7]" weight="2.25pt"
+     joinstyle="miter"/>
+    <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+   </v:stroke>
+   <v:shadow color="#ccc [4]"/>
+   <v:path insetpenok="f"/>
+   <v:textbox style='mso-column-margin:2mm' inset="2.88pt,2.88pt,2.88pt,2.88pt">
+    <div dir=ltr>
+    <p class=MsoNormal><span lang=bg style='font-family:Arial;language:bg'>Декларирам, че съм съгласен с правилата и условията на всяко състезание и ще ги спазвам. Ще участвам по собствено желание и на собствена отговорност, като освобождавам от такава организаторите.</span></p>
+    <p class=MsoNormal><span lang=en-US style='language:en-US'>I declare that I agree with the terms and conditions of each race and will follow them. I will participate at my own will and organizers are free of any responsibilities concerning my participation</span><span
+    lang=de style='font-size:8.0pt;line-height:119%;font-family:Arial;
+    language:de'>.</span></p>
+    </div>
+   </v:textbox>
+  </v:shape><v:shape id="_x0000_s1155" type="#_x0000_t201" style='position:absolute;
+   left:1078706;top:1117644;width:21241;height:2191' stroked="f" insetpen="t"
+   o:cliptowrap="t">
+   <v:path insetpenok="f"/>
+   <o:lock v:ext="edit" rotation="t" text="t"/>
+  </v:shape><v:group id="_x0000_s1156" style='position:absolute;left:1088993;
+   top:1094994;width:8763;height:1905' coordorigin="1104423,1074174"
+   coordsize="13715,1719">
+   <v:rect id="_x0000_s1157" style='position:absolute;left:1104423;top:1074174;
+    width:13716;height:1720;visibility:hidden;mso-wrap-edited:f' stroked="f"
+    o:cliptowrap="t">
+    <v:fill recolor="t" rotate="t"/>
+    <v:stroke joinstyle="round">
+     <o:left v:ext="view" weight="0" on="t"/>
+     <o:top v:ext="view" weight="0" on="t"/>
+     <o:right v:ext="view" weight="0" on="t"/>
+     <o:bottom v:ext="view" weight="0" on="t"/>
+     <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+    </v:stroke>
+    <v:imagedata cropbottom="16777215f" cropright="16777215f"/>
+    <v:path gradientshapeok="f" insetpenok="f" o:connecttype="segments"/>
+    <o:lock v:ext="edit" shapetype="t"/>
+    <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+   </v:rect><v:shape id="_x0000_s1158" type="#_x0000_t201" style='position:absolute;
+    left:1104423;top:1074174;width:3280;height:1032;visibility:visible;
+    mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+    mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+    strokecolor="black [0]" o:cliptowrap="t">
+    <v:stroke color2="white [7]">
+     <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+    </v:stroke>
+    <v:shadow color="#ccc [4]"/>
+    <v:path insetpenok="f"/>
+    <o:lock v:ext="edit" rotation="t" text="t"/>
+   </v:shape><v:shape id="_x0000_s1159" type="#_x0000_t202" style='position:absolute;
+    left:1107703;top:1074174;width:10436;height:1720;visibility:visible;
+    mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+    mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+    fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+    o:cliptowrap="t">
+    <v:fill color2="white [7]"/>
+    <v:stroke>
+     <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+    </v:stroke>
+    <v:shadow color="#ccc [4]"/>
+    <v:path insetpenok="f"/>
+    <o:lock v:ext="edit" shapetype="t"/>
+    <v:textbox style='mso-column-margin:5.7pt' inset="0,0,0,0">
+     <div dir=ltr>
+     <p class=MsoNormal><span lang=bg style='font-size:10.0pt;line-height:119%;
+     font-family:"Times New Roman";language:bg'>Мъж </span><span lang=de
+     style='font-size:10.0pt;line-height:119%;font-family:"Times New Roman";
+     language:de'>/ Male</span></p>
+     </div>
+    </v:textbox>
+   </v:shape></v:group><v:group id="_x0000_s1160" style='position:absolute;
+   left:1098899;top:1094994;width:9906;height:1905' coordorigin="1105709,1075206"
+   coordsize="13716,1719">
+   <v:rect id="_x0000_s1161" style='position:absolute;left:1105709;top:1075206;
+    width:13716;height:1719;visibility:hidden;mso-wrap-edited:f' stroked="f"
+    o:cliptowrap="t">
+    <v:fill recolor="t" rotate="t"/>
+    <v:stroke joinstyle="round">
+     <o:left v:ext="view" weight="0" on="t"/>
+     <o:top v:ext="view" weight="0" on="t"/>
+     <o:right v:ext="view" weight="0" on="t"/>
+     <o:bottom v:ext="view" weight="0" on="t"/>
+     <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+    </v:stroke>
+    <v:imagedata cropbottom="16777215f" cropright="16777215f"/>
+    <v:path gradientshapeok="f" insetpenok="f" o:connecttype="segments"/>
+    <o:lock v:ext="edit" shapetype="t"/>
+    <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+   </v:rect><v:shape id="_x0000_s1162" type="#_x0000_t201" style='position:absolute;
+    left:1105709;top:1075206;width:2902;height:1031;visibility:visible;
+    mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+    mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+    strokecolor="black [0]" o:cliptowrap="t">
+    <v:stroke color2="white [7]">
+     <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+    </v:stroke>
+    <v:shadow color="#ccc [4]"/>
+    <v:path insetpenok="f"/>
+    <o:lock v:ext="edit" rotation="t" text="t"/>
+   </v:shape><v:shape id="_x0000_s1163" type="#_x0000_t202" style='position:absolute;
+    left:1108611;top:1075206;width:10814;height:1719;visibility:visible;
+    mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+    mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+    fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+    o:cliptowrap="t">
+    <v:fill color2="white [7]"/>
+    <v:stroke>
+     <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+     <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+    </v:stroke>
+    <v:shadow color="#ccc [4]"/>
+    <v:path insetpenok="f"/>
+    <o:lock v:ext="edit" shapetype="t"/>
+    <v:textbox style='mso-column-margin:5.7pt' inset="0,0,0,0">
+     <div dir=ltr>
+     <p class=MsoNormal><span lang=bg style='font-size:10.0pt;line-height:119%;
+     font-family:"Times New Roman";language:bg'>Жена </span><span lang=de
+     style='font-size:10.0pt;line-height:119%;font-family:"Times New Roman";
+     language:de'>/ Female</span></p>
+     </div>
+    </v:textbox>
+   </v:shape></v:group></v:group></v:group><![endif]--><![if !vml]><span
+style='position:absolute;z-index:39;left:203px;top:708px;width:556px;
+height:423px'><![endif]><![if !vml]><img width=556 height=423 src=image554.png
+v:shapes="_x0000_s1139 _x0000_s1140 _x0000_s1141 _x0000_s1142 _x0000_s1144 _x0000_s1146 _x0000_s1148 _x0000_s1150 _x0000_s1151 _x0000_s1154 _x0000_s1156 _x0000_s1159 _x0000_s1160 _x0000_s1163"></span><![endif]><![if !pub]><span
+style='position:absolute;top:597.0pt;left:308.3703pt;z-index:39'><![endif]>
+
+<input type="text" name="name" id="name" class="validate[required]" v:shapes="_x0000_s1143" />
+
+<![if !pub]></span><![endif]><![if !pub]><span style='position:absolute;
+top:619.95pt;left:308.3703pt;z-index:39'><![endif]>
+
+<input type="text" name="surname" id="surname" class="validate[required]" v:shapes="_x0000_s1145" />
+
+<![if !pub]></span><![endif]><![if !pub]><span style='position:absolute;
+top:645.0pt;left:309.0pt;z-index:39'><![endif]>
+
+<select name="year_of_birth" id="year_of_birth" class="validate[required]" size=1 v:shapes="_x0000_s1147">
+ <option selected value="">---</option>
+ <option value=1999>1999</option>
+ <option value=1998>1998</option>
+ <option value=1997>1997</option>
+ <option value=1996>1996</option>
+ <option value=1995>1995</option>
+ <option value=1994>1994</option>
+ <option value=1993>1993</option>
+ <option value=1992>1992</option>
+ <option value=1991>1991</option>
+ <option value=1990>1990</option>
+ <option value=1989>1989</option>
+ <option value=1988>1988</option>
+ <option value=1987>1987</option>
+ <option value=1986>1986</option>
+ <option value=1985>1985</option>
+ <option value=1984>1984</option>
+ <option value=1983>1983</option>
+ <option value=1982>1982</option>
+ <option value=1981>1981</option>
+ <option value=1980>1980</option>
+ <option value=1979>1979</option>
+ <option value=1978>1978</option>
+ <option value=1977>1977</option>
+ <option value=1976>1976</option>
+ <option value=1975>1975</option>
+ <option value=1974>1974</option>
+ <option value=1973>1973</option>
+ <option value=1972>1972</option>
+ <option value=1971>1971</option>
+ <option value=1970>1970</option>
+ <option value=1969>1969</option>
+ <option value=1968>1968</option>
+ <option value=1967>1967</option>
+ <option value=1966>1966</option>
+ <option value=1965>1965</option>
+ <option value=1964>1964</option>
+ <option value=1963>1963</option>
+ <option value=1962>1962</option>
+ <option value=1961>1961</option>
+ <option value=1960>1960</option>
+ <option value=1959>1959</option>
+ <option value=1958>1958</option>
+ <option value=1957>1957</option>
+ <option value=1956>1956</option>
+ <option value=1955>1955</option>
+ <option value=1954>1954</option>
+ <option value=1953>1953</option>
+ <option value=1952>1952</option>
+ <option value=1951>1951</option>
+ <option value=1950>1950</option>
+ <option value=1949>1949</option>
+ <option value=1948>1948</option>
+ <option value=1947>1947</option>
+ <option value=1946>1946</option>
+ <option value=1945>1945</option>
+ <option value=1944>1944</option>
+ <option value=1943>1943</option>
+ <option value=1942>1942</option>
+ <option value=1941>1941</option>
+ <option value=1940>1940</option>
+ <option value=1939>1939</option>
+</select>
+
+<![if !pub]></span><![endif]><![if !pub]><span style='position:absolute;
+top:669.8249pt;left:309.75pt;z-index:39'><![endif]>
+
+<input type="text" name="club" size=46 v:shapes="_x0000_s1149"/>
+
+<![if !pub]></span><![endif]><![if !pub]><span style='position:absolute;
+top:694.05pt;left:309.75pt;z-index:39'><![endif]>
+
+<input type="text" name="phone" id="phone" class="validate[required]" size=46 v:shapes="_x0000_s1153"/>
+
+<![if !pub]></span><![endif]><![if !pub]><span style='position:absolute;
+top:717.0pt;left:309.75pt;z-index:39'><![endif]>
+
+<input type="text" name="email" id="email" class="validate[required,custom[email]]" size=46 v:shapes="_x0000_s1152" />
+
+
+<![if !pub]></span><![endif]><![if !pub]><span style='position:absolute;
+top:823.35pt;left:291.0pt;z-index:39'><![endif]>
+
+<input type=submit value="Потвърждавам / Confirm" v:shapes="_x0000_s1155">
+
+<![if !pub]></span><![endif]><![if !pub]><span style='position:absolute;
+top:645.0pt;left:372.0pt;z-index:39'><![endif]>
+
+<input type="radio" name="gender" value ="0" checked v:shapes="_x0000_s1162"/>
+
+<![if !pub]></span><![endif]><![if !pub]><span style='position:absolute;
+top:645.0pt;left:450.0pt;z-index:39'><![endif]>
+<input type="radio" name="gender" value="1" v:shapes="_x0000_s1158"/>
+
+
+<![if !pub]></span><![endif]><!--[if gte vml 1]><v:shape id="_x0000_s1169"
+ type="#_x0000_t202" style='position:absolute;left:580.5pt;top:393pt;width:328.5pt;
+ height:60pt;z-index:42;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+ mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+ fillcolor="white [7]" stroked="f" strokecolor="black [0]" o:cliptowrap="t">
+ <v:fill color2="white [7]"/>
+ <v:stroke color2="white [7]">
+  <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <v:path insetpenok="f"/>
+ <v:textbox style='mso-column-margin:2mm' inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+</v:shape><![endif]--><![if !vml]><span style='position:absolute;z-index:42;
+left:774px;top:524px;width:438px;height:80px'>
+
+<table cellpadding=0 cellspacing=0>
+ <tr>
+  <td width=438 height=80 style='vertical-align:top'><![endif]>
+  <div v:shape="_x0000_s1169" style='padding:2.88pt 2.88pt 2.88pt 2.88pt'
+  class=shape>
+  <p class=MsoNormal><span lang=bg style='font-size:14.0pt;line-height:119%;
+  font-family:Arial;color:red;language:bg'> </span><span
+  lang=de style='font-size:14.0pt;line-height:119%;font-family:Arial;
+  color:red;language:de'></span><span lang=bg style='font-size:14.0pt;
+  line-height:119%;font-family:Arial;color:red;language:bg'></span></p>
+  </div>
+  <![if !vml]></td>
+ </tr>
+</table>
+
+
+
+</span><![endif]><!--[if gte vml 1]><v:shape id="_x0000_s1170" type="#_x0000_t202"
+ style='position:absolute;left:180pt;top:264pt;width:348pt;height:15pt;
+ z-index:43;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+ mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+ fillcolor="white [7]" stroked="f" strokecolor="black [0]" o:cliptowrap="t">
+ <v:fill color2="white [7]"/>
+ <v:stroke color2="white [7]">
+  <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <v:path insetpenok="f"/>
+ <v:textbox style='mso-column-margin:2mm' inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+</v:shape><![endif]--><![if !vml]><span style='position:absolute;z-index:43;
+left:240px;top:352px;width:464px;height:20px'>
+
+<table cellpadding=0 cellspacing=0>
+ <tr>
+  <td width=464 height=20 style='vertical-align:top'><![endif]>
+  <div v:shape="_x0000_s1170" style='padding:2.88pt 2.88pt 2.88pt 2.88pt'
+  class=shape>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;color:red;language:bg'></span><span
+  lang=en-US style='font-family:Arial;color:red;language:en-US'></span><span
+  lang=de style='font-family:Arial;color:red;language:de'></span><span
+  lang=en-US style='font-family:Arial;color:red;language:en-US'></span></p>
+  </div>
+  <![if !vml]></td>
+ </tr>
+</table>
+
+</span><![endif]><!--[if gte vml 1]><v:group id="_x0000_s1174" style='position:absolute;
+ left:581.25pt;top:243pt;width:297.21pt;height:120pt;z-index:45' coordorigin="1114615,1042606"
+ coordsize="37746,15240">
+ <v:rect id="_x0000_s1175" style='position:absolute;left:1114615;top:1050226;
+  width:11430;height:7620;mso-wrap-distance-left:2.88pt;
+  mso-wrap-distance-top:2.88pt;mso-wrap-distance-right:2.88pt;
+  mso-wrap-distance-bottom:2.88pt' o:preferrelative="t" filled="f" fillcolor="white [7]"
+  stroked="f" strokecolor="black [0]" o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:imagedata src="image376.jpg" o:title="skibg_red_450x300"/>
+  <v:shadow color="#ccc [4]"/>
+  <v:path o:extrusionok="f" insetpenok="f"/>
+  <o:lock v:ext="edit" aspectratio="t"/>
+ </v:rect><v:rect id="_x0000_s1176" style='position:absolute;left:1114615;
+  top:1042606;width:37746;height:7620;mso-wrap-distance-left:2.88pt;
+  mso-wrap-distance-top:2.88pt;mso-wrap-distance-right:2.88pt;
+  mso-wrap-distance-bottom:2.88pt' o:preferrelative="t" filled="f" fillcolor="white [7]"
+  stroked="f" strokecolor="black [0]" o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:imagedata src="image379.jpg" o:title="loga_Salomon small 1"/>
+  <v:shadow color="#ccc [4]"/>
+  <v:path o:extrusionok="f" insetpenok="f"/>
+  <o:lock v:ext="edit" aspectratio="t"/>
+ </v:rect></v:group><![endif]--><![if !vml]><span style='position:absolute;
+z-index:45;left:775px;top:324px;width:396px;height:160px'><img width=396
+height=160 src=image394.png v:shapes="_x0000_s1174 _x0000_s1175 _x0000_s1176"></span><![endif]><!--[if gte vml 1]><v:group
+ id="_x0000_s1248" style='position:absolute;left:4in;top:306pt;width:116.25pt;
+ height:14.1pt;z-index:97' coordorigin="1085705,1052338" coordsize="20574,1714">
+ <v:rect id="_x0000_s1249" style='position:absolute;left:1085705;top:1052338;
+  width:20574;height:1714;visibility:hidden;mso-wrap-edited:f;
+  mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:imagedata cropbottom="16777215f" cropright="16777215f"/>
+  <v:shadow color="#ccc [4]"/>
+  <v:path gradientshapeok="f" insetpenok="f" o:connecttype="segments"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:shape id="_x0000_s1250" type="#_x0000_t202" style='position:absolute;
+  left:1088493;top:1052338;width:17786;height:1714;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox style='mso-column-margin:5.7pt' inset="0,0,0,0">
+   <div dir=ltr>
+   <p class=MsoNormal><span lang=bg style='font-size:10.0pt;line-height:119%;
+   font-family:Arial;language:bg'>Колоездач</span><span lang=de
+   style='font-size:10.0pt;line-height:119%;font-family:Arial;language:de'> / Biker</span></p>
+   </div>
+  </v:textbox>
+ </v:shape><v:shape id="_x0000_s1251" type="#_x0000_t201" style='position:absolute;
+  left:1085705;top:1052338;width:2788;height:1186;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+  strokecolor="black [0]" o:cliptowrap="t">
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <o:lock v:ext="edit" rotation="t" text="t"/>
+ </v:shape></v:group><![endif]--><![if !vml]><span style='position:absolute;
+z-index:97;left:384px;top:408px;width:155px;height:19px'><![endif]><![if !vml]><img
+width=155 height=19 src=image529.png v:shapes="_x0000_s1248 _x0000_s1250"></span><![endif]><![if !pub]><span
+style='position:absolute;top:306.0pt;left:288.0pt;z-index:97'><![endif]>
+
+<input type="checkbox" name="event_0_biker" v:shapes="_x0000_s1251" />
+
+<![if !pub]></span><![endif]><!--[if gte vml 1]><v:group id="_x0000_s1252"
+ style='position:absolute;left:315pt;top:369pt;width:116.25pt;height:14.1pt;
+ z-index:98' coordorigin="1087298,1053432" coordsize="20574,1714">
+ <v:rect id="_x0000_s1253" style='position:absolute;left:1087298;top:1053432;
+  width:20574;height:1715;visibility:hidden;mso-wrap-edited:f;
+  mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:imagedata cropbottom="16777215f" cropright="16777215f"/>
+  <v:shadow color="#ccc [4]"/>
+  <v:path gradientshapeok="f" insetpenok="f" o:connecttype="segments"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+ </v:rect><v:shape id="_x0000_s1254" type="#_x0000_t202" style='position:absolute;
+  left:1090086;top:1053432;width:17786;height:1715;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+  fillcolor="black [0]" stroked="f" strokecolor="black [0]" strokeweight="0"
+  o:cliptowrap="t">
+  <v:fill color2="white [7]"/>
+  <v:stroke>
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <o:lock v:ext="edit" shapetype="t"/>
+  <v:textbox style='mso-column-margin:5.7pt' inset="0,0,0,0">
+   <div dir=ltr>
+   <p class=MsoNormal><span lang=bg style='font-size:10.0pt;line-height:119%;
+   font-family:Arial;language:bg'>Колоездач</span><span lang=de
+   style='font-size:10.0pt;line-height:119%;font-family:Arial;language:de'> / Biker</span></p>
+   </div>
+  </v:textbox>
+ </v:shape><v:shape id="_x0000_s1255" type="#_x0000_t201" style='position:absolute;
+  left:1087298;top:1053432;width:2788;height:1186;visibility:visible;
+  mso-wrap-edited:f;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+  mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+  strokecolor="black [0]" o:cliptowrap="t">
+  <v:stroke color2="white [7]">
+   <o:left v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:top v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:right v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:bottom v:ext="view" color="black [0]" color2="white [7]"/>
+   <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+  </v:stroke>
+  <v:shadow color="#ccc [4]"/>
+  <v:path insetpenok="f"/>
+  <o:lock v:ext="edit" rotation="t" text="t"/>
+ </v:shape></v:group><![endif]--><![if !vml]><span style='position:absolute;
+z-index:98;left:420px;top:492px;width:155px;height:19px'><![endif]><![if !vml]><img
+width=155 height=19 src=image529.png v:shapes="_x0000_s1252 _x0000_s1254"></span><![endif]><![if !pub]><span
+style='position:absolute;top:369.0pt;left:315.0pt;z-index:98'><![endif]>
+
+<input type="checkbox" name="event_3_biker"  v:shapes="_x0000_s1255" />
+
+<![if !pub]></span><![endif]><!--[if gte vml 1]><v:shape id="_x0000_s1256"
+ type="#_x0000_t202" style='position:absolute;left:276.75pt;top:304.5pt;
+ width:9pt;height:12pt;z-index:99;mso-wrap-distance-left:2.88pt;
+ mso-wrap-distance-top:2.88pt;mso-wrap-distance-right:2.88pt;
+ mso-wrap-distance-bottom:2.88pt' filled="f" fillcolor="white [7]" stroked="f"
+ strokecolor="black [0]" o:cliptowrap="t">
+ <v:fill color2="white [7]"/>
+ <v:stroke color2="white [7]">
+  <o:left v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:top v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:right v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:bottom v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <v:path insetpenok="f"/>
+ <v:textbox style='mso-column-margin:2mm' inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+</v:shape><![endif]--><![if !vml]><span style='position:absolute;z-index:99;
+left:369px;top:406px;width:12px;height:16px'>
+
+<table cellpadding=0 cellspacing=0>
+ <tr>
+  <td width=12 height=16 style='vertical-align:top'><![endif]>
+  <div v:shape="_x0000_s1256" style='padding:2.88pt 2.88pt 2.88pt 2.88pt'
+  class=shape>
+  <p class=MsoNormal><span lang=bg style='font-family:Arial;language:bg'>–</span></p>
+  </div>
+  <![if !vml]></td>
+ </tr>
+</table>
+
+</span><![endif]><!--[if gte vml 1]><v:shape id="_x0000_s1257" type="#_x0000_t202"
+ style='position:absolute;left:303pt;top:367.5pt;width:9pt;height:12pt;
+ z-index:100;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+ mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' filled="f"
+ fillcolor="white [7]" stroked="f" strokecolor="black [0]" o:cliptowrap="t">
+ <v:fill color2="white [7]"/>
+ <v:stroke color2="white [7]">
+  <o:left v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:top v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:right v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:bottom v:ext="view" color="black [0]" color2="white [7]" joinstyle="miter"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <v:path insetpenok="f"/>
+ <v:textbox style='mso-column-margin:2mm' inset="2.88pt,2.88pt,2.88pt,2.88pt"/>
+</v:shape><![endif]--><![if !vml]><span style='position:absolute;z-index:100;
+left:404px;top:490px;width:12px;height:16px'>
+
+<table cellpadding=0 cellspacing=0>
+ <tr>
+  <td width=12 height=16 style='vertical-align:top'><![endif]>
+  <div v:shape="_x0000_s1257" style='padding:2.88pt 2.88pt 2.88pt 2.88pt'
+  class=shape>
+  <p class=MsoNormal><span lang=bg style='font-family:Arial;language:bg'>–</span></p>
+  </div>
+  <![if !vml]></td>
+ </tr>
+</table>
+
+</span><![endif]><!--[if gte vml 1]><![if mso | ie]><v:shape id="_x0000_s1258"
+ type="#_x0000_t201" style='position:absolute;left:153pt;top:399pt;width:198pt;
+ height:96.71pt;z-index:101;mso-wrap-distance-left:2.88pt;
+ mso-wrap-distance-top:2.88pt;mso-wrap-distance-right:2.88pt;
+ mso-wrap-distance-bottom:2.88pt' stroked="f" strokecolor="black [0]"
+ o:cliptowrap="t">
+ <v:stroke color2="white [7]">
+  <o:left v:ext="view" color="black [0]" color2="white [7]" weight="0"/>
+  <o:top v:ext="view" color="black [0]" color2="white [7]" weight="0"/>
+  <o:right v:ext="view" color="black [0]" color2="white [7]" weight="0"/>
+  <o:bottom v:ext="view" color="black [0]" color2="white [7]" weight="0"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <o:lock v:ext="edit" rotation="t"/>
+ <v:textbox inset="0,0,0,0">
+ </v:textbox>
+</v:shape><![endif]><![endif]-->
+
+<table v:shapes="_x0000_s1258" cellpadding=0 cellspacing=0 width=264
+ height=129 border=0 dir=ltr style='width:198.0pt;height:96.71pt;border-collapse:
+ collapse;position:absolute;top:399.0pt;left:153.0pt;z-index:101'>
+ <tr>
+  <td width=68 height=39 style='width:51.0pt;height:29.4095pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-size:9.0pt;line-height:119%;font-family:Arial;language:bg'>Брой прояви</span></p>
+  </td>
+  <td width=64 height=39 style='width:48.0pt;height:29.4095pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'>Стартова такса</span></p>
+  </td>
+  <td width=64 height=39 style='width:48.0pt;height:29.4095pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'>Отстъпка</span></p>
+  </td>
+  <td width=68 height=39 style='width:51.0pt;height:29.4095pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;font-weight:bold;language:bg'>За плащане</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=68 height=23 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>1</span></p>
+  </td>
+  <td width=64 height=23 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>15лв</span></p>
+  </td>
+  <td width=64 height=23 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>0лв</span></p>
+  </td>
+  <td width=68 height=23 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;font-weight:bold;language:bg'><span dir=ltr></span>15лв</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=68 height=22 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>2</span></p>
+  </td>
+  <td width=64 height=22 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>30лв</span></p>
+  </td>
+  <td width=64 height=22 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>4лв</span></p>
+  </td>
+  <td width=68 height=22 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;font-weight:bold;language:bg'><span dir=ltr></span>26лв</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=68 height=22 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>3</span></p>
+  </td>
+  <td width=64 height=22 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>45лв</span></p>
+  </td>
+  <td width=64 height=22 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>12лв</span></p>
+  </td>
+  <td width=68 height=22 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;font-weight:bold;language:bg'><span dir=ltr></span>33лв</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=68 height=23 style='width:51.0pt;height:17.1065pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>4</span></p>
+  </td>
+  <td width=64 height=23 style='width:48.0pt;height:17.1065pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>60лв</span></p>
+  </td>
+  <td width=64 height=23 style='width:48.0pt;height:17.1065pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>24лв</span></p>
+  </td>
+  <td width=68 height=23 style='width:51.0pt;height:17.1065pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;font-weight:bold;language:bg'><span dir=ltr></span>36лв</span></p>
+  </td>
+ </tr>
+</table>
+
+<!--[if gte vml 1]><![if mso | ie]><v:shape id="_x0000_s1259" type="#_x0000_t201"
+ style='position:absolute;left:357pt;top:399pt;width:198pt;height:96.71pt;
+ z-index:102;mso-wrap-distance-left:2.88pt;mso-wrap-distance-top:2.88pt;
+ mso-wrap-distance-right:2.88pt;mso-wrap-distance-bottom:2.88pt' stroked="f"
+ strokecolor="black [0]" o:cliptowrap="t">
+ <v:stroke color2="white [7]">
+  <o:left v:ext="view" color="black [0]" color2="white [7]" weight="0"/>
+  <o:top v:ext="view" color="black [0]" color2="white [7]" weight="0"/>
+  <o:right v:ext="view" color="black [0]" color2="white [7]" weight="0"/>
+  <o:bottom v:ext="view" color="black [0]" color2="white [7]" weight="0"/>
+  <o:column v:ext="view" color="black [0]" color2="white [7]"/>
+ </v:stroke>
+ <v:shadow color="#ccc [4]"/>
+ <o:lock v:ext="edit" rotation="t"/>
+ <v:textbox inset="0,0,0,0">
+ </v:textbox>
+</v:shape><![endif]><![endif]-->
+
+<table v:shapes="_x0000_s1259" cellpadding=0 cellspacing=0 width=264
+ height=129 border=0 dir=ltr style='width:198.0pt;height:96.71pt;border-collapse:
+ collapse;position:absolute;top:399.0pt;left:357.0pt;z-index:102'>
+ <tr>
+  <td width=68 height=39 style='width:51.0pt;height:29.4095pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=de
+  style='font-size:9.0pt;line-height:119%;font-family:Arial;language:de'>Events entered</span></p>
+  </td>
+  <td width=64 height=39 style='width:48.0pt;height:29.4095pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=de
+  style='language:de'>Starting fee</span></p>
+  </td>
+  <td width=64 height=39 style='width:48.0pt;height:29.4095pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=de
+  style='language:de'>Discount</span></p>
+  </td>
+  <td width=68 height=39 style='width:51.0pt;height:29.4095pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=de
+  style='font-family:Arial;font-weight:bold;language:de'>Due*</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=68 height=23 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>1</span></p>
+  </td>
+  <td width=64 height=23 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>15</span><span
+  lang=de style='language:de'>BGN</span></p>
+  </td>
+  <td width=64 height=23 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>0</span><span
+  lang=de style='language:de'>BGN</span></p>
+  </td>
+  <td width=68 height=23 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;font-weight:bold;language:bg'><span dir=ltr></span>15</span><span
+  lang=de style='font-family:Arial;font-weight:bold;language:de'>BGN</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=68 height=22 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>2</span></p>
+  </td>
+  <td width=64 height=22 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>30</span><span
+  lang=de style='language:de'>BGN</span></p>
+  </td>
+  <td width=64 height=22 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>4</span><span
+  lang=de style='language:de'>BGN</span></p>
+  </td>
+  <td width=68 height=22 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;font-weight:bold;language:bg'><span dir=ltr></span>26</span><span
+  lang=de style='font-family:Arial;font-weight:bold;language:de'>BGN</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=68 height=22 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>3</span></p>
+  </td>
+  <td width=64 height=22 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>45</span><span
+  lang=de style='language:de'>BGN</span></p>
+  </td>
+  <td width=64 height=22 style='width:48.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>12</span><span
+  lang=de style='language:de'>BGN</span></p>
+  </td>
+  <td width=68 height=22 style='width:51.0pt;height:16.7314pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;font-weight:bold;language:bg'><span dir=ltr></span>33</span><span
+  lang=de style='font-family:Arial;font-weight:bold;language:de'>BGN</span></p>
+  </td>
+ </tr>
+ <tr>
+  <td width=68 height=23 style='width:51.0pt;height:17.1065pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>4</span></p>
+  </td>
+  <td width=64 height=23 style='width:48.0pt;height:17.1065pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>60</span><span
+  lang=de style='language:de'>BGN</span></p>
+  </td>
+  <td width=64 height=23 style='width:48.0pt;height:17.1065pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;language:bg'><span dir=ltr></span>24</span><span
+  lang=de style='language:de'>BGN</span></p>
+  </td>
+  <td width=68 height=23 style='width:51.0pt;height:17.1065pt;padding-left:
+  2.88pt;padding-right:2.88pt;padding-top:2.88pt;padding-bottom:2.88pt;
+  border-left:solid black .75pt;border-top:solid black .75pt;border-right:solid black .75pt;
+  border-bottom:solid black .75pt'>
+  <p class=MsoNormal style='text-align:center;text-align:center'><span lang=bg
+  style='font-family:Arial;font-weight:bold;language:bg'><span dir=ltr></span>36</span><span
+  lang=de style='font-family:Arial;font-weight:bold;language:de'>BGN</span></p>
+  </td>
+ </tr>
+</table>
+
+<![if !pub]>
+</form>
+
+<![endif]>
+</div>
+
+</body>
+
+</html>
