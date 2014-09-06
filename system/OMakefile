@@ -1,0 +1,118 @@
+
+vs_common_tools_registry(v,s,msg) =
+        v0=SOFTWARE\Microsoft\VisualStudio\SxS $(s)
+        v1=$(concat \\,$(v0))
+        v2=SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS $(s)
+        v3=$(concat \\,$(v2))
+        dir = $(get-registry HKEY_LOCAL_MACHINE,$(v1),$(v), false )
+    	if $(dir)
+    		value $(dir)	
+    	else
+            dir = $(get-registry HKEY_CURRENT_USER,$(v1),$(v), false )
+            if $(dir)
+                value $(dir)
+            else
+                dir = $(get-registry HKEY_LOCAL_MACHINE,$(v3),$(v),false ) 
+                if $(dir)
+                    value $(dir)
+                else
+                    dir = $(get-registry HKEY_CURRENT_USER,$(v3),$(v),false ) 
+                    if $(dir)
+                        value $(dir)
+                    else
+                        raise $(msg)
+
+vs_query_registry(key,value,msg) =
+        dir = $(get-registry HKEY_LOCAL_MACHINE,$(key),$(value), false )
+        if $(dir)
+            value $(dir)    
+        else
+            dir = $(get-registry HKEY_CURRENT_USER,$(key),$(value), false )
+            if $(dir)
+                value $(dir)
+            else
+                raise $(msg)
+
+vs_query_registry2(key1,key2,value,msg) =
+        dir = $(get-registry HKEY_LOCAL_MACHINE,$(key1),$(value), false )
+        if $(dir)
+            value $(dir)    
+        else
+            dir = $(get-registry HKEY_CURRENT_USER,$(key1),$(value), false )
+            if $(dir)
+                value $(dir)
+            else
+                dir = $(get-registry HKEY_LOCAL_MACHINE,$(key2),$(value),false ) 
+                if $(dir)
+                    value $(dir)
+                else
+                    dir = $(get-registry HKEY_CURRENT_USER,$(key2),$(value),false ) 
+                    if $(dir)
+                        value $(dir)
+                    else
+                        raise $(msg)                                                
+
+vs_common_tools(v,msg) = 
+    value $(vs_common_tools_registry $(v),VS7,$(msg))Common7\Tools
+
+vs12_common_tools() = 
+    vs_common_tools(12.0,"Cannot determine the location of the VS Common Tools folder.")
+
+vs_vc7_registry(v,msg) = 
+    return $(vs_common_tools_registry $(v),VC7,$(msg))
+
+vs_vs7_registry(v,msg) = 
+    return $(vs_common_tools_registry $(v),VS7,$(msg))    
+
+vs12_framework_dir_32() =
+    vs_vc7_registry(FrameworkDir32,"Cannot determine the location of the .NET Framework 32bit installation.")
+
+vs12_framework_dir_64() =
+    vs_vc7_registry(FrameworkDir64,"Cannot determine the location of the .NET Framework 64bit installation.")    
+
+vs12_framework_ver_32() =
+    vs_vc7_registry(FrameworkVer32,"Cannot determine the version of the .NET Framework 32bit installation.")
+
+vs12_framework_ver_64() =
+    vs_vc7_registry(FrameworkVer64,"Cannot determine the version of the .NET Framework 64bit installation.")
+
+vs12_vs_install_dir() =    
+    vs_vs7_registry(12.0,"Cannot determine the location of the VS installation.")
+
+vs12_vc_install_dir() =    
+    vs_vc7_registry(12.0,"Cannot determine the location of the VC installation.")
+
+vs12_windows_sdk_executable_32() =    
+    vs_query_registry2(SOFTWARE\Microsoft\Microsoft SDKs\Windows\v8.1A\WinSDK-NetFx40Tools,SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v8.1A\WinSDK-NetFx40Tools,InstallationFolder, "Cannot determine windows exectuable sdk dir")
+
+vs12_windows_sdk_executable_64() =    
+    vs_query_registry2(SOFTWARE\Microsoft\Microsoft SDKs\Windows\v8.1A\WinSDK-NetFx40Tools-x64,SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v8.1A\WinSDK-NetFx40Tools-x64,InstallationFolder,"Cannot determine windows exectuable sdk dir")    
+
+vs12_windows_sdk_dir() =    
+    vs_query_registry2(SOFTWARE\Microsoft\Microsoft SDKs\Windows\v8.1,SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v8.1,InstallationFolder,"Cannot determine the location of the windows sdk")    
+
+vs12_fsharp_install_dir() =    
+    vs_query_registry2(SOFTWARE\Microsoft\VisualStudio\12.0\Setup\F\#,SOFTWARE\Wow6432Node\Microsoft\VisualStudio\12.0\Setup\F\#,ProductDir,"Cannot determine the location of F# product dir")        
+
+
+println($(vs12_framework_dir_64))
+println($(vs12_framework_dir_32))
+println($(vs12_framework_ver_64))
+println($(vs12_framework_ver_32))
+println($(vs12_vs_install_dir))
+println($(vs12_vc_install_dir))
+
+println($(vs12_windows_sdk_executable_32))
+println($(vs12_windows_sdk_executable_64))
+println($(vs12_windows_sdk_dir))
+
+
+
+
+
+
+
+
+
+
+
