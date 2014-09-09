@@ -1,4 +1,3 @@
-
 vs_common_tools_registry(v,s,msg) =
         v0=SOFTWARE\Microsoft\VisualStudio\SxS $(s)
         v1=$(concat \\,$(v0))
@@ -94,17 +93,115 @@ vs12_windows_sdk_dir() =
 vs12_fsharp_install_dir() =    
     vs_query_registry2(SOFTWARE\Microsoft\VisualStudio\12.0\Setup\F\#,SOFTWARE\Wow6432Node\Microsoft\VisualStudio\12.0\Setup\F\#,ProductDir,"Cannot determine the location of F# product dir")        
 
+program_files_dir()=    
+		vs_query_registry(SOFTWARE\Microsoft\Windows\CurrentVersion,ProgramFilesDir,"Cannot determine the location ofr ProgramFiles")
 
-println($(vs12_framework_dir_64))
-println($(vs12_framework_dir_32))
-println($(vs12_framework_ver_64))
-println($(vs12_framework_ver_32))
-println($(vs12_vs_install_dir))
-println($(vs12_vc_install_dir))
+program_files_x86_dir()=    
+		vs_query_registry(SOFTWARE\Microsoft\Windows\CurrentVersion,ProgramFilesDir \(x86\),"Cannot determine the location ofr ProgramFiles (x86)")		
 
-println($(vs12_windows_sdk_executable_32))
-println($(vs12_windows_sdk_executable_64))
-println($(vs12_windows_sdk_dir))
+vs12_extension_dir() =   
+	dir=$(string $(program_files_dir)\Microsoft SDKs\Windows\v8.1\ExtensionSDKs\Microsoft.VCLibs\12.0\SDKManifest.xml)
+	if $(file-exists $(dir))
+		value $(program_files_dir)\Microsoft SDKs\Windows\v8.1\ExtensionSDKs
+	else
+		dir = $(string $(program_files_x86_dir)\Microsoft SDKs\Windows\v8.1\ExtensionSDKs\Microsoft.VCLibs\12.0\SDKManifest.xml)
+		if $(file-exists $(dir))
+			value $(program_files_x86_dir)\Microsoft SDKs\Windows\v8.1\ExtensionSDKs
+		else
+			raise "Cannot determine location of extension dir"
+
+toolchain.=
+	class toolchain
+	includes[]=
+	lib[]=
+	libpath[]=
+	compiler=
+	linker=
+	librarian=
+	ar(library_name)=
+	librarian_default_options=		
+	compiler_default_options=	
+
+vs_12_x86_toolchain.=
+	extends $(toolchain)
+	compiler=$(vs12_vc_install_dir)bin\cl.exe
+	linker=$(vs12_vc_install_dir)bin\link.exe
+	librarian=$(vs12_vc_install_dir)bin\lib.exe
+
+	includes=$(vs12_windows_sdk_dir)include\shared;$(vs12_windows_sdk_dir)include\um;$(vs12_windows_sdk_dir)include\winrt;$(vs12_vc_install_dir)include
+	lib=$(vs12_windows_sdk_dir)lib\winv6.3\um\x86;$(vs12_vc_install_dir)lib
+	libpath=$(vs12_windows_sdk_dir)References\CommonConfiguration\Neutral;$(vs12_extension_dir)\Microsoft.VCLibs\12.0\References\CommonConfiguration\neutral
+	ar(library_name)=
+		return $(this).librarian out:$(library_name)
+	librarian_default_options=/MACHINE:X86				
+	compiler_default_options=	
+
+quote-array(arr)=
+	foreach(x,$(arr))
+		value $(quote $x)
+
+vs_12_x64_toolchain.=
+	extends $(toolchain)
+	private.compiler=$(file $(string $(vs12_vc_install_dir)bin\x86_amd64\cl.exe))
+	private.linker=$(file $(string $(vs12_vc_install_dir)bin\x86_amd64\link.exe))
+	private.librarian=$(file $(string $(vs12_vc_install_dir)bin\x86_amd64\lib.exe))
+
+	includes[]=
+				$(vs12_windows_sdk_dir)include\shared
+				$(vs12_windows_sdk_dir)include\um
+				$(vs12_windows_sdk_dir)include\winrt
+				$(vs12_vc_install_dir)include
+	lib[]=
+				$(vs12_windows_sdk_dir)lib\winv6.3\um\x64
+				$(vs12_vc_install_dir)lib\amd64
+				$(vs12_windows_sdk_dir)References\CommonConfiguration\Neutral
+				$(vs12_extension_dir)\Microsoft.VCLibs\12.0\References\CommonConfiguration\neutral
+
+	prefixed_includes(inc)=
+	 	y = $(quote-array $(inc))
+	 	value $(addprefix /I,$(y))
+
+	prefixed_lib(inc)=
+	 	y = $(inc)
+	 	value $(addprefix /LIBPATH:,$(y))	 	
+
+	compile_object_file(object_file, cpp_file, options)=
+		value $(private.compiler) /nologo $(options) $(this.prefixed_includes $(includes)) -c /Fo$(absname $(file $(object_file))) $(absname $(file $(cpp_file)))
+
+	compile_static_library(name, object_files, options)=
+		value $(private.librarian) /nologo $(options) /out:$(absname $(file $(name))) /MACHINE:X64 $(this.prefixed_lib $(lib)) $(object_files) 
+
+	link_executable(name, object_files, options)=
+		value $(private.linker) /nologo $(options) /out:$(absname $(file $(name))) /MACHINE:X64 $(this.prefixed_lib $(lib)) $(object_files)	
+
+static_cpp_library(tc,options,name,files)=
+	private.object_files=$(addsuffix .obj,$(files))
+	private.library=$(file $(name).lib)
+
+	$(library):$(object_files)
+		$(tc.compile_static_library $@, $(object_files), $(options))
+
+	return $(library)
+
+executable(tc,options,name,files)=
+	private.object_files=$(addsuffix .obj,$(files))
+	private.executable=$(file $(name).exe)
+
+	$(executable):$(object_files)
+		$(tc.link_executable $@, $(object_files), $(options))
+
+	return $(executable)
+
+public.toolchain=$(vs_12_x64_toolchain)
+
+%.obj:%.cpp
+	$(toolchain.compile_object_file $@,$<,"")
+
+#.DEFAULT : $(static_cpp_library $(toolchain),"",lib,main)
+.DEFAULT : $(executable $(toolchain),"uuid.lib",lib,main)
+
+
+
 
 
 
