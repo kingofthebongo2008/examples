@@ -111,16 +111,7 @@ vs12_extension_dir() =
 			raise "Cannot determine location of extension dir"
 
 toolchain.=
-	class toolchain
-	includes[]=
-	lib[]=
-	libpath[]=
-	compiler=
-	linker=
-	librarian=
-	ar(library_name)=
-	librarian_default_options=		
-	compiler_default_options=	
+
 
 vs_12_x86_toolchain.=
 	extends $(toolchain)
@@ -163,7 +154,7 @@ vs_12_x64_toolchain.=
 
 	prefixed_lib(inc)=
 	 	y = $(inc)
-	 	value $(addprefix /LIBPATH:,$(y))	 	
+	 	value $(addprefix /LIBPATH:,$(y))
 
 	compile_object_file(object_file, cpp_file, options)=
 		value $(private.compiler) /nologo $(options) $(this.prefixed_includes $(includes)) -c /Fo$(absname $(file $(object_file))) $(absname $(file $(cpp_file)))
@@ -172,9 +163,44 @@ vs_12_x64_toolchain.=
 		value $(private.librarian) /nologo $(options) /out:$(absname $(file $(name))) /MACHINE:X64 $(this.prefixed_lib $(lib)) $(object_files) 
 
 	link_executable(name, object_files, options)=
-		value $(private.linker) /nologo $(options) /out:$(absname $(file $(name))) /MACHINE:X64 $(this.prefixed_lib $(lib)) $(object_files)	
+		value $(private.linker) /nologo /nodefaultlib $(options) /out:$(absname $(file $(name))) /MACHINE:X64 $(this.prefixed_lib $(lib)) $(object_files)	
 
-static_cpp_library(tc,options,name,files)=
+	link_dll(name, object_files, options)=
+		value $(private.linker) /nologo /DLL $(options) /out:$(absname $(file $(name))) /MACHINE:X64 $(this.prefixed_lib $(lib)) $(object_files)
+
+	to_string()=
+		value $(string vs12_x64) 
+
+	platform()=
+				value $(string x64)
+
+configuration.=
+
+debug.=
+	extends $(configuration)
+
+	defines[]=
+				_DEBUG
+				WIN32
+				_UNICODE
+				UNICODE
+	libs[]=
+			msvcrtd.lib
+			msvcprtd.lib
+			kernel32.lib
+
+	compiler_options[]=
+				/Od
+				/W4
+				/EHsc
+				/MDd
+
+	linker_options[]=
+
+	to_string()=
+				value $(string debug)
+
+static_library(tc,options,name,files)=
 	private.object_files=$(addsuffix .obj,$(files))
 	private.library=$(file $(name).lib)
 
@@ -183,22 +209,41 @@ static_cpp_library(tc,options,name,files)=
 
 	return $(library)
 
-executable(tc,options,name,files)=
-	private.object_files=$(addsuffix .obj,$(files))
-	private.executable=$(file $(name).exe)
+executable(tc, config, name, files)=
+	private.prefix=$(TMP)/$(tc.to_string)/$(config.to_string)
+	private.sources=$(addsuffix .cpp, $(files))
+	private.object_files=$(addprefix $(private.prefix)/, $(addsuffix .obj,$(files)))
+	private.executable=$(BIN)/$(tc.platform)/$(name).exe
 
-	$(executable):$(object_files)
-		$(tc.link_executable $@, $(object_files), $(options))
+	foreach(f, $(files))
+		$(private.prefix)/$(f).obj : $(f).cpp
+			mkdir -p $(dirname $@)
+			$(tc.compile_object_file $@,$<,$(config.compiler_options) $(addprefix /D,$(config.defines)))		
+
+	$(executable):$(private.object_files)
+		$(tc.link_executable $@, $(object_files), $(config.linker_options) $(config.libs))
 
 	return $(executable)
 
+dynamic_library(tc,options,name,files)=
+	private.object_files=$(addprefix $(TMP)/, $(addsuffix .obj,$(files)))
+	private.library=$(BIN)/$(name).dll
+
+	$(library):$(object_files)
+		$(tc.link_dll $@, $(object_files), $(options))
+
+	return $(library)	
+
 public.toolchain=$(vs_12_x64_toolchain)
 
-%.obj:%.cpp
-	$(toolchain.compile_object_file $@,$<,"")
 
-#.DEFAULT : $(static_cpp_library $(toolchain),"",lib,main)
-.DEFAULT : $(executable $(toolchain),"uuid.lib",lib,main)
+
+files[]=
+		main
+		modules/test
+
+
+.DEFAULT : $(executable $(toolchain),$(debug),lib,$(files))
 
 
 
