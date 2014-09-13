@@ -1,178 +1,4 @@
-vs_common_tools_registry(v,s,msg) =
-        v0=SOFTWARE\Microsoft\VisualStudio\SxS $(s)
-        v1=$(concat \\,$(v0))
-        v2=SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS $(s)
-        v3=$(concat \\,$(v2))
-        dir = $(get-registry HKEY_LOCAL_MACHINE,$(v1),$(v), false )
-    	if $(dir)
-    		value $(dir)	
-    	else
-            dir = $(get-registry HKEY_CURRENT_USER,$(v1),$(v), false )
-            if $(dir)
-                value $(dir)
-            else
-                dir = $(get-registry HKEY_LOCAL_MACHINE,$(v3),$(v),false ) 
-                if $(dir)
-                    value $(dir)
-                else
-                    dir = $(get-registry HKEY_CURRENT_USER,$(v3),$(v),false ) 
-                    if $(dir)
-                        value $(dir)
-                    else
-                        raise $(msg)
-
-vs_query_registry(key,value,msg) =
-        dir = $(get-registry HKEY_LOCAL_MACHINE,$(key),$(value), false )
-        if $(dir)
-            value $(dir)    
-        else
-            dir = $(get-registry HKEY_CURRENT_USER,$(key),$(value), false )
-            if $(dir)
-                value $(dir)
-            else
-                raise $(msg)
-
-vs_query_registry2(key1,key2,value,msg) =
-        dir = $(get-registry HKEY_LOCAL_MACHINE,$(key1),$(value), false )
-        if $(dir)
-            value $(dir)    
-        else
-            dir = $(get-registry HKEY_CURRENT_USER,$(key1),$(value), false )
-            if $(dir)
-                value $(dir)
-            else
-                dir = $(get-registry HKEY_LOCAL_MACHINE,$(key2),$(value),false ) 
-                if $(dir)
-                    value $(dir)
-                else
-                    dir = $(get-registry HKEY_CURRENT_USER,$(key2),$(value),false ) 
-                    if $(dir)
-                        value $(dir)
-                    else
-                        raise $(msg)                                                
-
-vs_common_tools(v,msg) = 
-    value $(vs_common_tools_registry $(v),VS7,$(msg))Common7\Tools
-
-vs12_common_tools() = 
-    vs_common_tools(12.0,"Cannot determine the location of the VS Common Tools folder.")
-
-vs_vc7_registry(v,msg) = 
-    return $(vs_common_tools_registry $(v),VC7,$(msg))
-
-vs_vs7_registry(v,msg) = 
-    return $(vs_common_tools_registry $(v),VS7,$(msg))    
-
-vs12_framework_dir_32() =
-    vs_vc7_registry(FrameworkDir32,"Cannot determine the location of the .NET Framework 32bit installation.")
-
-vs12_framework_dir_64() =
-    vs_vc7_registry(FrameworkDir64,"Cannot determine the location of the .NET Framework 64bit installation.")    
-
-vs12_framework_ver_32() =
-    vs_vc7_registry(FrameworkVer32,"Cannot determine the version of the .NET Framework 32bit installation.")
-
-vs12_framework_ver_64() =
-    vs_vc7_registry(FrameworkVer64,"Cannot determine the version of the .NET Framework 64bit installation.")
-
-vs12_vs_install_dir() =    
-    vs_vs7_registry(12.0,"Cannot determine the location of the VS installation.")
-
-vs12_vc_install_dir() =    
-    vs_vc7_registry(12.0,"Cannot determine the location of the VC installation.")
-
-vs12_windows_sdk_executable_32() =    
-    vs_query_registry2(SOFTWARE\Microsoft\Microsoft SDKs\Windows\v8.1A\WinSDK-NetFx40Tools,SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v8.1A\WinSDK-NetFx40Tools,InstallationFolder, "Cannot determine windows exectuable sdk dir")
-
-vs12_windows_sdk_executable_64() =    
-    vs_query_registry2(SOFTWARE\Microsoft\Microsoft SDKs\Windows\v8.1A\WinSDK-NetFx40Tools-x64,SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v8.1A\WinSDK-NetFx40Tools-x64,InstallationFolder,"Cannot determine windows exectuable sdk dir")    
-
-vs12_windows_sdk_dir() =    
-    vs_query_registry2(SOFTWARE\Microsoft\Microsoft SDKs\Windows\v8.1,SOFTWARE\Wow6432Node\Microsoft\Microsoft SDKs\Windows\v8.1,InstallationFolder,"Cannot determine the location of the windows sdk")    
-
-vs12_fsharp_install_dir() =    
-    vs_query_registry2(SOFTWARE\Microsoft\VisualStudio\12.0\Setup\F\#,SOFTWARE\Wow6432Node\Microsoft\VisualStudio\12.0\Setup\F\#,ProductDir,"Cannot determine the location of F# product dir")        
-
-program_files_dir()=    
-		vs_query_registry(SOFTWARE\Microsoft\Windows\CurrentVersion,ProgramFilesDir,"Cannot determine the location ofr ProgramFiles")
-
-program_files_x86_dir()=    
-		vs_query_registry(SOFTWARE\Microsoft\Windows\CurrentVersion,ProgramFilesDir \(x86\),"Cannot determine the location ofr ProgramFiles (x86)")		
-
-vs12_extension_dir() =   
-	dir=$(string $(program_files_dir)\Microsoft SDKs\Windows\v8.1\ExtensionSDKs\Microsoft.VCLibs\12.0\SDKManifest.xml)
-	if $(file-exists $(dir))
-		value $(program_files_dir)\Microsoft SDKs\Windows\v8.1\ExtensionSDKs
-	else
-		dir = $(string $(program_files_x86_dir)\Microsoft SDKs\Windows\v8.1\ExtensionSDKs\Microsoft.VCLibs\12.0\SDKManifest.xml)
-		if $(file-exists $(dir))
-			value $(program_files_x86_dir)\Microsoft SDKs\Windows\v8.1\ExtensionSDKs
-		else
-			raise "Cannot determine location of extension dir"
-
-toolchain.=
-
-
-vs_12_x86_toolchain.=
-	extends $(toolchain)
-	compiler=$(vs12_vc_install_dir)bin\cl.exe
-	linker=$(vs12_vc_install_dir)bin\link.exe
-	librarian=$(vs12_vc_install_dir)bin\lib.exe
-
-	includes=$(vs12_windows_sdk_dir)include\shared;$(vs12_windows_sdk_dir)include\um;$(vs12_windows_sdk_dir)include\winrt;$(vs12_vc_install_dir)include
-	lib=$(vs12_windows_sdk_dir)lib\winv6.3\um\x86;$(vs12_vc_install_dir)lib
-	libpath=$(vs12_windows_sdk_dir)References\CommonConfiguration\Neutral;$(vs12_extension_dir)\Microsoft.VCLibs\12.0\References\CommonConfiguration\neutral
-	ar(library_name)=
-		return $(this).librarian out:$(library_name)
-	librarian_default_options=/MACHINE:X86				
-	compiler_default_options=	
-
-quote-array(arr)=
-	foreach(x,$(arr))
-		value $(quote $x)
-
-vs_12_x64_toolchain.=
-	extends $(toolchain)
-	private.compiler=$(file $(string $(vs12_vc_install_dir)bin\x86_amd64\cl.exe))
-	private.linker=$(file $(string $(vs12_vc_install_dir)bin\x86_amd64\link.exe))
-	private.librarian=$(file $(string $(vs12_vc_install_dir)bin\x86_amd64\lib.exe))
-
-	includes[]=
-				$(vs12_windows_sdk_dir)include\shared
-				$(vs12_windows_sdk_dir)include\um
-				$(vs12_windows_sdk_dir)include\winrt
-				$(vs12_vc_install_dir)include
-	lib[]=
-				$(vs12_windows_sdk_dir)lib\winv6.3\um\x64
-				$(vs12_vc_install_dir)lib\amd64
-				$(vs12_windows_sdk_dir)References\CommonConfiguration\Neutral
-				$(vs12_extension_dir)\Microsoft.VCLibs\12.0\References\CommonConfiguration\neutral
-
-	prefixed_includes(inc)=
-	 	y = $(quote-array $(inc))
-	 	value $(addprefix /I,$(y))
-
-	prefixed_lib(inc)=
-	 	y = $(inc)
-	 	value $(addprefix /LIBPATH:,$(y))
-
-	compile_object_file(object_file, cpp_file, options)=
-		value $(private.compiler) /nologo $(options) $(this.prefixed_includes $(includes)) -c /Fo$(absname $(file $(object_file))) $(absname $(file $(cpp_file)))
-
-	compile_static_library(name, object_files, options)=
-		value $(private.librarian) /nologo $(options) /out:$(absname $(file $(name))) /MACHINE:X64 $(this.prefixed_lib $(lib)) $(object_files) 
-
-	link_executable(name, object_files, options)=
-		value $(private.linker) /nologo /nodefaultlib $(options) /out:$(absname $(file $(name))) /MACHINE:X64 $(this.prefixed_lib $(lib)) $(object_files)	
-
-	link_dll(name, object_files, options)=
-		value $(private.linker) /nologo /DLL $(options) /out:$(absname $(file $(name))) /MACHINE:X64 $(this.prefixed_lib $(lib)) $(object_files)
-
-	to_string()=
-		value $(string vs12_x64) 
-
-	platform()=
-				value $(string x64)
+open build/vs12
 
 configuration.=
 
@@ -200,6 +26,7 @@ debug.=
 	to_string()=
 				value $(string debug)
 
+#static library prototype
 static_library(tc,options,name,files)=
 	private.object_files=$(addsuffix .obj,$(files))
 	private.library=$(file $(name).lib)
@@ -209,43 +36,118 @@ static_library(tc,options,name,files)=
 
 	return $(library)
 
-executable(tc, config, name, files)=
+
+executable(tc, config, name, files, compiler_options, linker_options)=
 	private.prefix=$(TMP)/$(tc.to_string)/$(config.to_string)
 	private.sources=$(addsuffix .cpp, $(files))
-	private.object_files=$(addprefix $(private.prefix)/, $(addsuffix .obj,$(files)))
-	private.executable=$(BIN)/$(tc.platform)/$(name).exe
+	private.object_files=$(addprefix $(private.prefix)/, $(addsuffix .obj,$(fullname $(files))))
+	private.outfile=$(BIN)/$(tc.platform)/$(name)
+	private.executable=$(outfile).exe
+	private.ilk=$(outfile).ilk
+	private.pdb=$(outfile).pdb
 
 	foreach(f, $(files))
-		$(private.prefix)/$(f).obj : $(f).cpp
+		$(absname $(private.prefix)/$(fullname $(f).obj)): $(f).cpp
 			mkdir -p $(dirname $@)
-			$(tc.compile_object_file $@,$<,$(config.compiler_options) $(addprefix /D,$(config.defines)))		
+			$(tc.compile_object_file $@,$<,$(config.compiler_options) $(compiler_options) $(addprefix /D,$(config.defines)))		
 
-	$(executable):$(private.object_files)
-		$(tc.link_executable $@, $(object_files), $(config.linker_options) $(config.libs))
+
+	$(executable):$(private.object_files) :effects: $(private.ilk) $(private.pdb)
+		$(tc.link_executable $@, $(object_files), $(config.linker_options) $(linker_options) $(config.libs))
+
+	clean:
+		rm -rf $(executable) $(private.ilk) $(private.pdb) $(private.object_files)
 
 	return $(executable)
 
-dynamic_library(tc,options,name,files)=
-	private.object_files=$(addprefix $(TMP)/, $(addsuffix .obj,$(files)))
-	private.library=$(BIN)/$(name).dll
+executable_effects(tc, config, name, files, compiler_options, linker_options)=
+	private.prefix=$(TMP)/$(tc.to_string)/$(config.to_string)
+	private.sources=$(addsuffix .cpp, $(files))
+	private.object_files=$(addprefix $(private.prefix)/, $(addsuffix .obj,$(fullname $(files))))
+	private.outfile=$(BIN)/$(tc.platform)/$(name)
+	private.executable=$(outfile).exe
+	private.ilk=$(outfile).ilk
+	private.pdb=$(outfile).pdb
 
-	$(library):$(object_files)
-		$(tc.link_dll $@, $(object_files), $(options))
+	result=
 
-	return $(library)	
+	foreach(f, $(files))
+		result+=$(absname $(private.prefix)/$(fullname $(f).obj))
+		export
 
+	result+= $(executable) $(private.ilk) $(private.pdb)
+
+	value $(result)
+
+dynamic_library_effects(tc, config, name, files, compiler_options, linker_options)=
+	private.prefix=$(TMP)/$(tc.to_string)/$(config.to_string)
+	private.sources=$(addsuffix .cpp, $(files))
+	private.object_files=$(addprefix $(private.prefix)/, $(addsuffix .obj,$(fullname $(files))))
+	private.outfile=$(BIN)/$(tc.platform)/$(name)
+	private.executable=$(outfile).dll
+	private.ilk=$(outfile).ilk
+	private.pdb=$(outfile).pdb
+
+	result=
+
+	foreach(f, $(files))
+		result+=$(absname $(private.prefix)/$(fullname $(f).obj))
+		export
+
+	result+= $(executable) $(private.ilk) $(private.pdb)
+
+	value $(result)	
+
+dynamic_library(tc, config, name, files, compiler_options, linker_options)=
+	private.prefix=$(TMP)/$(tc.to_string)/$(config.to_string)
+	private.sources=$(addsuffix .cpp, $(files))
+	private.object_files=$(addprefix $(private.prefix)/, $(addsuffix .obj,$(fullname $(files))))
+	private.outfile=$(BIN)/$(tc.platform)/$(name)
+	private.executable=$(outfile).dll
+	private.ilk=$(outfile).ilk
+	private.pdb=$(outfile).pdb
+
+	foreach(f, $(files))
+		$(absname $(private.prefix)/$(fullname $(f).obj)): $(f).cpp
+			mkdir -p $(dirname $@)
+			$(tc.compile_object_file $@,$<,$(config.compiler_options) $(compiler_options) $(addprefix /D,$(config.defines)))		
+
+
+	$(executable):$(private.object_files) :effects: $(private.ilk) $(private.pdb)
+		$(tc.link_dll $@, $(object_files), $(config.linker_options) $(linker_options) $(config.libs))
+
+	clean:
+		rm -rf $(executable) $(private.ilk) $(private.pdb) $(private.object_files)
+
+	return $(executable)
+
+
+#default toolchain
 public.toolchain=$(vs_12_x64_toolchain)
 
+#per project setup
+public.compiler_options=/I$(dir ./include)
+public.linker_options=
+public.librarian_options=
 
+files[]= 
+		$(file $(string ./main))
 
-files[]=
-		main
-		modules/test
+.PHONY: all debug clean
 
+.DEFAULT: all
 
-.DEFAULT : $(executable $(toolchain),$(debug),lib,$(files))
+app        	=$(executable $(toolchain), $(debug), lib, $(files), $(compiler_options), $(linker_options))
+app_effects	=$(executable_effects $(toolchain), $(debug), lib, $(files), $(compiler_options), $(linker_options))
 
+debug: $(app)
 
+clean: 
+	rm -rf $(app_effects)
+
+all: debug
+
+.SUBDIRS: modules
 
 
 
