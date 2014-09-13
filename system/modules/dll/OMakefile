@@ -1,0 +1,19 @@
+.PHONY: all debug clean
+
+.DEFAULT: all
+
+public.compiler_options +=/I$(dir ./include)
+
+files=$(removesuffix .cpp,$(find . -name *.cpp))
+
+app 		= $(dynamic_library $(toolchain),$(debug), lib1, $(files), $(compiler_options), $(linker_options))
+app_effects 	= $(dynamic_library_effects $(toolchain),$(debug), lib1, $(files), $(compiler_options), $(linker_options))
+
+clean: 
+	rm -rf $(app_effects)
+
+debug: $(app)
+
+	
+all: debug
+
