@@ -1,153 +1,60 @@
-open build/vs12
+open build/cpp
 
-configuration.=
+vts_system.=
+	extends $(dll)
 
-debug.=
-	extends $(configuration)
+	imports()=
+		value /DMEM_STREAMFLOW_DLL_IMPORT
 
-	defines[]=
-				_DEBUG
-				WIN32
-				_UNICODE
-				UNICODE
-	libs[]=
-			msvcrtd.lib
-			msvcprtd.lib
-			kernel32.lib
-
-	compiler_options[]=
-				/Od
-				/W4
-				/EHsc
-				/MDd
-
-	linker_options[]=
-
-	to_string()=
-				value $(string debug)
-
-#static library prototype
-static_library(tc,options,name,files)=
-	private.object_files=$(addsuffix .obj,$(files))
-	private.library=$(file $(name).lib)
-
-	$(library):$(object_files)
-		$(tc.compile_static_library $@, $(object_files), $(options))
-
-	return $(library)
+	exports()=
+		value /DMEM_STREAMFLOW_DLL_EXPORT
 
 
-executable(tc, config, name, files, compiler_options, linker_options)=
-	private.prefix=$(TMP)/$(tc.to_string)/$(config.to_string)
-	private.sources=$(addsuffix .cpp, $(files))
-	private.object_files=$(addprefix $(private.prefix)/, $(addsuffix .obj,$(fullname $(files))))
-	private.outfile=$(BIN)/$(tc.platform)/$(name)
-	private.executable=$(outfile).exe
-	private.ilk=$(outfile).ilk
-	private.pdb=$(outfile).pdb
-
-	foreach(f, $(files))
-		$(absname $(private.prefix)/$(fullname $(f).obj)): $(f).cpp
-			mkdir -p $(dirname $@)
-			$(tc.compile_object_file $@,$<,$(config.compiler_options) $(compiler_options) $(addprefix /D,$(config.defines)))		
-
-
-	$(executable):$(private.object_files) :effects: $(private.ilk) $(private.pdb)
-		$(tc.link_executable $@, $(object_files), $(config.linker_options) $(linker_options) $(config.libs))
-
-	clean:
-		rm -rf $(executable) $(private.ilk) $(private.pdb) $(private.object_files)
-
-	return $(executable)
-
-executable_effects(tc, config, name, files, compiler_options, linker_options)=
-	private.prefix=$(TMP)/$(tc.to_string)/$(config.to_string)
-	private.sources=$(addsuffix .cpp, $(files))
-	private.object_files=$(addprefix $(private.prefix)/, $(addsuffix .obj,$(fullname $(files))))
-	private.outfile=$(BIN)/$(tc.platform)/$(name)
-	private.executable=$(outfile).exe
-	private.ilk=$(outfile).ilk
-	private.pdb=$(outfile).pdb
-
-	result=
-
-	foreach(f, $(files))
-		result+=$(absname $(private.prefix)/$(fullname $(f).obj))
-		export
-
-	result+= $(executable) $(private.ilk) $(private.pdb)
-
-	value $(result)
-
-dynamic_library_effects(tc, config, name, files, compiler_options, linker_options)=
-	private.prefix=$(TMP)/$(tc.to_string)/$(config.to_string)
-	private.sources=$(addsuffix .cpp, $(files))
-	private.object_files=$(addprefix $(private.prefix)/, $(addsuffix .obj,$(fullname $(files))))
-	private.outfile=$(BIN)/$(tc.platform)/$(name)
-	private.executable=$(outfile).dll
-	private.ilk=$(outfile).ilk
-	private.pdb=$(outfile).pdb
-
-	result=
-
-	foreach(f, $(files))
-		result+=$(absname $(private.prefix)/$(fullname $(f).obj))
-		export
-
-	result+= $(executable) $(private.ilk) $(private.pdb)
-
-	value $(result)	
-
-dynamic_library(tc, config, name, files, compiler_options, linker_options)=
-	private.prefix=$(TMP)/$(tc.to_string)/$(config.to_string)
-	private.sources=$(addsuffix .cpp, $(files))
-	private.object_files=$(addprefix $(private.prefix)/, $(addsuffix .obj,$(fullname $(files))))
-	private.outfile=$(BIN)/$(tc.platform)/$(name)
-	private.executable=$(outfile).dll
-	private.ilk=$(outfile).ilk
-	private.pdb=$(outfile).pdb
-
-	foreach(f, $(files))
-		$(absname $(private.prefix)/$(fullname $(f).obj)): $(f).cpp
-			mkdir -p $(dirname $@)
-			$(tc.compile_object_file $@,$<,$(config.compiler_options) $(compiler_options) $(addprefix /D,$(config.defines)))		
-
-
-	$(executable):$(private.object_files) :effects: $(private.ilk) $(private.pdb)
-		$(tc.link_dll $@, $(object_files), $(config.linker_options) $(linker_options) $(config.libs))
-
-	clean:
-		rm -rf $(executable) $(private.ilk) $(private.pdb) $(private.object_files)
-
-	return $(executable)
-
-
-#default toolchain
-public.toolchain=$(vs_12_x64_toolchain)
+system=$(vts_system.new vts_system)
 
 #per project setup
+
 public.compiler_options=/I$(dir ./include)
 public.linker_options=
 public.librarian_options=
 
-files[]= 
-		$(file $(string ./main))
+builder=$(builder.new $(toolchain),$(debug))
+
 
 .PHONY: all debug clean
 
 .DEFAULT: all
 
-app        	=$(executable $(toolchain), $(debug), lib, $(files), $(compiler_options), $(linker_options))
-app_effects	=$(executable_effects $(toolchain), $(debug), lib, $(files), $(compiler_options), $(linker_options))
+private.build_app()=
 
-debug: $(app)
+	files[]= 
+		$(file $(string ./main))
+
+	private.system=$(vts_system.new vts_system)
+	private.dep=$(system.dep $(builder))
+	private.compiler_options=$(public.compiler_options) $(system.imports)
+	private.linker_options=$(system.linker_options $(builder))
+
+	private.app=$(builder.make_exe3 lib, $(files), $(dep), $(compiler_options), $(linker_options))
+	
+	value $(app)
+
+debug: $(build_app)
 
 clean: 
-	rm -rf $(app_effects)
+	rm -rf $(builder.effects_exe lib, $(files))
 
 all: debug
 
 .SUBDIRS: modules
+
+
+
+
+
+
+
+
 
 
 

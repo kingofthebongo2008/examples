@@ -2,17 +2,22 @@
 
 .DEFAULT: all
 
-public.compiler_options +=/I$(dir ./include)
+#public.compiler_options +=/I$(dir ./include)
+#public.linker_options =
 
-files=$(removesuffix .cpp,$(find . -name *.cpp))
 
-app 		= $(dynamic_library $(toolchain),$(debug), lib1, $(files), $(compiler_options), $(linker_options))
-app_effects 	= $(dynamic_library_effects $(toolchain),$(debug), lib1, $(files), $(compiler_options), $(linker_options))
+private.build_app()=
+	files=$(removesuffix .cpp,$(find . -name *.cpp))
+	private.compiler_options=$(public.compiler_options) /I$(dir ./include) /DMEM_STREAMFLOW_DLL_EXPORT
+	private.linker_options=
+	private.app = $(builder.make_dll3 vts_system, $(files), "", $(compiler_options), $(linker_options))
+	value $(app)
+
+debug: $(build_app)
+
 
 clean: 
-	rm -rf $(app_effects)
-
-debug: $(app)
+	rm -rf $(builder.effects_dll lib1, $(files))
 
 	
 all: debug
