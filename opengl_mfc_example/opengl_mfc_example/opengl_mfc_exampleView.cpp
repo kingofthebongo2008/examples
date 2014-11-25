@@ -112,7 +112,7 @@ void Copengl_mfc_exampleView::OnDraw(CDC* dc)
 	if (!pDoc)
 		return;
 
-	auto gdi = dc->m_hDC;
+    auto gdi = GetWindowDC()->m_hDC;
 	ogl::scoped_draw_context  ogl(m_glContext, gdi);
 	auto r = ogl::GetCode();
 

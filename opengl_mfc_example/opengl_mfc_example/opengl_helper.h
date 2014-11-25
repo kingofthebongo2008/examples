@@ -98,17 +98,32 @@ namespace ogl
 		return hrc;
 	}
 
+    inline void check_result()
+    {
+        auto result = glGetError();
+        if (result != GL_NO_ERROR)
+        {
+            throw ogl::opengl_exception(result);
+        }
+    }
+
+    #define OGL_CALL(call) \
+    { \
+    	(call); \
+    	ogl::check_result(); \
+    }
+
 	class scoped_draw_context
 	{
 		public:
 		scoped_draw_context(HGLRC context, HDC hdc)
 		{
-			ogl::throw_if_failed<ogl::windows_exception>(wglMakeCurrent(hdc, context));
+            OGL_CALL(wglMakeCurrent(hdc, context));
 		}
 
 		~scoped_draw_context()
 		{
-			ogl::throw_if_failed<ogl::windows_exception>(wglMakeCurrent(NULL, NULL));
+            wglMakeCurrent(NULL, NULL);
 		}
 
 		private:
@@ -117,22 +132,6 @@ namespace ogl
 		scoped_draw_context& operator=(const scoped_draw_context&);
 
 	};
-
-	inline void check_result()
-	{
-		auto result = glGetError();
-		if (result != GL_NO_ERROR)
-		{
-			throw ogl::opengl_exception(result);
-		}
-	}
-
-	#define OGL_CALL(call) \
-	{ \
-		(call); \
-		ogl::check_result(); \
-	}
-
 }
 
 #endif
