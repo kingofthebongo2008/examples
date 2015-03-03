@@ -30,15 +30,27 @@ module Site =
     let discountsPage = makePage "Discounts"
     let freebiesPage = makePage "Freebies"
 
+    let encodeSectionUrl (s : string ) =
+        let r = s.Replace(' ','-')
+        r
+    let encodeSection (name : string) =
+        let e = encodeSectionUrl name;
+        let r = "/" + e;
+        r
+
+    let content name action page = 
+        let e = encodeSection name
+        Sitelet.Content e action page
+
     let Main =
         Sitelet.Sum [
-            Sitelet.Content "/" Home homePage
-            Sitelet.Content "/Digital Papers" DigitalPapers digitalPapersPage
-            Sitelet.Content "/Clipart" ClipArt clipArtPage
-            Sitelet.Content "/Digital Stamps" DigitalStamps digitalStampsPage
-            Sitelet.Content "/Alphabets"  Alphabets alphabetsPage
-            Sitelet.Content "/Printables" Printables printablesPage
-            Sitelet.Content "/Discounts"  Discounts discountsPage
-            Sitelet.Content "/Freebies"   Freebies freebiesPage
+            content "/" Home homePage
+            content "Digital Papers" DigitalPapers digitalPapersPage
+            content "Clipart" ClipArt clipArtPage
+            content "Digital Stamps" DigitalStamps digitalStampsPage
+            content "Alphabets"  Alphabets alphabetsPage
+            content "Printables" Printables printablesPage
+            content "Discounts"  Discounts discountsPage
+            content "Freebies"   Freebies freebiesPage
         ]
 

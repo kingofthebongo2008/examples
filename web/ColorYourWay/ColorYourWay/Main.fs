@@ -2,11 +2,13 @@ namespace ColorYourWay
 
 open WebSharper.Sitelets
 
+
+
 [<Sealed>]
 type Website() =
     interface IWebsite<Action> with
         member this.Sitelet = Site.Main
-        member this.Actions = [Home; DigitalPapers]
+        member this.Actions = [Home; DigitalPapers; ClipArt; DigitalStamps; Alphabets ; Printables ; Discounts; Freebies]
 
 type Global() =
     inherit System.Web.HttpApplication()
