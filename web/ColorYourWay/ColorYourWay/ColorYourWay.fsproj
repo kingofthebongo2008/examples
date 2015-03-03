@@ -13,7 +13,7 @@
     <IISExpressWindowsAuthentication />
     <IISExpressUseClassicPipelineMode />
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <NuGetPackageImportStamp>203db8ac</NuGetPackageImportStamp>
+    <NuGetPackageImportStamp>477abd48</NuGetPackageImportStamp>
     <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -42,8 +42,8 @@
   <ItemGroup>
     <Compile Include="Actions.fs" />
     <Compile Include="Pages.fs" />
-    <Compile Include="Skin.fs" />    
-    <Compile Include="Site.fs" />    
+    <Compile Include="Skin.fs" />
+    <Compile Include="Site.fs" />
     <Compile Include="Dependencies.fs" />
     <Compile Include="Main.fs" />
     <Content Include="Main.html" />
@@ -150,13 +150,6 @@
   </PropertyGroup>
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
-  <Import Project="..\packages\WebSharper.3.0.36.119-alpha\build\WebSharper.targets" Condition="Exists('..\packages\WebSharper.3.0.36.119-alpha\build\WebSharper.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\WebSharper.3.0.36.119-alpha\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebSharper.3.0.36.119-alpha\build\WebSharper.targets'))" />
-  </Target>
   <ProjectExtensions>
     <VisualStudio>
       <FlavorProperties Guid="{349c5851-65df-11da-9384-00065b846f21}">
@@ -196,4 +189,11 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Import Project="..\packages\WebSharper.3.0.36.119-alpha\build\WebSharper.targets" Condition="Exists('..\packages\WebSharper.3.0.36.119-alpha\build\WebSharper.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\WebSharper.3.0.36.119-alpha\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebSharper.3.0.36.119-alpha\build\WebSharper.targets'))" />
+  </Target>
 </Project>
