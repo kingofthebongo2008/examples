@@ -124,6 +124,14 @@
       <HintPath>..\packages\WebSharper.3.0.36.119-alpha\lib\net40\WebSharper.Testing.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="WebSharper.UI.Next">
+      <HintPath>..\packages\WebSharper.UI.Next.3.0.25.88-alpha\lib\net40\WebSharper.UI.Next.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="WebSharper.UI.Next.Templating">
+      <HintPath>..\packages\WebSharper.UI.Next.3.0.25.88-alpha\lib\net40\WebSharper.UI.Next.Templating.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="WebSharper.Web">
       <HintPath>..\packages\WebSharper.3.0.36.119-alpha\lib\net40\WebSharper.Web.dll</HintPath>
       <Private>True</Private>
