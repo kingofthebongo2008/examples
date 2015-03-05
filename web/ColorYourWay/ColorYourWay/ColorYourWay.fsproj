@@ -51,6 +51,10 @@
     <Content Include="Global.asax" />
     <Content Include="Setup.fsx" />
     <Content Include="packages.config" />
+    <Content Include="Scripts\jquery-2.1.3.min.map" />
+    <Content Include="Scripts\jquery-2.1.3.min.js" />
+    <Content Include="Scripts\jquery-2.1.3.js" />
+    <None Include="Scripts\jquery-2.1.3.intellisense.js" />
   </ItemGroup>
   <Target Name="IncludeContent" BeforeTargets="Compile">
     <ItemGroup>
