@@ -10,8 +10,8 @@ namespace d3d11
     {
         dxgi::iadapter_ptr          m_adapter;
         dxgi::iswapchain_ptr        m_swap_chain;
-        idevice_ptr	                m_device;
-        idevicecontext_ptr          m_immediate_context;
+        idevice1_ptr	            m_device;
+        idevicecontext1_ptr         m_immediate_context;
         HWND                        m_hwnd;
     };
 
@@ -49,7 +49,7 @@ namespace d3d11
 
     inline system_context create_system_context(HWND hwnd)
     {
-        auto flags = D3D11_CREATE_DEVICE_DEBUG| D3D11_CREATE_DEVICE_BGRA_SUPPORT;//D3D11_CREATE_DEVICE_DEBUGGABLE; // D3D11_CREATE_DEVICE_BGRA_SUPPORT;  //D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
+        auto flags = D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT;//D3D11_CREATE_DEVICE_DEBUGGABLE; // D3D11_CREATE_DEVICE_BGRA_SUPPORT;  //D3D11_CREATE_DEVICE_DEBUG | D3D11_CREATE_DEVICE_BGRA_SUPPORT;
 
         auto level                  = D3D_FEATURE_LEVEL_11_0;
         D3D_FEATURE_LEVEL           level_out;
@@ -71,12 +71,6 @@ namespace d3d11
         auto hr = factory->EnumAdapters(0, &adapter);
         throw_if_failed<create_device_exception>(hr);
 
-        /*
-        while (factory->EnumAdapters(i, &adapter) != DXGI_ERROR_NOT_FOUND)
-        {
-            break;
-        }
-        */
 
         using namespace os::windows;
 
@@ -86,7 +80,18 @@ namespace d3d11
         hr = factory->CreateSwapChain(device.get(), &desc, &swap_chain);
         throw_if_failed<create_device_exception>(hr);
 
-        system_context result = { adapter, swap_chain, device, context, hwnd };
+        system_context result = { adapter, swap_chain, nullptr, nullptr, hwnd };
+
+        //run directx 11.1
+        idevice1_ptr p;
+        throw_if_failed<create_device_exception>(device->QueryInterface(__uuidof(ID3D11Device1), (void**)&p));
+        result.m_device = p;
+
+        idevicecontext1_ptr c;
+        throw_if_failed<create_device_exception>(context->QueryInterface(__uuidof(ID3D11DeviceContext1), (void**)&c));
+        result.m_immediate_context = c;
+
+
         return std::move(result);
     }
 }

@@ -11,6 +11,7 @@ namespace d3d11
     typedef os::windows::com_ptr<ID3D11Device>              idevice_ptr;
     typedef os::windows::com_ptr<ID3D11Device1>             idevice1_ptr;
     typedef os::windows::com_ptr<ID3D11DeviceContext>       idevicecontext_ptr;
+    typedef os::windows::com_ptr<ID3D11DeviceContext1>      idevicecontext1_ptr;
 
     typedef os::windows::com_ptr<ID3D11CommandList>         icommandlist_ptr;
 
