@@ -4,6 +4,8 @@
 #include <cstdint>
 #include <iterator>
 
+#include <math/math_vector.h>
+
 #include <d3d11/dxgi_helpers.h>
 #include <d3d11/d3d11_pointers.h>
 #include <d3d11/d3d11_error.h>

@@ -50,5 +50,8 @@
     <ClCompile Include="..\src\ui\private\wpf.cpp">
       <Filter>source files</Filter>
     </ClCompile>
+    <ClCompile Include="../src/ui/private/wpfpage.cpp">
+      <Filter>source files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

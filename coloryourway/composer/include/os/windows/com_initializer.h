@@ -9,12 +9,23 @@ namespace os
 {
     namespace windows
     {
+        enum com_model
+        {
+            apartment_threaded = COINIT_APARTMENTTHREADED,
+            multi_threaded = COINIT_MULTITHREADED
+        };
+
         class com_initializer : private util::noncopyable
         {
             public:
-            com_initializer()
+                com_initializer() : com_initializer( multi_threaded )
             {
-                HRESULT hr  = ::CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+
+            }
+
+            com_initializer( com_model m )
+            {
+                HRESULT hr  = ::CoInitializeEx(nullptr, m);
 
                 bool success = (hr == S_OK || hr == S_FALSE);
 

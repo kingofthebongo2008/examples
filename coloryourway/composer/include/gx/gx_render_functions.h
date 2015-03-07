@@ -74,7 +74,7 @@ namespace gx
         d3d11::ibuffer_ptr          m_geometry;
     };
 
-    void reset_shader_resources(ID3D11DeviceContext* device_context)
+    inline void reset_shader_resources(ID3D11DeviceContext* device_context)
     {
         ID3D11ShaderResourceView* resources[ D3D11_COMMONSHADER_INPUT_RESOURCE_SLOT_COUNT ];
 
@@ -89,7 +89,7 @@ namespace gx
         d3d11::vs_set_shader_resources ( device_context, resources );
     }
 
-    void reset_constant_buffers(ID3D11DeviceContext* device_context)
+    inline void reset_constant_buffers(ID3D11DeviceContext* device_context)
     {
         ID3D11Buffer * buffers[D3D11_COMMONSHADER_CONSTANT_BUFFER_API_SLOT_COUNT];
 
@@ -102,7 +102,7 @@ namespace gx
         device_context->PSSetConstantBuffers(0, sizeof(buffers)/ sizeof(buffers[0]), &buffers[0]); 
     }
 
-    void reset_render_targets(ID3D11DeviceContext* device_context)
+    inline void reset_render_targets(ID3D11DeviceContext* device_context)
     {
         std::array<ID3D11RenderTargetView* const , D3D11_SIMULTANEOUS_RENDER_TARGET_COUNT> views = 
         { 

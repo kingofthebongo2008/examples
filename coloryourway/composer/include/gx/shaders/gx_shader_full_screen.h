@@ -50,12 +50,12 @@ namespace gx
         uint32_t                    m_code_size;
     };
 
-    shader_full_screen create_shader_depth_prepass_vs( ID3D11Device* device )
+    inline shader_full_screen create_shader_depth_prepass_vs(ID3D11Device* device)
     {
         return shader_full_screen( details::create_shader_depth_prepass_vs(device) );
     }
 
-    std::future< shader_full_screen > create_screate_shader_depth_prepass_vs_async( ID3D11Device* device )
+    inline std::future< shader_full_screen > create_screate_shader_depth_prepass_vs_async( ID3D11Device* device )
     {
         return  std::async(std::launch::async, create_shader_depth_prepass_vs, device);
     }

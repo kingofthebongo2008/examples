@@ -9,7 +9,7 @@
 
 namespace gx
 {
-    std::vector<math::half>  create_positions_x_y_z( const float * positions_x_y_z, uint32_t count_triplet, float w = 1.0f )
+    inline std::vector<math::half>  create_positions_x_y_z( const float * positions_x_y_z, uint32_t count_triplet, float w = 1.0f )
     {
         auto size = count_triplet / 3;
         auto padded_size = 24 * ((size + 23) / 24);
@@ -21,7 +21,7 @@ namespace gx
         return std::move(positions_h);
     }
 
-    std::vector<math::half>  create_positions_x_y_z_w(const float * positions_x_y_z_w, uint32_t count)
+    inline std::vector<math::half>  create_positions_x_y_z_w(const float * positions_x_y_z_w, uint32_t count)
     {
         auto size = count;
 
