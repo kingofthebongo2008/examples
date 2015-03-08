@@ -11,6 +11,10 @@
 #include "composer_application.h"
 #include "composer_renderable.h"
 
+#include "samples_gs.h"
+#include "samples_ps.h"
+#include "samples_vs.h"
+
 namespace coloryourway
 {
     namespace composer
@@ -343,12 +347,29 @@ namespace coloryourway
         {
             public:
 
-            explicit samples_renderable(const sample_render_info& samples) : m_samples(samples)
+            explicit samples_renderable
+                (
+                    const sample_render_info& samples,
+                    shader_samples_gs gs,
+                    shader_samples_vs vs,
+                    shader_samples_ps ps
+                ) : m_samples(samples)
+                    , m_gs(gs)
+                    , m_vs(vs)
+                    , m_ps(ps)
             {
 
             }
 
-            explicit samples_renderable(sample_render_info && samples) : m_samples(std::move(samples))
+            explicit samples_renderable(
+                sample_render_info && samples,
+                shader_samples_gs && gs,
+                shader_samples_vs && vs,
+                shader_samples_ps && ps
+                ) : m_samples(std::move(samples))
+                    , m_gs( std::move(gs) )
+                    , m_vs( std::move(vs) )
+                    , m_ps( std::move(ps) )
             {
 
             }
@@ -356,9 +377,15 @@ namespace coloryourway
             private:
 
             sample_render_info m_samples;
+            shader_samples_gs  m_gs;
+            shader_samples_vs  m_vs;
+            shader_samples_ps  m_ps;
 
             void on_draw( render_context& c )
             {
+                auto device_context = c.get_device_context();
+                
+                d3d11::om_set_blend_state(device_context, c.get_opaque_state());
                 
 
 
@@ -367,11 +394,18 @@ namespace coloryourway
     }
 }
 
-
 int32_t APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdLine, int       nCmdShow)
 {
     using namespace coloryourway::composer;
     using namespace std;
+
+    os::windows::com_initializer com(os::windows::apartment_threaded);
+    auto app = new sample_application(L"Composer");
+
+    auto samples_gs_future = create_shader_samples_gs_async(app->get_device());
+    auto samples_ps_future = create_shader_samples_ps_async(app->get_device());
+    auto samples_vs_future = create_shader_samples_vs_async(app->get_device());
+
 
     auto samples = build_samples();
 
@@ -385,9 +419,12 @@ int32_t APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR 
     info.m_sample_classes = get<2>(samples);
     info.m_samples = move(v_samples);
 
-    os::windows::com_initializer com ( os::windows::apartment_threaded) ;
-    
-    auto app = new sample_application(L"Composer");
+    auto samples_gs = samples_gs_future.get();
+    auto samples_ps = samples_ps_future.get();
+    auto samples_vs = samples_vs_future.get();
+
+    auto renderable = std::make_shared<samples_renderable>( move( info), move(samples_gs), move(samples_vs), move(samples_ps) );
+    app->register_renderable( renderable );
 
     
     auto result = app->run();

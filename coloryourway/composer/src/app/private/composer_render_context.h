@@ -46,6 +46,11 @@ namespace coloryourway
                 return m_opaque_state.get();
             }
 
+            ID3D11DeviceContext* get_device_context() const
+            {
+                return m_device_context.get();
+            }
+
             private:
 
             d3d11::idevicecontext_ptr               m_device_context;

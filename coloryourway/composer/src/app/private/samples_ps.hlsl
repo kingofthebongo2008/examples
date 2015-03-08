@@ -11,7 +11,7 @@ struct ps_input
 
 float4  pixel_main(in  ps_input input) : sv_target
 {
-    return float4 (1.0f, 1.0f, 1.0f, 1.0f);
+    return float4 (1.0f, 0.0f, 0.0f, 1.0f);
 }
 
 

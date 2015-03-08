@@ -32,6 +32,11 @@ namespace coloryourway
             void register_renderable( std::shared_ptr<renderable> r );
             void unregister_renderable(std::shared_ptr<renderable> r);
 
+            d3d11::idevice_ptr get_device()
+            {
+                return m_context.m_device;
+            }
+
         protected:
 
             virtual void on_render_scene();
