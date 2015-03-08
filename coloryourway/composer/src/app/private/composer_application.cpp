@@ -105,6 +105,9 @@ namespace coloryourway
                 d3d11::om_set_render_target(device_context, m_back_buffer_render_target);
                 d3d11::clear_render_target_view(device_context, m_back_buffer_render_target, math::zero());
 
+                D3D11_VIEWPORT v = m_view_port;
+                d3d11::rs_set_view_port(device_context, &v);
+
                 on_render_scene( );
 
                 //Draw the gui and the texts

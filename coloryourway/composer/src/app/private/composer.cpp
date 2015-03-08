@@ -265,12 +265,13 @@ namespace coloryourway
             }
         }
 
-        std::list<sample> build_samples()
+
+        std::tuple < std::list<sample>, uint32_t, uint32_t > build_samples()
         {
             const auto sample_classes = 5U;
-            const auto sample_count = 500U;
+            const auto sample_count = 80U;
 
-            const float r[sample_classes] = { 0.01f, 0.02f, 0.03f, 0.04f, 0.05f };
+            const float r[sample_classes] = { 0.011f, 0.02f, 0.01f, 0.01f, 0.01f };
 
             uint32_t ni[sample_classes];
 
@@ -285,7 +286,6 @@ namespace coloryourway
 
             multi_class_dart_throwing_context c;
 
-
             c.m_r = &rm[0][0];
             c.m_sample_classes = sample_classes;
             c.m_total_trials = 10000;
@@ -299,36 +299,100 @@ namespace coloryourway
 
             multi_class_dart_throwing(&c);
 
-            return std::move(c.m_final_set_of_samples);
+            return std::make_tuple(std::move(c.m_final_set_of_samples), c.m_final_set_of_samples_count, sample_classes);
         }
 
-        class samples_renderable : public renderable
+        struct sample_render_info
         {
+            std::vector< sample > m_samples;
+            uint32_t              m_sample_classes;
+
+            sample_render_info() : m_sample_classes(0)
+            {
+
+            }
+
+            sample_render_info(const sample_render_info& o) : m_samples(o.m_samples), m_sample_classes(o.m_sample_classes)
+            {
+
+            }
+
+            sample_render_info( sample_render_info&& o ) : m_samples( std::move(o.m_samples)), m_sample_classes(std::move(o.m_sample_classes))
+            {
+
+            }
+
+
+            sample_render_info& operator=(const sample_render_info& o)
+            {
+                m_samples = o.m_samples;
+                m_sample_classes = o.m_sample_classes;
+                return *this;
+            }
+
+            sample_render_info& operator=(sample_render_info&& o)
+            {
+                m_samples = std::move(o.m_samples);
+                m_sample_classes = std::move(o.m_sample_classes);
+                return *this;
+            }
 
         };
 
+        class samples_renderable : public renderable
+        {
+            public:
+
+            explicit samples_renderable(const sample_render_info& samples) : m_samples(samples)
+            {
+
+            }
+
+            explicit samples_renderable(sample_render_info && samples) : m_samples(std::move(samples))
+            {
+
+            }
+
+            private:
+
+            sample_render_info m_samples;
+
+            void on_draw( render_context& c )
+            {
+                
+
+
+            }
+        };
     }
 }
-
-
 
 
 int32_t APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdLine, int       nCmdShow)
 {
     using namespace coloryourway::composer;
+    using namespace std;
+
     auto samples = build_samples();
- 
+
+    vector< sample > v_samples;
+
+    v_samples.resize(get<1>(samples));
+
+    copy(begin(get<0>(samples)), end(get<0>(samples)), begin(v_samples));
+
+    sample_render_info info;
+    info.m_sample_classes = get<2>(samples);
+    info.m_samples = move(v_samples);
+
     os::windows::com_initializer com ( os::windows::apartment_threaded) ;
     
-    
     auto app = new sample_application(L"Composer");
-
 
     
     auto result = app->run();
 
     delete app;
-
 
     return 0;
 }
