@@ -4,6 +4,9 @@
 #include <string>
 #include <sys/sys_profile_timer.h>
 
+#include "composer_renderable.h"
+#include "composer_render_context.h"
+
 namespace coloryourway
 {
     namespace composer
@@ -24,13 +27,46 @@ namespace coloryourway
                 , m_point_sampler(gx::create_point_sampler_state(m_context.m_device))
                 , m_elapsed_update_time(0.0)
             {
-
+                m_renderables.reserve(1000);
             }
 
+            void sample_application::register_renderable(std::shared_ptr<renderable> r)
+            {
+                m_renderables.push_back(r);
+            }
+
+            void sample_application::unregister_renderable(std::shared_ptr<renderable> r)
+            {
+                std::remove( std::begin(m_renderables), std::end(m_renderables), r);
+            }
 
             void sample_application::on_render_scene()
             {
+                //get immediate context to submit commands to the gpu
+                auto device_context = m_context.m_immediate_context;
 
+                render_context context
+                    (
+                        device_context,
+                        m_opaque_state,
+                        m_premultiplied_alpha_state,
+
+                        m_alpha_blend_state,
+                        m_cull_back_raster_state,
+                        m_cull_none_raster_state,
+
+                        m_depth_disable_state,
+                        m_point_sampler,
+
+                        m_view_port
+                    );
+
+                for (auto i = 0U; i < m_renderables.size(); ++i)
+                {
+                    const auto& r = m_renderables[i];
+
+                    r->draw( context );
+                }
             }
 
             void sample_application::render_scene()
@@ -55,7 +91,7 @@ namespace coloryourway
                 //Measure the update time and pass it to the render function
                 m_elapsed_update_time = timer.milliseconds();
 
-                update_scene( m_elapsed_update_time );
+                update_scene( static_cast<float>( m_elapsed_update_time ) );
             }
 
             void sample_application::on_render_frame()

@@ -6,8 +6,10 @@
 #include <list>
 #include <vector>
 
-#include "composer_application.h"
 #include <os/windows/com_initializer.h>
+
+#include "composer_application.h"
+#include "composer_renderable.h"
 
 namespace coloryourway
 {
@@ -262,55 +264,71 @@ namespace coloryourway
                 }
             }
         }
+
+        std::list<sample> build_samples()
+        {
+            const auto sample_classes = 5U;
+            const auto sample_count = 500U;
+
+            const float r[sample_classes] = { 0.01f, 0.02f, 0.03f, 0.04f, 0.05f };
+
+            uint32_t ni[sample_classes];
+
+            for (auto i = 0U; i < sample_classes; ++i)
+            {
+                ni[i] = sample_count_class(i, sample_count, sample_classes, r);
+            }
+
+            float rm[sample_classes][sample_classes];
+
+            build_r_matrix(&rm[0][0], sample_classes, r);
+
+            multi_class_dart_throwing_context c;
+
+
+            c.m_r = &rm[0][0];
+            c.m_sample_classes = sample_classes;
+            c.m_total_trials = 10000;
+            c.m_total_sample_count = sample_count;
+
+            c.m_final_set_of_samples_count = 0;
+            c.m_class_sample_count.resize(sample_classes);
+
+            c.m_class_total_sample_count.resize(sample_classes);
+            std::copy(ni, ni + sample_classes, std::begin(c.m_class_total_sample_count));
+
+            multi_class_dart_throwing(&c);
+
+            return std::move(c.m_final_set_of_samples);
+        }
+
+        class samples_renderable : public renderable
+        {
+
+        };
+
     }
 }
+
+
+
 
 int32_t APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdLine, int       nCmdShow)
 {
     using namespace coloryourway::composer;
-
-    const auto sample_classes = 5U;
-    const auto sample_count = 500U;
-
-    const float r[sample_classes] = { 0.01f, 0.02f, 0.03f, 0.04f, 0.05f };
-
-    uint32_t ni[sample_classes];
-
-    for (auto i = 0U; i < sample_classes; ++i)
-    {
-        ni[i] = sample_count_class(i, sample_count, sample_classes, r);
-    }
-
-    float rm[sample_classes][sample_classes];
-
-    build_r_matrix(&rm[0][0], sample_classes, r);
-
-    multi_class_dart_throwing_context c;
-
-    
-    c.m_r = &rm[0][0];
-    c.m_sample_classes = sample_classes;
-    c.m_total_trials = 10000;
-    c.m_total_sample_count = sample_count;
-    
-    c.m_final_set_of_samples_count = 0;
-    c.m_class_sample_count.resize(sample_classes);
-
-    c.m_class_total_sample_count.resize(sample_classes);
-    std::copy(ni, ni + sample_classes, std::begin(c.m_class_total_sample_count));
-
-    multi_class_dart_throwing(&c);
-
+    auto samples = build_samples();
  
-    /*
     os::windows::com_initializer com ( os::windows::apartment_threaded) ;
-    using namespace coloryourway::composer;
+    
+    
     auto app = new sample_application(L"Composer");
+
+
     
     auto result = app->run();
 
     delete app;
-    */
+
 
     return 0;
 }

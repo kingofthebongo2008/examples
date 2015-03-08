@@ -20,13 +20,17 @@ namespace coloryourway
 {
     namespace composer
     {
+        class renderable;
+
         class sample_application : public gx::default_application
         {
             typedef gx::default_application base;
 
         public:
-
             sample_application(const wchar_t* window_title);
+
+            void register_renderable( std::shared_ptr<renderable> r );
+            void unregister_renderable(std::shared_ptr<renderable> r);
 
         protected:
 
@@ -67,6 +71,8 @@ namespace coloryourway
             gx::view_port                           m_view_port;
 
             double                                  m_elapsed_update_time;
+
+            std::vector< std::shared_ptr< renderable> > m_renderables;
         };
     }
 }
