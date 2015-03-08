@@ -38,24 +38,24 @@ namespace coloryourway
                 on_render_scene();
             }
 
-            void sample_application::on_update_scene()
+            void sample_application::on_update_scene( float dt)
             {
 
             }
 
-            void sample_application::update_scene()
+            void sample_application::update_scene( float dt)
             {
-                on_update_scene();
+                on_update_scene(dt);
             }
 
             void sample_application::on_update()
             {
                 sys::profile_timer timer;
 
-                update_scene();
-
                 //Measure the update time and pass it to the render function
                 m_elapsed_update_time = timer.milliseconds();
+
+                update_scene( m_elapsed_update_time );
             }
 
             void sample_application::on_render_frame()
@@ -69,8 +69,7 @@ namespace coloryourway
                 d3d11::om_set_render_target(device_context, m_back_buffer_render_target);
                 d3d11::clear_render_target_view(device_context, m_back_buffer_render_target, math::zero());
 
-
-                on_render_scene();
+                on_render_scene( );
 
                 //Draw the gui and the texts
                 m_d2d_render_target->BeginDraw();

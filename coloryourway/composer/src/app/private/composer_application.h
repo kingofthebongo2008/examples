@@ -28,17 +28,15 @@ namespace coloryourway
 
             sample_application(const wchar_t* window_title);
 
-
         protected:
 
             virtual void on_render_scene();
             void render_scene();
-            virtual void on_update_scene();
-            void update_scene();
+            virtual void on_update_scene(float dt);
+            void update_scene(float dt);
             void on_update();
             void on_render_frame();
             void on_resize(uint32_t width, uint32_t height);
-
 
         protected:
 
