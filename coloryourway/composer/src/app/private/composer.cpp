@@ -170,6 +170,28 @@ namespace coloryourway
             return r;
         }
 
+        static sample inline generate_new_sample2( uint32_t i )
+        {
+            sample r;
+
+            auto max = float(RAND_MAX);
+
+            auto g_x = i % 8;
+            auto g_y = i / 8;
+
+            r.m_x = std::rand() / max;
+            r.m_y = std::rand() / max;
+            r.m_c = 0;
+
+            auto  r_x = r.m_x + g_x;
+            auto  r_y = r.m_y + g_y;
+
+            r.m_x = r_x / 8.0f;
+            r.m_y = r_y / 8.0f;
+
+            return r;
+        }
+
         static inline float distance(const sample& s1, const sample& s2)
         {
             float dx = s1.m_x - s2.m_x;
@@ -197,7 +219,7 @@ namespace coloryourway
                 }
             }
             
-            return false;
+            return true;
         }
 
         static uint32_t find_sample_class(multi_class_dart_throwing_context* c)
@@ -225,9 +247,15 @@ namespace coloryourway
             std::vector< std::list<sample>::const_iterator > ns;
             ns.reserve(1000);
 
+            auto grid_cell = 0U;
+
             while (trials < c->m_total_trials && c->m_final_set_of_samples_count < c->m_total_sample_count  )
             {
-                auto s  = generate_new_sample();
+                trials++;
+                auto s = generate_new_sample2(  grid_cell );
+                grid_cell++;
+                grid_cell %= 64;
+
                 auto cs = find_sample_class( c ); 
                 s.m_c = cs;
 
@@ -275,7 +303,7 @@ namespace coloryourway
             const auto sample_classes = 5U;
             const auto sample_count = 80U;
 
-            const float r[sample_classes] = { 0.011f, 0.02f, 0.01f, 0.01f, 0.01f };
+            const float r[sample_classes] = { 0.3f, 0.2f, 0.1f, 0.3f, 0.3f };
 
             uint32_t ni[sample_classes];
 
@@ -292,7 +320,7 @@ namespace coloryourway
 
             c.m_r = &rm[0][0];
             c.m_sample_classes = sample_classes;
-            c.m_total_trials = 10000;
+            c.m_total_trials = 1000;
             c.m_total_sample_count = sample_count;
 
             c.m_final_set_of_samples_count = 0;
@@ -352,11 +380,17 @@ namespace coloryourway
                     const sample_render_info& samples,
                     shader_samples_gs gs,
                     shader_samples_vs vs,
-                    shader_samples_ps ps
+                    shader_samples_ps ps,
+                    shader_samples_vs_layout layout,
+                    d3d11::ibuffer_ptr points,
+                    d3d11::ishaderresourceview_ptr points_view
                 ) : m_samples(samples)
                     , m_gs(gs)
                     , m_vs(vs)
                     , m_ps(ps)
+                    , m_layout(layout)
+                    , m_points(points)
+                    , m_points_view(points_view)
             {
 
             }
@@ -365,30 +399,49 @@ namespace coloryourway
                 sample_render_info && samples,
                 shader_samples_gs && gs,
                 shader_samples_vs && vs,
-                shader_samples_ps && ps
+                shader_samples_ps && ps,
+                shader_samples_vs_layout && layout,
+                d3d11::ibuffer_ptr && points,
+                d3d11::ishaderresourceview_ptr&& points_view
                 ) : m_samples(std::move(samples))
                     , m_gs( std::move(gs) )
                     , m_vs( std::move(vs) )
                     , m_ps( std::move(ps) )
+                    , m_layout(std::move( layout ))
+                    , m_points(std::move(points))
+                    , m_points_view(std::move(points_view))
             {
 
             }
 
             private:
 
-            sample_render_info m_samples;
-            shader_samples_gs  m_gs;
-            shader_samples_vs  m_vs;
-            shader_samples_ps  m_ps;
+            sample_render_info              m_samples;
+            shader_samples_gs               m_gs;
+            shader_samples_vs               m_vs;
+            shader_samples_ps               m_ps;
+            shader_samples_vs_layout        m_layout;
+            d3d11::ibuffer_ptr              m_points;
+            d3d11::ishaderresourceview_ptr  m_points_view;
 
             void on_draw( render_context& c )
             {
+                using namespace d3d11;
                 auto device_context = c.get_device_context();
                 
-                d3d11::om_set_blend_state(device_context, c.get_opaque_state());
+                om_set_blend_state(device_context, c.get_opaque_state());
+                vs_set_shader(device_context, m_vs);
+                ps_set_shader(device_context, m_ps);
+
+                rs_set_state(device_context, c.get_cull_none_state());
+                om_set_depth_state(device_context, c.get_depth_disable());
+
+                ia_set_primitive_topology(device_context, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                ia_set_input_layout(device_context, m_layout);
+
+                vs_set_shader_resource(device_context, m_points_view);
                 
-
-
+                device_context->DrawInstanced(4, m_samples.m_samples.size(), 0, 0);
             }
         };
     }
@@ -396,6 +449,8 @@ namespace coloryourway
 
 int32_t APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdLine, int       nCmdShow)
 {
+    std::srand(::GetTickCount());
+    
     using namespace coloryourway::composer;
     using namespace std;
 
@@ -415,18 +470,22 @@ int32_t APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR 
 
     copy(begin(get<0>(samples)), end(get<0>(samples)), begin(v_samples));
 
-    sample_render_info info;
-    info.m_sample_classes = get<2>(samples);
-    info.m_samples = move(v_samples);
-
     auto samples_gs = samples_gs_future.get();
     auto samples_ps = samples_ps_future.get();
     auto samples_vs = samples_vs_future.get();
 
-    auto renderable = std::make_shared<samples_renderable>( move( info), move(samples_gs), move(samples_vs), move(samples_ps) );
-    app->register_renderable( renderable );
+    shader_samples_vs_layout samples_vs_layout( app->get_device() );
 
-    
+    auto buffer = d3d11::create_unordered_access_structured_buffer(app->get_device(), v_samples.size(), sizeof(sample) , &v_samples[0] );
+    auto buffer_view = d3d11::create_shader_resource_view(app->get_device().get(), buffer.get());
+
+    sample_render_info info;
+    info.m_sample_classes = get<2>(samples);
+    info.m_samples = move(v_samples);
+
+    auto renderable = std::make_shared<samples_renderable>(move(info), move(samples_gs), move(samples_vs), move(samples_ps), move(samples_vs_layout), move(buffer), move(buffer_view) );
+    app->register_renderable( std::move(renderable) );
+   
     auto result = app->run();
 
     delete app;

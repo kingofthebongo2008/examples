@@ -51,6 +51,16 @@ namespace coloryourway
                 return m_device_context.get();
             }
 
+            ID3D11RasterizerState* get_cull_none_state() const
+            {
+                return m_cull_none_raster_state.get();
+            }
+
+            ID3D11DepthStencilState* get_depth_disable() const
+            {
+                return m_depth_disable_state.get();
+            }
+
             private:
 
             d3d11::idevicecontext_ptr               m_device_context;

@@ -6,6 +6,7 @@
 
 #include <d3d11/d3d11_error.h>
 #include <d3d11/d3d11_pointers.h>
+#include <d3d11/d3d11_helpers.h>
 
 namespace coloryourway
 {
@@ -70,6 +71,57 @@ namespace coloryourway
         {
             return std::async(std::launch::async, create_shader_samples_vs, device);
         }
+
+        class shader_samples_vs_layout
+        {
+            public:
+
+                shader_samples_vs_layout(ID3D11Device* device)
+                {
+                    D3D11_INPUT_ELEMENT_DESC desc[] =
+                    {
+                        { "position", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0 }
+
+                    };
+
+                    //strange? see in the hlsl file
+                    static
+                    #include "samples_vs_compiled.hlsl"
+
+                    using namespace os::windows;
+
+                    throw_if_failed<d3d11::create_input_layout_exception>(device->CreateInputLayout(&desc[0], sizeof(desc) / sizeof(desc[0]), g_vertex_main, sizeof(g_vertex_main), &m_input_layout));
+                }
+
+                shader_samples_vs_layout(shader_samples_vs_layout&& o) : m_input_layout(std::move(o.m_input_layout))
+                {
+
+                }
+
+                operator d3d11::iinputlayout_ptr()
+                {
+                    return m_input_layout;
+                }
+
+                operator ID3D11InputLayout*()
+                {
+                    return m_input_layout.get();
+                }
+
+                operator const ID3D11InputLayout*() const
+                {
+                    return m_input_layout.get();
+                }
+
+                shader_samples_vs_layout& operator=(shader_samples_vs_layout&& o)
+                {
+                    m_input_layout = std::move(o.m_input_layout);
+                }
+
+
+                d3d11::iinputlayout_ptr	m_input_layout;
+        };
+
     }
 }
 

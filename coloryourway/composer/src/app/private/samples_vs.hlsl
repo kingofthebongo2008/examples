@@ -1,17 +1,52 @@
-struct vs_input
+struct sample
 {
-    float4 position_ps : position;
+    float       m_x;        //x coordinate
+    float       m_y;        //y coordinate
+    uint        m_c;        //sample class
 };
 
-struct vs_output
-{
-    float4 position_ps : sv_position;
-};
+StructuredBuffer<sample> buffer;
 
-vs_output vertex_main(vs_input i)
+float4 vertex_main(uint id : SV_VertexID, uint instance : SV_InstanceID) : SV_Position
 {
-    vs_output a;
-    a.position_ps = i.position_ps;
+    float4 v;
 
-    return a;
+    float  scale = 0.015f;
+    float2 offset = { 0.11f * instance, 0.0f };
+
+    sample s = buffer.Load(instance);
+
+    offset = float2(s.m_x, s.m_y) - float2( +0.5f, + 0.5f);
+
+    float4x4 model =
+    {
+        scale, 0.0f, 0.0f, 0.0f,
+        0.0f, scale, 0.0f, 0.0f,
+        0.0f, 0.0f, 1.0f, 0.0f,
+        offset.x, offset.y, 0.0f, 1.0f,
+    };
+
+    switch (id)
+    {
+        case 0:
+        {   v = float4 (0, 1, 0, 1);
+            break;
+        }
+
+        case 1:
+        {
+            v = float4 (1, 0, 0, 1);
+            break;
+        }
+
+        case 2:
+        {
+            v = float4 (-1, 0, 0, 1);
+            break;
+        }
+
+        default: return float4 (0, 0, 0, 0);
+    }
+
+    return mul(v, model);
 }

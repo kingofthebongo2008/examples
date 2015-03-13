@@ -232,6 +232,15 @@ namespace d3d11
 
         }
     };
+
+    class create_input_layout_exception : public exception
+    {
+        public:
+        create_input_layout_exception(const HRESULT hr) : exception(hr)
+        {
+
+        }
+    };
 }
 
 
