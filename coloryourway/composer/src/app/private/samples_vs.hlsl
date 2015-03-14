@@ -5,11 +5,19 @@ struct sample
     uint        m_c;        //sample class
 };
 
+struct vertex_out
+{   
+    float4 position_ps     : SV_Position;
+    uint   sample_class    : SAMPLE_CLASS;
+};
+
 StructuredBuffer<sample> buffer;
 
-float4 vertex_main(uint id : SV_VertexID, uint instance : SV_InstanceID) : SV_Position
+vertex_out vertex_main(uint id : SV_VertexID, uint instance : SV_InstanceID)
 {
-    float4 v;
+    vertex_out o;
+
+    float4 v = float4(0.0,0.0,0.0, 0.0 );
 
     float  scale = 0.015f;
     float2 offset = { 0.11f * instance, 0.0f };
@@ -44,9 +52,9 @@ float4 vertex_main(uint id : SV_VertexID, uint instance : SV_InstanceID) : SV_Po
             v = float4 (-1, 0, 0, 1);
             break;
         }
-
-        default: return float4 (0, 0, 0, 0);
     }
 
-    return mul(v, model);
+    o.position_ps   = mul(v, model);
+    o.sample_class  = s.m_c;
+    return o;
 }

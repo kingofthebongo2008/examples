@@ -200,6 +200,25 @@ namespace coloryourway
             return sqrtf(dx * dx + dy * dy);
         }
 
+        //distance with periodic boundary conditions
+        static inline float distance2(const sample& s1, const sample& s2)
+        {
+            float dx = abs(s1.m_x - s2.m_x);
+            float dy = abs(s1.m_y - s2.m_y);
+
+            if (dx > 0.5f)
+            {
+                dx = 1.0f - dx;
+            }
+
+            if (dy > 0.5f)
+            {
+                dy = 1.0f - dy;
+            }
+
+            return sqrtf(dx * dx + dy * dy);
+        }
+
         static inline float fill_rate(const multi_class_dart_throwing_context* ctx, uint32_t c)
         {
             return static_cast<float>( ctx->m_class_sample_count[c] )  / ctx->m_class_total_sample_count[c];
@@ -267,7 +286,7 @@ namespace coloryourway
                     auto c2 = it->m_c;
 
                     auto d = *address(c->m_r, c->m_sample_classes, c1, c2);
-                    if ( distance(s, *it) < d )
+                    if ( distance2(s, *it) < d )
                     {
                         ns.push_back(it);
                     }
@@ -300,10 +319,10 @@ namespace coloryourway
 
         std::tuple < std::list<sample>, uint32_t, uint32_t > build_samples()
         {
-            const auto sample_classes = 5U;
+            const auto sample_classes = 3U;
             const auto sample_count = 80U;
 
-            const float r[sample_classes] = { 0.3f, 0.2f, 0.1f, 0.3f, 0.3f };
+            const float r[sample_classes] = { 0.12f, 0.18f, 0.1f }; //, 0.13f, 0.2f//};
 
             uint32_t ni[sample_classes];
 
