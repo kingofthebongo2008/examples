@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include <vector>
+#include <random>
 
 #include <os/windows/com_initializer.h>
 
@@ -129,6 +130,7 @@ namespace coloryourway
                         if ( i != j  )
                         {
                             auto v = 1.0f / sqrtf(d);
+                            //auto v = g.m_r + ; // 120.0f;// 0.1f;
                             *address(m, sample_classes, i, j) = v;
                             *address(m, sample_classes, j, i) = v;
                         }
@@ -158,36 +160,73 @@ namespace coloryourway
             uint32_t                m_sample_classes;           //sample classes count
         };
 
+        static float random_x()
+        {
+            static std::random_device rd;
+            static std::mt19937 gen(rd());
+            static std::uniform_real_distribution<> dis(0.30f, 0.70f);
+
+            return static_cast<float> (dis(gen));
+        }
+
+        static float random_y()
+        {
+            static std::random_device rd;
+            static std::mt19937 gen(rd());
+            static std::uniform_real_distribution<> dis(0.4f, 0.6f);
+
+            return static_cast<float> (dis(gen));
+        }
+
+
+        static float random_x1()
+        {
+            static std::random_device rd;
+            static std::mt19937 gen(rd());
+            static std::uniform_real_distribution<> dis(0.0f, 1.0f);
+
+            return static_cast<float> (dis(gen));
+        }
+
+        static float random_y1()
+        {
+            static std::random_device rd;
+            static std::mt19937 gen(rd());
+            static std::uniform_real_distribution<> dis(0.0f, 1.0f);
+
+            return static_cast<float> (dis(gen));
+        }
+
         static sample inline generate_new_sample()
         {
             sample r;
 
             auto max = float(RAND_MAX);
             
-            r.m_x = std::rand() / max;
-            r.m_y = std::rand() / max;
+            r.m_x = random_x1();
+            r.m_y = random_y1();
             r.m_c = 0;
             return r;
         }
 
-        static sample inline generate_new_sample2( uint32_t i )
+        static sample inline generate_new_sample2( uint32_t i, uint32_t n )
         {
             sample r;
 
             auto max = float(RAND_MAX);
 
-            auto g_x = i % 8;
-            auto g_y = i / 8;
+            auto g_x = i % n;
+            auto g_y = i / n;
 
-            r.m_x = std::rand() / max;
-            r.m_y = std::rand() / max;
+            r.m_x = random_x();
+            r.m_y = random_y();
             r.m_c = 0;
 
             auto  r_x = r.m_x + g_x;
             auto  r_y = r.m_y + g_y;
 
-            r.m_x = r_x / 8.0f;
-            r.m_y = r_y / 8.0f;
+            r.m_x = r_x / n;
+            r.m_y = r_y / n;
 
             return r;
         }
@@ -267,13 +306,16 @@ namespace coloryourway
             ns.reserve(1000);
 
             auto grid_cell = 0U;
+            auto count = static_cast<uint32_t> ( sqrtf(c->m_total_sample_count) );
 
             while (trials < c->m_total_trials && c->m_final_set_of_samples_count < c->m_total_sample_count  )
             {
                 trials++;
-                auto s = generate_new_sample2(  grid_cell );
+
+                auto s = generate_new_sample2(  grid_cell, count );
+
                 grid_cell++;
-                grid_cell %= 64;
+                grid_cell %= count * count;
 
                 auto cs = find_sample_class( c ); 
                 s.m_c = cs;
@@ -320,9 +362,9 @@ namespace coloryourway
         std::tuple < std::list<sample>, uint32_t, uint32_t > build_samples()
         {
             const auto sample_classes = 3U;
-            const auto sample_count = 80U;
+            const auto sample_count = 64U;
 
-            const float r[sample_classes] = { 0.12f, 0.18f, 0.1f }; //, 0.13f, 0.2f//};
+            const float r[5] = { 0.10f, 0.12f, 0.07342f , 0.13f, 0.2f};
 
             uint32_t ni[sample_classes];
 
@@ -330,7 +372,7 @@ namespace coloryourway
             {
                 ni[i] = sample_count_class(i, sample_count, sample_classes, r);
             }
-
+            static std::uniform_real_distribution<> dis(0.0f, 1.0f);
             float rm[sample_classes][sample_classes];
 
             build_r_matrix(&rm[0][0], sample_classes, r);
@@ -468,12 +510,10 @@ namespace coloryourway
 
 int32_t APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdLine, int       nCmdShow)
 {
-    std::srand(::GetTickCount());
-    
     using namespace coloryourway::composer;
     using namespace std;
 
-    os::windows::com_initializer com(os::windows::apartment_threaded);
+    os::windows::com_initializer com;
     auto app = new sample_application(L"Composer");
 
     auto samples_gs_future = create_shader_samples_gs_async(app->get_device());

@@ -17,7 +17,7 @@ vertex_out vertex_main(uint id : SV_VertexID, uint instance : SV_InstanceID)
 {
     vertex_out o;
 
-    float4 v = float4(0.0,0.0,0.0, 0.0 );
+    float4 v = float4(0.0, 0.0, 0.0, 0.0);
 
     float  scale = 0.015f;
     float2 offset = { 0.11f * instance, 0.0f };
