@@ -32,6 +32,23 @@ namespace gx
 
         }
 
+        application(uint32_t width, uint32_t height, HINSTANCE instance, const wchar_t* window_title) :
+            base(width, height, instance, window_title)
+            , m_context(d3d11::create_system_context(get_window()))
+            , m_occluded_by_another_window(false)
+        {
+
+        }
+
+        application(uint32_t width, uint32_t height, const wchar_t* window_title) :
+            base(width, height, ::GetModuleHandle(nullptr), window_title)
+            , m_context(d3d11::create_system_context(get_window()))
+            , m_occluded_by_another_window(false)
+        {
+
+        }
+
+
         private:
 
         

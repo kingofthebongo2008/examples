@@ -56,9 +56,19 @@ namespace coloryourway
                 return m_cull_none_raster_state.get();
             }
 
+            ID3D11RasterizerState* get_cull_back_state() const
+            {
+                return m_cull_back_raster_state.get();
+            }
+
             ID3D11DepthStencilState* get_depth_disable() const
             {
                 return m_depth_disable_state.get();
+            }
+
+            ID3D11SamplerState* get_point_sampler() const
+            {
+                return m_point_sampler.get();
             }
 
             private:

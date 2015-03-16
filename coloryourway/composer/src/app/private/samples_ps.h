@@ -67,7 +67,7 @@ namespace coloryourway
             return shader_samples_ps(std::move(details::create_shader_samples_ps(device)));
         }
 
-        std::future< shader_samples_ps> create_shader_samples_ps_async(ID3D11Device* device)
+        inline std::future< shader_samples_ps> create_shader_samples_ps_async(ID3D11Device* device)
         {
             return std::async(std::launch::async, create_shader_samples_ps, device);
         }

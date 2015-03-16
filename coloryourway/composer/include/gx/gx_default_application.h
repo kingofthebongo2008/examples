@@ -35,6 +35,13 @@ namespace gx
             ShowCursor(false);
         }
 
+        default_application(uint32_t width, uint32_t height, const wchar_t* window_title) : base(width, height, window_title)
+            , m_mouse_state(window_width(get_window()), window_height(get_window()))
+        {
+
+            ShowCursor(false);
+        }
+
     protected:
 
         io::keyboard_state get_keyboard_state() const

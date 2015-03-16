@@ -37,6 +37,11 @@ namespace coloryourway
                 return m_context.m_device;
             }
 
+            d3d11::idevicecontext_ptr get_immediate_context()
+            {
+                return m_context.m_immediate_context;
+            }
+
         protected:
 
             virtual void on_render_scene();

@@ -17,6 +17,72 @@ namespace gx
         msaa_16x = 16
     };
 
+    class texture2d_resource
+    {
+        public:
+
+        texture2d_resource()
+        {
+
+        }
+
+        texture2d_resource(
+            d3d11::itexture2d_ptr               resource,
+            d3d11::ishaderresourceview_ptr	    resource_srv
+            ) : m_resource(resource), m_resource_srv(resource_srv)
+        {
+
+        }
+
+        texture2d_resource(const texture2d_resource& o) : m_resource(o.m_resource), m_resource_srv(o.m_resource_srv)
+        {
+
+        }
+
+        texture2d_resource(texture2d_resource&& o) : m_resource( std::move(o.m_resource)), m_resource_srv(std::move(o.m_resource_srv))
+        {
+
+        }
+
+        operator ID3D11Texture2D* ()
+        {
+            return m_resource.get();
+        }
+
+        operator const ID3D11Texture2D* () const
+        {
+            return m_resource.get();
+        }
+
+        operator ID3D11ShaderResourceView* ()
+        {
+            return m_resource_srv.get();
+        }
+
+        operator const ID3D11ShaderResourceView* () const
+        {
+            return m_resource_srv.get();
+        }
+
+        texture2d_resource& operator=(const texture2d_resource& o)
+        {
+            m_resource = o.m_resource;
+            m_resource_srv = o.m_resource_srv;
+            return *this;
+        }
+
+        texture2d_resource& operator=(texture2d_resource&& o)
+        {
+            m_resource = std::move(o.m_resource);
+            m_resource_srv = std::move(o.m_resource_srv);
+            return *this;
+        }
+
+        private:
+        d3d11::itexture2d_ptr               m_resource;
+        d3d11::ishaderresourceview_ptr      m_resource_srv;
+    };
+
     class render_target_resource
     {
         public:

@@ -13,18 +13,23 @@ struct vertex_out
 
 StructuredBuffer<sample> buffer;
 
+cbuffer vertex_main : register(b0)
+{
+    uint m_instance_offset;
+};
+
 vertex_out vertex_main(uint id : SV_VertexID, uint instance : SV_InstanceID)
 {
     vertex_out o;
 
     float4 v = float4(0.0, 0.0, 0.0, 0.0);
 
-    float  scale = 0.015f;
+    float  scale  = 206.0f * 1.0f / 3600.0f; // 1.0f / 406.f; // 0.015f;
     float2 offset = { 0.11f * instance, 0.0f };
 
-    sample s = buffer.Load(instance);
+    sample s = buffer.Load(instance + m_instance_offset);
 
-    offset = float2(s.m_x, s.m_y) - float2( +0.5f, + 0.5f);
+    offset = (float2(s.m_x, s.m_y) - float2(+0.5f, +0.5f)) * float2(2.0f, 2.0f);
 
     float4x4 model =
     {
@@ -37,19 +42,26 @@ vertex_out vertex_main(uint id : SV_VertexID, uint instance : SV_InstanceID)
     switch (id)
     {
         case 0:
-        {   v = float4 (0, 1, 0, 1);
+        {   
+            v = float4 (1, 1, 0, 1); 
             break;
         }
 
         case 1:
         {
-            v = float4 (1, 0, 0, 1);
+            v = float4 (1, -1, 0, 1);
             break;
         }
 
         case 2:
         {
-            v = float4 (-1, 0, 0, 1);
+            v = float4 (-1, 1, 0, 1);
+            break;
+        }
+
+        case 3:
+        {
+            v = float4 (-1, -1, 0, 1);
             break;
         }
     }

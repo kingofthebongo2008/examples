@@ -16,6 +16,8 @@
 #include "samples_ps.h"
 #include "samples_vs.h"
 
+#include <gxu/gxu_texture_loading.h>
+
 namespace coloryourway
 {
     namespace composer
@@ -164,7 +166,7 @@ namespace coloryourway
         {
             static std::random_device rd;
             static std::mt19937 gen(rd());
-            static std::uniform_real_distribution<> dis(0.30f, 0.70f);
+            static std::uniform_real_distribution<> dis(0.25f, 0.75f);
 
             return static_cast<float> (dis(gen));
         }
@@ -173,7 +175,7 @@ namespace coloryourway
         {
             static std::random_device rd;
             static std::mt19937 gen(rd());
-            static std::uniform_real_distribution<> dis(0.4f, 0.6f);
+            static std::uniform_real_distribution<> dis(0.25f, 0.75f);
 
             return static_cast<float> (dis(gen));
         }
@@ -306,7 +308,7 @@ namespace coloryourway
             ns.reserve(1000);
 
             auto grid_cell = 0U;
-            auto count = static_cast<uint32_t> ( sqrtf(c->m_total_sample_count) );
+            auto count = static_cast<uint32_t> (sqrtf(static_cast<float> (c->m_total_sample_count)));
 
             while (trials < c->m_total_trials && c->m_final_set_of_samples_count < c->m_total_sample_count  )
             {
@@ -397,20 +399,21 @@ namespace coloryourway
 
         struct sample_render_info
         {
-            std::vector< sample > m_samples;
-            uint32_t              m_sample_classes;
+            std::vector< sample >   m_samples;
+            uint32_t                m_sample_classes;
+            std::vector< uint32_t > m_sample_ranges;
 
             sample_render_info() : m_sample_classes(0)
             {
 
             }
 
-            sample_render_info(const sample_render_info& o) : m_samples(o.m_samples), m_sample_classes(o.m_sample_classes)
+            sample_render_info(const sample_render_info& o) : m_samples(o.m_samples), m_sample_classes(o.m_sample_classes), m_sample_ranges( o.m_sample_ranges )
             {
 
             }
 
-            sample_render_info( sample_render_info&& o ) : m_samples( std::move(o.m_samples)), m_sample_classes(std::move(o.m_sample_classes))
+            sample_render_info(sample_render_info&& o) : m_samples(std::move(o.m_samples)), m_sample_classes(std::move(o.m_sample_classes)), m_sample_ranges( std::move(o.m_sample_ranges))
             {
 
             }
@@ -427,6 +430,7 @@ namespace coloryourway
             {
                 m_samples = std::move(o.m_samples);
                 m_sample_classes = std::move(o.m_sample_classes);
+                m_sample_ranges = std::move(o.m_sample_ranges);
                 return *this;
             }
 
@@ -444,7 +448,9 @@ namespace coloryourway
                     shader_samples_ps ps,
                     shader_samples_vs_layout layout,
                     d3d11::ibuffer_ptr points,
-                    d3d11::ishaderresourceview_ptr points_view
+                    d3d11::ishaderresourceview_ptr points_view,
+                    const std::vector<  gx::texture2d_resource >& images,
+                    const shader_samples_vs_constant_buffer&      cbuffer
                 ) : m_samples(samples)
                     , m_gs(gs)
                     , m_vs(vs)
@@ -452,6 +458,8 @@ namespace coloryourway
                     , m_layout(layout)
                     , m_points(points)
                     , m_points_view(points_view)
+                    , m_images(images)
+                    , m_cbuffer(cbuffer)
             {
 
             }
@@ -463,7 +471,9 @@ namespace coloryourway
                 shader_samples_ps && ps,
                 shader_samples_vs_layout && layout,
                 d3d11::ibuffer_ptr && points,
-                d3d11::ishaderresourceview_ptr&& points_view
+                d3d11::ishaderresourceview_ptr&& points_view,
+                std::vector<  gx::texture2d_resource >&& images,
+                shader_samples_vs_constant_buffer&&      cbuffer
                 ) : m_samples(std::move(samples))
                     , m_gs( std::move(gs) )
                     , m_vs( std::move(vs) )
@@ -471,19 +481,24 @@ namespace coloryourway
                     , m_layout(std::move( layout ))
                     , m_points(std::move(points))
                     , m_points_view(std::move(points_view))
+                    , m_images(std::move(images))
+                    , m_cbuffer(std::move(cbuffer))
             {
 
             }
 
             private:
 
-            sample_render_info              m_samples;
-            shader_samples_gs               m_gs;
-            shader_samples_vs               m_vs;
-            shader_samples_ps               m_ps;
-            shader_samples_vs_layout        m_layout;
-            d3d11::ibuffer_ptr              m_points;
-            d3d11::ishaderresourceview_ptr  m_points_view;
+            sample_render_info                      m_samples;
+            shader_samples_gs                       m_gs;
+            shader_samples_vs                       m_vs;
+            shader_samples_ps                       m_ps;
+            shader_samples_vs_layout                m_layout;
+            d3d11::ibuffer_ptr                      m_points;
+            d3d11::ishaderresourceview_ptr          m_points_view;
+
+            std::vector<  gx::texture2d_resource >  m_images;
+            shader_samples_vs_constant_buffer       m_cbuffer;
 
             void on_draw( render_context& c )
             {
@@ -494,24 +509,137 @@ namespace coloryourway
                 vs_set_shader(device_context, m_vs);
                 ps_set_shader(device_context, m_ps);
 
-                rs_set_state(device_context, c.get_cull_none_state());
+                rs_set_state(device_context, c.get_cull_back_state());
                 om_set_depth_state(device_context, c.get_depth_disable());
 
-                ia_set_primitive_topology(device_context, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+                ia_set_primitive_topology(device_context, D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
                 ia_set_input_layout(device_context, m_layout);
 
                 vs_set_shader_resource(device_context, m_points_view);
-                
-                device_context->DrawInstanced(4, m_samples.m_samples.size(), 0, 0);
+
+                auto class_count = m_samples.m_sample_classes;
+                for (auto i = 0U; i < class_count; ++i)
+                {
+                    d3d11::ps_set_shader_resources(device_context, m_images[i] );
+                    d3d11::ps_set_sampler_state(device_context, c.get_point_sampler());
+
+                    auto range = m_samples.m_sample_ranges[i + 1] - m_samples.m_sample_ranges[i];
+                    auto start = m_samples.m_sample_ranges[i];
+
+                    m_cbuffer.set_instance_offset(start);
+                    m_cbuffer.flush(device_context);
+
+                    ID3D11Buffer* b = m_cbuffer;
+                    device_context->VSSetConstantBuffers(0, 1, &b);
+
+                    device_context->DrawInstanced(4, range, 0, 0);
+                }
             }
         };
     }
 }
 
-int32_t APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdLine, int       nCmdShow)
+class media_source
+{
+    public:
+
+    media_source(const wchar_t* file_name) : m_path(file_name)
+    {
+
+    }
+
+    media_source(const std::wstring& file_name) : m_path(file_name)
+    {
+
+    }
+
+    media_source(std::wstring&& file_name) : m_path(std::move(file_name))
+    {
+
+    }
+
+    const wchar_t* get_path() const
+    {
+        return m_path.c_str();
+    }
+
+private:
+
+    std::wstring m_path;
+};
+
+class media_url
+{
+    public:
+
+    media_url( const wchar_t* file_name ) : m_file_name( file_name )
+    {
+
+    }
+
+    media_url( const std::wstring& file_name ) : m_file_name(file_name)
+    {
+
+    }
+
+    media_url( std::wstring&& file_name ) : m_file_name(std::move(file_name))
+    {
+
+    }
+
+    const wchar_t* get_path() const
+    {
+        return m_file_name.c_str();
+    }
+
+    private:
+
+    std::wstring m_file_name;
+};
+
+inline media_url build_media_url( const media_source& source, const wchar_t* path )
+{
+    return std::move(media_url( std::move( std::wstring( source.get_path() ) + std::wstring( path )  ) ) );
+}
+
+struct sort_by_class
+{
+    bool operator() (const coloryourway::composer::sample& a, const coloryourway::composer::sample& b)
+    {
+        return a.m_c < b.m_c;
+    }
+};
+
+inline std::vector<uint32_t> build_sample_ranges(const std::vector<coloryourway::composer::sample >& samples)
+{
+    auto r = 0U;
+    auto sample_class = 0U;
+
+    std::vector<uint32_t> result;
+
+    result.push_back(0);
+
+    for ( auto i = 0U; i < samples.size() - 1; ++i )
+    {
+        auto& s = samples[i];
+
+        if (s.m_c != sample_class)
+        {
+            result.push_back(i);
+            sample_class = s.m_c;
+        }
+    }
+
+    result.push_back( samples.size() );
+    return std::move( result );
+}
+
+int32_t _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdLine, int       nCmdShow)
 {
     using namespace coloryourway::composer;
     using namespace std;
+
+    media_source source(L"../../../media/");
 
     os::windows::com_initializer com;
     auto app = new sample_application(L"Composer");
@@ -520,6 +648,11 @@ int32_t APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR 
     auto samples_ps_future = create_shader_samples_ps_async(app->get_device());
     auto samples_vs_future = create_shader_samples_vs_async(app->get_device());
 
+    auto url0 = build_media_url(source, L"image0.png");
+    auto url1 = build_media_url(source, L"image1.png");
+
+    auto image0 = gxu::load_texture_wic_async( app->get_device(), app->get_immediate_context(), url0.get_path() );
+    auto image1 = gxu::load_texture_wic_async( app->get_device(), app->get_immediate_context(), url1.get_path() );
 
     auto samples = build_samples();
 
@@ -529,20 +662,44 @@ int32_t APIENTRY _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR 
 
     copy(begin(get<0>(samples)), end(get<0>(samples)), begin(v_samples));
 
+    std::sort( begin(v_samples), end(v_samples), sort_by_class() );
+
     auto samples_gs = samples_gs_future.get();
     auto samples_ps = samples_ps_future.get();
     auto samples_vs = samples_vs_future.get();
 
     shader_samples_vs_layout samples_vs_layout( app->get_device() );
 
-    auto buffer = d3d11::create_unordered_access_structured_buffer(app->get_device(), v_samples.size(), sizeof(sample) , &v_samples[0] );
-    auto buffer_view = d3d11::create_shader_resource_view(app->get_device().get(), buffer.get());
+    auto buffer      = d3d11::create_unordered_access_structured_buffer(    app->get_device(), v_samples.size(), sizeof(sample) , &v_samples[0] );
+    auto buffer_view = d3d11::create_shader_resource_view(  app->get_device().get(), buffer.get()   );
 
     sample_render_info info;
     info.m_sample_classes = get<2>(samples);
     info.m_samples = move(v_samples);
+    info.m_sample_ranges = move(build_sample_ranges(info.m_samples));
 
-    auto renderable = std::make_shared<samples_renderable>(move(info), move(samples_gs), move(samples_vs), move(samples_ps), move(samples_vs_layout), move(buffer), move(buffer_view) );
+
+
+    std::vector< gx::texture2d_resource > images;
+    images.resize(5);
+
+    auto images0_texture = image0.get();
+    auto images1_texture = image1.get();
+
+    auto images0_view = d3d11::create_shader_resource_view(app->get_device(), images0_texture);
+    auto images1_view = d3d11::create_shader_resource_view(app->get_device(), images1_texture);
+
+    images[0] = std::move(gx::texture2d_resource(images0_texture, images0_view));
+    images[1] = std::move(gx::texture2d_resource(images1_texture, images1_view));
+    images[2] = images[2];
+    images[3] = images[3];
+    images[4] = images[3];
+
+    auto cbuffer = create_samples_vs_constant_buffer(app->get_device());
+
+    auto renderable = std::make_shared<samples_renderable>( move(info), move(samples_gs), move(samples_vs), move(samples_ps), move(samples_vs_layout), move(buffer), move(buffer_view), std::move(images), std::move(cbuffer) );
+
+
     app->register_renderable( std::move(renderable) );
    
     auto result = app->run();

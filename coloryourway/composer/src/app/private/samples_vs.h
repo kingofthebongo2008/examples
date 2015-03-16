@@ -8,6 +8,8 @@
 #include <d3d11/d3d11_pointers.h>
 #include <d3d11/d3d11_helpers.h>
 
+#include <gx/gx_constant_buffer_helper.h>
+
 namespace coloryourway
 {
     namespace composer
@@ -67,7 +69,7 @@ namespace coloryourway
             return shader_samples_vs(std::move(details::create_shader_samples_vs(device)));
         }
 
-        std::future< shader_samples_vs > create_shader_samples_vs_async(ID3D11Device* device)
+        inline std::future< shader_samples_vs > create_shader_samples_vs_async(ID3D11Device* device)
         {
             return std::async(std::launch::async, create_shader_samples_vs, device);
         }
@@ -121,6 +123,125 @@ namespace coloryourway
 
                 d3d11::iinputlayout_ptr	m_input_layout;
         };
+
+        class constant_buffer
+        {
+
+            public:
+
+                explicit constant_buffer(d3d11::ibuffer_ptr	buffer) : m_buffer(buffer)
+            {
+                D3D11_BUFFER_DESC d = {};
+                buffer->GetDesc(&d);
+                m_shadow.resize(d.ByteWidth);
+            }
+
+            constant_buffer(const constant_buffer& o) : m_buffer(o.m_buffer), m_shadow(o.m_shadow)
+            {
+
+            }
+
+            constant_buffer(constant_buffer&& o) : m_buffer( std::move(o.m_buffer)) , m_shadow(std::move(o.m_shadow))
+            {
+
+            }
+
+            constant_buffer& operator=(const constant_buffer& o)
+            {
+                m_buffer = o.m_buffer;
+                m_shadow = o.m_shadow;
+                return *this;
+            }
+
+            constant_buffer& operator=(const constant_buffer&& o)
+            {
+                m_buffer = std::move(o.m_buffer);
+                m_shadow = std::move(o.m_shadow);
+                return *this;
+            }
+
+            operator ID3D11Buffer*()
+            {
+                return m_buffer.get();
+            }
+
+            operator const ID3D11Buffer*() const
+            {
+                return m_buffer.get();
+            }
+
+            template <typename t> t* map()
+            {
+                return reinterpret_cast<t*> (&m_shadow[0]);
+            }
+
+            void unmap()
+            {
+
+            }
+
+            void flush( ID3D11DeviceContext* context )
+            {
+                gx::constant_buffer_update( context, m_buffer, &m_shadow[0], m_shadow.size() );
+            }
+
+            protected:
+
+            d3d11::ibuffer_ptr      m_buffer;
+            std::vector<uint8_t>    m_shadow;
+        };
+
+        class shader_samples_vs_constant_buffer final : public constant_buffer
+        {
+            typedef constant_buffer base;
+            
+            public:
+            
+            enum { size = sizeof(uint32_t) };
+
+
+            explicit shader_samples_vs_constant_buffer( d3d11::ibuffer_ptr	buffer ) : base( buffer)
+            {
+
+            }
+
+
+            shader_samples_vs_constant_buffer(const shader_samples_vs_constant_buffer& o) : base(o)
+            {
+
+            }
+
+            shader_samples_vs_constant_buffer(shader_samples_vs_constant_buffer&& o) : base(std::move(o))
+            {
+
+            }
+
+            shader_samples_vs_constant_buffer& operator=(const shader_samples_vs_constant_buffer& o)
+            {
+                base::operator=(o);
+                return *this;
+            }
+
+            constant_buffer& operator=(const constant_buffer&& o)
+            {
+                base::operator=(std::move(o));
+                return *this;
+            }
+
+            void set_instance_offset(uint32_t offset)
+            {
+                auto i = map<uint32_t>();
+
+                *i = offset;
+
+                unmap();
+            }
+        };
+
+        inline shader_samples_vs_constant_buffer create_samples_vs_constant_buffer(ID3D11Device* device)
+        {
+            return shader_samples_vs_constant_buffer( d3d11::create_constant_buffer(device, shader_samples_vs_constant_buffer::size) );
+        }
 
     }
 }

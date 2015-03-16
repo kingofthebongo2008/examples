@@ -12,7 +12,7 @@ namespace coloryourway
     namespace composer
     {
 
-            sample_application::sample_application(const wchar_t* window_title) : base(window_title)
+            sample_application::sample_application(const wchar_t* window_title) : base(768, 768, window_title)
                 , m_d2d_factory(d2d::create_d2d_factory_single_threaded())
                 , m_dwrite_factory(dwrite::create_dwrite_factory())
                 , m_text_format(dwrite::create_text_format(m_dwrite_factory))
@@ -118,17 +118,21 @@ namespace coloryourway
                 ::GetClientRect(get_window(), &r);
 
                 //Get a description of the GPU or another simulator device
-                DXGI_ADAPTER_DESC d;
-                m_context.m_adapter->GetDesc(&d);
+                DXGI_ADAPTER_DESC d = {};
 
-                D2D1_RECT_F rf = { static_cast<float> (r.left), static_cast<float>(r.top), static_cast<float>(r.right), static_cast<float>(r.bottom) };
+                auto result = m_context.m_adapter->GetDesc(&d);
 
-                const std::wstring w = L"Update time: " + std::to_wstring(m_elapsed_update_time) + L"ms Render time: " + std::to_wstring(timer.milliseconds()) + L" ms\n";
-                const std::wstring w2 = w + d.Description + L" Video Memory(MB): " + std::to_wstring(d.DedicatedVideoMemory / (1024 * 1024)) + L" System Memory(MB): " + std::to_wstring(d.DedicatedSystemMemory / (1024 * 1024)) + L" Shared Memory(MB): " + std::to_wstring(d.SharedSystemMemory / (1024 * 1024));
+                if (SUCCEEDED(result))
+                {
+                    D2D1_RECT_F rf = { static_cast<float> (r.left), static_cast<float>(r.top), static_cast<float>(r.right), static_cast<float>(r.bottom) };
 
-                m_d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
-                m_d2d_render_target->FillRectangle(rf, m_brush2);
-                m_d2d_render_target->DrawTextW(w2.c_str(), static_cast<uint32_t> (w2.length()), m_text_format, &rf, m_brush);
+                    const std::wstring w = L"Update time: " + std::to_wstring(m_elapsed_update_time) + L"ms Render time: " + std::to_wstring(timer.milliseconds()) + L" ms\n";
+                    const std::wstring w2 = w + d.Description + L" Video Memory(MB): " + std::to_wstring(d.DedicatedVideoMemory / (1024 * 1024)) + L" System Memory(MB): " + std::to_wstring(d.DedicatedSystemMemory / (1024 * 1024)) + L" Shared Memory(MB): " + std::to_wstring(d.SharedSystemMemory / (1024 * 1024));
+
+                    m_d2d_render_target->SetTransform(D2D1::Matrix3x2F::Identity());
+                    m_d2d_render_target->FillRectangle(rf, m_brush2);
+                    m_d2d_render_target->DrawTextW(w2.c_str(), static_cast<uint32_t> (w2.length()), m_text_format, &rf, m_brush);
+                }
                 m_d2d_render_target->EndDraw();
             }
 

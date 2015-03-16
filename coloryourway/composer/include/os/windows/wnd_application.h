@@ -147,6 +147,12 @@ namespace os
             {
 
             }
+
+            windowed_applicaion( uint32_t width, uint32_t height, HINSTANCE instance, const wchar_t* window_name ) : application(create_window(width, height, instance, window_name), instance)
+            {
+
+            }
+
             void resize(uint32_t width, uint32_t height)
             {
                 on_resize( width, height );
@@ -175,6 +181,30 @@ namespace os
                     if (window)
                     {
                         ::SetWindowLongPtr(window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this) );
+                        return window;
+                    }
+                    else
+                    {
+                        throw std::exception("Cannot create window");
+                    }
+                }
+                else
+                {
+                    throw std::exception("Cannot create window class");
+                }
+            }
+
+            HWND create_window(uint32_t width, uint32_t height, HINSTANCE instance, const wchar_t* window_name)
+            {
+                auto wnd_class = create_window_class(instance, DefaultWindowProc);
+
+                if (wnd_class)
+                {
+                    auto window = os::windows::create_window(width, height, instance, window_name);
+
+                    if (window)
+                    {
+                        ::SetWindowLongPtr(window, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
                         return window;
                     }
                     else
