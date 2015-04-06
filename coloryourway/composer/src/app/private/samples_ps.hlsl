@@ -7,6 +7,7 @@
 struct ps_input
 {
     float4 position_ps     : SV_Position;
+    float2 texture_uv      : TEXCOORD0;
     uint   sample_class    : SAMPLE_CLASS;
 };
 
@@ -25,11 +26,11 @@ float4  pixel_main(in  ps_input input) : sv_target
         float4(0.0f, 0.5f, 0.5f, 1.0f)
     };
 
-    float4 c = image.Sample(default_sampler, float2(0.0, 0.0));
+    float4 c = image.Sample(default_sampler, input.texture_uv);
 
-    float4 c2 = colors[input.sample_class];
+        float4 c2 = colors[input.sample_class];
 
-    return c2;
+        return c;// 2;
 }
 
 

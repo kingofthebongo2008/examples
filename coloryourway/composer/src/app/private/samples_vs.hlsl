@@ -8,7 +8,9 @@ struct sample
 struct vertex_out
 {   
     float4 position_ps     : SV_Position;
+    float2 texture_uv      : TEXCOORD0;
     uint   sample_class    : SAMPLE_CLASS;
+
 };
 
 StructuredBuffer<sample> buffer;
@@ -23,8 +25,9 @@ vertex_out vertex_main(uint id : SV_VertexID, uint instance : SV_InstanceID)
     vertex_out o;
 
     float4 v = float4(0.0, 0.0, 0.0, 0.0);
+    float2 uv = float2(0.0, 0.0);
 
-    float  scale  = 206.0f * 1.0f / 3600.0f; // 1.0f / 406.f; // 0.015f;
+    float  scale  = 428.0f * 1.0f / 3600.0f; // 1.0f / 406.f; // 0.015f;
     float2 offset = { 0.11f * instance, 0.0f };
 
     sample s = buffer.Load(instance + m_instance_offset);
@@ -44,29 +47,34 @@ vertex_out vertex_main(uint id : SV_VertexID, uint instance : SV_InstanceID)
         case 0:
         {   
             v = float4 (1, 1, 0, 1); 
+            uv = float2(1.0, 0.0);
             break;
         }
 
         case 1:
         {
             v = float4 (1, -1, 0, 1);
+            uv = float2(1.0, 1.0);
             break;
         }
 
         case 2:
         {
             v = float4 (-1, 1, 0, 1);
+            uv = float2(0.0, 0.0);
             break;
         }
 
         case 3:
         {
             v = float4 (-1, -1, 0, 1);
+            uv = float2(1.0, 0.0);
             break;
         }
     }
 
     o.position_ps   = mul(v, model);
     o.sample_class  = s.m_c;
+    o.texture_uv = uv;
     return o;
 }

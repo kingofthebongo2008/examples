@@ -103,7 +103,8 @@ namespace coloryourway
 
                 //set render target as the back buffer, goes to the operating system
                 d3d11::om_set_render_target(device_context, m_back_buffer_render_target);
-                d3d11::clear_render_target_view(device_context, m_back_buffer_render_target, math::zero());
+                math::float4 clear_color = math::set(248.0f / 255.0f, 83.0f / 255.f, 126.0f / 255.0f, 0.0f);
+                d3d11::clear_render_target_view(device_context, m_back_buffer_render_target, clear_color);
 
                 D3D11_VIEWPORT v = m_view_port;
                 d3d11::rs_set_view_port(device_context, &v);

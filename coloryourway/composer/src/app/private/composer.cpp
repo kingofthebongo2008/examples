@@ -166,7 +166,7 @@ namespace coloryourway
         {
             static std::random_device rd;
             static std::mt19937 gen(rd());
-            static std::uniform_real_distribution<> dis(0.25f, 0.75f);
+            static std::uniform_real_distribution<> dis(0.3f, 0.6f);
 
             return static_cast<float> (dis(gen));
         }
@@ -175,7 +175,7 @@ namespace coloryourway
         {
             static std::random_device rd;
             static std::mt19937 gen(rd());
-            static std::uniform_real_distribution<> dis(0.25f, 0.75f);
+            static std::uniform_real_distribution<> dis(0.3f, 0.6f);
 
             return static_cast<float> (dis(gen));
         }
@@ -213,6 +213,7 @@ namespace coloryourway
 
         static sample inline generate_new_sample2( uint32_t i, uint32_t n )
         {
+            return generate_new_sample();
             sample r;
 
             auto max = float(RAND_MAX);
@@ -363,10 +364,10 @@ namespace coloryourway
 
         std::tuple < std::list<sample>, uint32_t, uint32_t > build_samples()
         {
-            const auto sample_classes = 3U;
-            const auto sample_count = 64U;
+            const auto sample_classes = 2U;
+            const auto sample_count = 56U;
 
-            const float r[5] = { 0.10f, 0.12f, 0.07342f , 0.13f, 0.2f};
+            const float r[5] = { 0.08f, 0.10f, 0.07342f , 0.13f, 0.2f};
 
             uint32_t ni[sample_classes];
 
@@ -691,12 +692,11 @@ int32_t _tWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdL
 
     images[0] = std::move(gx::texture2d_resource(images0_texture, images0_view));
     images[1] = std::move(gx::texture2d_resource(images1_texture, images1_view));
-    images[2] = images[2];
-    images[3] = images[3];
-    images[4] = images[3];
+    images[2] = images[0];
+    images[3] = images[0];
+    images[4] = images[0];
 
     auto cbuffer = create_samples_vs_constant_buffer(app->get_device());
-
     auto renderable = std::make_shared<samples_renderable>( move(info), move(samples_gs), move(samples_vs), move(samples_ps), move(samples_vs_layout), move(buffer), move(buffer_view), std::move(images), std::move(cbuffer) );
 
 
