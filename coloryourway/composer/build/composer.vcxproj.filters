@@ -1,0 +1,348 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="header files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="header files\extern">
+      <UniqueIdentifier>{cf705b22-7edf-4d9a-8c91-fce0b006a0be}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\extern\directx">
+      <UniqueIdentifier>{c93ce115-8ee7-48a3-aede-f3973bef1587}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include">
+      <UniqueIdentifier>{dccc7e50-8ed5-4ce1-b53f-b566bddb8a26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\os">
+      <UniqueIdentifier>{8285e88c-9045-4e99-abbf-72f301021ebf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\os\windows">
+      <UniqueIdentifier>{4fd19b8a-df50-4c2f-b31d-f7a228dc16e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\sys">
+      <UniqueIdentifier>{2282ed1e-19eb-4fda-8009-3435c5a8ca03}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\util">
+      <UniqueIdentifier>{d70e4474-8960-4df9-8836-eb83a1970cce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\d2d">
+      <UniqueIdentifier>{4b0a129d-a6f4-45b8-9412-228aaaea9361}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\d3d11">
+      <UniqueIdentifier>{db46cf6d-8e67-4578-a0d7-b40ec3c4702d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\gx">
+      <UniqueIdentifier>{95edfc70-e83e-4be7-aaf9-bd18da30ce3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\gx\shaders">
+      <UniqueIdentifier>{551e2015-96a6-4459-a750-6cf9e1f6f9b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\io">
+      <UniqueIdentifier>{2ab07e28-1fc7-4837-abbe-ff1989483c57}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\math">
+      <UniqueIdentifier>{5d81c082-5417-44e7-87bc-e20cf5971f58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\mem">
+      <UniqueIdentifier>{eeb34b97-6217-43b0-8886-fbe357459a99}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\extern\directx\inc">
+      <UniqueIdentifier>{c6551d5e-70ba-481e-8be9-f13712197577}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="header files\include\gxu">
+      <UniqueIdentifier>{6c69b3f0-3e5b-47ac-b299-301769070acb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\include\math\math_functions.cpp">
+      <Filter>header files\include\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\math\math_half.cpp">
+      <Filter>header files\include\math</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\app\private\composer.cpp">
+      <Filter>source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\app\private\precompiled.cpp">
+      <Filter>source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\app\private\composer_application.cpp">
+      <Filter>source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\precompiled.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\targetver.h">
+      <Filter>header files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_application.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_color.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_compute_resource.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_constant_buffer_helper.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_cursor.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_default_application.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_geometry_helpers.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_geometry_pass_common.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_pinhole_camera.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_render_functions.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_render_resource.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_view.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_view_port.h">
+      <Filter>header files\include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\shaders\gx_shader_copy_texture.h">
+      <Filter>header files\include\gx\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\shaders\gx_shader_full_screen.h">
+      <Filter>header files\include\gx\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_error.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_exception.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_helpers.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_pointers.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_system.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\dxgi_helpers.h">
+      <Filter>header files\include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_error.h">
+      <Filter>header files\include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_exception.h">
+      <Filter>header files\include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_helpers.h">
+      <Filter>header files\include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_pointers.h">
+      <Filter>header files\include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\dwrite_helpers.h">
+      <Filter>header files\include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\dwrite_pointers.h">
+      <Filter>header files\include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\io\io_keyboard.h">
+      <Filter>header files\include\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\io\io_mouse.h">
+      <Filter>header files\include\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_functions.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_geometry.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_graphics.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_half.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_matrix.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_quaternion.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_vector.h">
+      <Filter>header files\include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mem\mem_alloc.h">
+      <Filter>header files\include\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mem\mem_alloc_aligned.h">
+      <Filter>header files\include\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\mem\mem_streamflow.h">
+      <Filter>header files\include\mem</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_error.h">
+      <Filter>header files\include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_initializer.h">
+      <Filter>header files\include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_pointers.h">
+      <Filter>header files\include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_ptr.h">
+      <Filter>header files\include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\dxgi_pointers.h">
+      <Filter>header files\include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\wnd_application.h">
+      <Filter>header files\include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sys\sys_base.h">
+      <Filter>header files\include\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sys\sys_profile_timer.h">
+      <Filter>header files\include\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sys\sys_spin_lock.h">
+      <Filter>header files\include\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\sys\sys_spsc_queue.h">
+      <Filter>header files\include\sys</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_bits.h">
+      <Filter>header files\include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_iterator.h">
+      <Filter>header files\include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_memory.h">
+      <Filter>header files\include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_noncopyable.h">
+      <Filter>header files\include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_utf8_conv.h">
+      <Filter>header files\include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\Audio.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\CommonStates.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\DDSTextureLoader.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\DirectXHelpers.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\Effects.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\GamePad.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\GeometricPrimitive.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\Model.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\PrimitiveBatch.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\ScreenGrab.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\SimpleMath.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\SpriteBatch.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\SpriteFont.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\VertexTypes.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\WICTextureLoader.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\extern\directxtk\inc\XboxDDSTextureLoader.h">
+      <Filter>header files\extern\directx\inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\app\private\composer_application.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\app\private\composer_renderable.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\app\private\composer_render_context.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\app\private\samples_gs.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\app\private\samples_ps.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\app\private\samples_vs.h">
+      <Filter>source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gxu\gxu_texture_loading.h">
+      <Filter>header files\include\gxu</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\include\gx\shaders\gx_shader_copy_texture_ps.hlsl">
+      <Filter>header files\include\gx\shaders</Filter>
+    </None>
+    <None Include="..\include\gx\shaders\gx_shader_copy_texture_ps_compiled.hlsl">
+      <Filter>header files\include\gx\shaders</Filter>
+    </None>
+    <None Include="..\include\gx\shaders\gx_shader_full_screen_vs.hlsl">
+      <Filter>header files\include\gx\shaders</Filter>
+    </None>
+    <None Include="..\include\gx\shaders\gx_shader_full_screen_vs_compiled.hlsl">
+      <Filter>header files\include\gx\shaders</Filter>
+    </None>
+    <None Include="..\extern\directxtk\inc\SimpleMath.inl">
+      <Filter>header files\extern\directx\inc</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\src\app\private\samples_ps.hlsl">
+      <Filter>source Files</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\app\private\samples_shaders.hlsl">
+      <Filter>source Files</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\app\private\samples_vs.hlsl">
+      <Filter>source Files</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\app\private\samples_gs.hlsl">
+      <Filter>source Files</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>
