@@ -24,7 +24,7 @@ namespace coloryourway
                 #include "samples_ps_compiled.hlsl"
 
                     //load, compile and create a pixel shader with the code in the hlsl file, might get slow (this is a compilation), consider offloading to another thread
-                    throw_if_failed<d3d11::create_geometry_shader>(device->CreatePixelShader(g_pixel_main, sizeof(g_pixel_main), nullptr, &shader));
+                    throw_if_failed<d3d11::create_pixel_shader>(device->CreatePixelShader(g_pixel_main, sizeof(g_pixel_main), nullptr, &shader));
                 return shader;
             }
         }
@@ -43,7 +43,8 @@ namespace coloryourway
 
             }
 
-            explicit shader_samples_ps(shader_samples_ps&& o) : m_shader(std::move(o.m_shader))
+
+            shader_samples_ps(shader_samples_ps&&  o) : m_shader(std::move(o.m_shader))
             {
 
             }
@@ -64,7 +65,7 @@ namespace coloryourway
 
         inline shader_samples_ps   create_shader_samples_ps(ID3D11Device* device)
         {
-            return shader_samples_ps(std::move(details::create_shader_samples_ps(device)));
+            return shader_samples_ps(details::create_shader_samples_ps(device));
         }
 
         inline std::future< shader_samples_ps> create_shader_samples_ps_async(ID3D11Device* device)

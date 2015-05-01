@@ -440,7 +440,7 @@ namespace coloryourway
         class samples_renderable : public renderable
         {
             public:
-
+                /*
             explicit samples_renderable
                 (
                     const sample_render_info& samples,
@@ -464,7 +464,7 @@ namespace coloryourway
             {
 
             }
-
+            */
             explicit samples_renderable(
                 sample_render_info && samples,
                 shader_samples_gs && gs,
