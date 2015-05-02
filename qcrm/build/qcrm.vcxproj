@@ -64,7 +64,7 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>vts_runtime_x64_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vts_runtime_x64_d.lib;d3d12.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\lib\windows\$(Configuration)\;../extern/directxtk/bin/Desktop_2013/x64/Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CudaCompile>
@@ -92,7 +92,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>vts_runtime_x64_r.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>vts_runtime_x64_r.lib;d3d12.lib;dxgi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)..\lib\windows\$(Configuration)\;../extern/directxtk/bin/Desktop_2013/x64/Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <CudaCompile>
@@ -111,6 +111,9 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\include\d3d12\d3d12_errror.h" />
+    <ClInclude Include="..\include\d3d12\d3d12_exception.h" />
+    <ClInclude Include="..\include\d3d12\d3d12_pointers.h" />
     <ClInclude Include="..\src\app\private\intrusive_ptr.h" />
     <ClInclude Include="..\src\app\private\precompiled.h" />
   </ItemGroup>
