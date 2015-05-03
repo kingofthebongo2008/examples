@@ -3,8 +3,7 @@
 
 #include <algorithm>
 
-#include <d3d11/d3d11_error.h>
-#include <d3d11/d3d11_system.h>
+#include <d3d12/d3d12.h>
 
 #include <os/windows/wnd_application.h>
 
@@ -18,7 +17,7 @@ namespace gx
         public:
             application( HINSTANCE instance, const wchar_t* window_title ) : 
             base( instance, window_title )
-            , m_context( d3d11::create_system_context ( get_window() ) )
+            , m_context( d3d12::create_system_context ( get_window() ) )
             , m_occluded_by_another_window(false)
         {
 
@@ -26,7 +25,7 @@ namespace gx
 
             application( const wchar_t* window_title  ) : 
             base( ::GetModuleHandle( nullptr ), window_title )
-            , m_context( d3d11::create_system_context ( get_window() ) )
+            , m_context( d3d12::create_system_context ( get_window() ) )
             , m_occluded_by_another_window(false)
         {
 
@@ -38,7 +37,7 @@ namespace gx
         bool                    m_occluded_by_another_window;
 
         protected:
-        d3d11::system_context   m_context;
+        d3d12::system_context   m_context;
 
         void    render_frame()
         {
@@ -52,7 +51,7 @@ namespace gx
 
         void resize_swap_chain( uint32_t width, uint32_t height)
         {
-            using namespace d3d11;
+            using namespace d3d12;
             using namespace os::windows;
 
             DXGI_SWAP_CHAIN_DESC desc = {};
@@ -80,14 +79,14 @@ namespace gx
 
                 if (hr != DXGI_STATUS_OCCLUDED)
                 {
-                    os::windows::throw_if_failed<d3d11::exception>(hr);
+                    os::windows::throw_if_failed<d3d12::exception>(hr);
                 }
             }
             else
             {
                 render_frame();
 
-                HRESULT hr = m_context.m_swap_chain->Present(0,0);
+                HRESULT hr = m_context.m_swap_chain->Present(1,0);
 
                 if (hr == DXGI_STATUS_OCCLUDED)
                 {
@@ -95,7 +94,7 @@ namespace gx
                 }
                 else
                 {
-                    os::windows::throw_if_failed<d3d11::exception>(hr);
+                    os::windows::throw_if_failed<d3d12::exception>(hr);
                 }
             }
         }

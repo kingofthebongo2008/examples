@@ -3,19 +3,24 @@
 
 #include <os/windows/com_ptr.h>
 
-#include <DXGI.h>
-#include <DXGI1_2.h>
+#include <dxgi.h>
+#include <dxgi1_2.h>
+#include <dxgi1_3.h>
+#include <dxgi1_4.h>
 
 namespace dxgi
 {
-    typedef os::windows::com_ptr<IDXGIFactory>                ifactory_ptr;
-    typedef os::windows::com_ptr<IDXGIFactory1>               ifactory1_ptr;
-    typedef os::windows::com_ptr<IDXGIFactory2>               ifactory2_ptr;
+    typedef os::windows::com_ptr<IDXGIFactory>                factory;
+    typedef os::windows::com_ptr<IDXGIFactory1>               factory1;
+    typedef os::windows::com_ptr<IDXGIFactory2>               factory2;
+    typedef os::windows::com_ptr<IDXGIFactory3>               factory3;
+    typedef os::windows::com_ptr<IDXGIFactory4>               factory4;
 
-    typedef os::windows::com_ptr<IDXGIAdapter>                iadapter_ptr;
-    typedef os::windows::com_ptr<IDXGISwapChain>              iswapchain_ptr;
+    typedef os::windows::com_ptr<IDXGIAdapter>                adapter;
+    typedef os::windows::com_ptr<IDXGIAdapter1>               adapter1;
+    typedef os::windows::com_ptr<IDXGISwapChain>              iswapchain;
 
-    typedef os::windows::com_ptr<IDXGISurface>                isurface_ptr;
+    typedef os::windows::com_ptr<IDXGISurface>                isurface;
 
 }
 

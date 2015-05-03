@@ -104,7 +104,7 @@ namespace os
 
         inline HWND create_window( uint32_t width, uint32_t height, HINSTANCE instance, const wchar_t* window_name )
         {
-            RECT r = { 0, 0, width, height };
+            RECT r = { 0U, 0U, (LONG) width, (LONG) height };
 
             throw_if_failed<win32_exception> ( ::AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, false) );
 
@@ -127,12 +127,12 @@ namespace os
             wcex.cbWndExtra     = 0;
             wcex.cbClsExtra     = 0;
             wcex.hInstance      = instance;
-            wcex.hIcon          = LoadIcon( instance, MAKEINTRESOURCE(IDI_APPLICATION) );
+            //wcex.hIcon          = LoadIcon(  instance,  MAKEINTRESOURCE(IDI_APPLICATION) );
             wcex.hCursor        = LoadCursor( NULL, IDC_ARROW );
             wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
             wcex.lpszMenuName   = nullptr;
             wcex.lpszClassName  = L"WindowClassCustom";
-            wcex.hIconSm		= LoadIcon(instance, MAKEINTRESOURCE(IDI_APPLICATION));
+            //wcex.hIconSm		= LoadIcon(instance, MAKEINTRESOURCE(IDI_APPLICATION));
 
                 return RegisterClassEx(&wcex);
         }

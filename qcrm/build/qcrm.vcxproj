@@ -111,9 +111,23 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\d3d12\d3d12_errror.h" />
+    <ClInclude Include="..\include\d3d12\d3d12.h" />
+    <ClInclude Include="..\include\d3d12\d3d12_d3d12x.h" />
+    <ClInclude Include="..\include\d3d12\d3d12_error.h" />
     <ClInclude Include="..\include\d3d12\d3d12_exception.h" />
     <ClInclude Include="..\include\d3d12\d3d12_pointers.h" />
+    <ClInclude Include="..\include\d3d12\d3d12_system.h" />
+    <ClInclude Include="..\include\gx\gx_application.h" />
+    <ClInclude Include="..\include\gx\gx_color.h" />
+    <ClInclude Include="..\include\gx\gx_constant_buffer_helper.h" />
+    <ClInclude Include="..\include\gx\gx_cursor.h" />
+    <ClInclude Include="..\include\gx\gx_default_application.h" />
+    <ClInclude Include="..\include\gx\gx_geometry_helpers.h" />
+    <ClInclude Include="..\include\gx\gx_geometry_pass_common.h" />
+    <ClInclude Include="..\include\gx\gx_pinhole_camera.h" />
+    <ClInclude Include="..\include\gx\gx_render_functions.h" />
+    <ClInclude Include="..\include\gx\gx_view.h" />
+    <ClInclude Include="..\include\gx\gx_view_port.h" />
     <ClInclude Include="..\src\app\private\intrusive_ptr.h" />
     <ClInclude Include="..\src\app\private\precompiled.h" />
   </ItemGroup>
