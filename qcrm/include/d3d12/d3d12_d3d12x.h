@@ -254,6 +254,16 @@ namespace d3d12x
         return std::move(r);
     }
 
+    inline d3d12::fence create_fence(ID3D12Device* d, _In_  uint64_t initial_value)
+    {
+        return create_fence(d, initial_value, D3D12_FENCE_FLAG_NONE);
+    }
+
+    inline d3d12::fence create_fence(ID3D12Device* d)
+    {
+        return create_fence(d, 0, D3D12_FENCE_FLAG_NONE);
+    }
+
     inline d3d12::pipeline_state create_graphics_pipeline_state(ID3D12Device* d, _In_  const D3D12_GRAPHICS_PIPELINE_STATE_DESC * desc)
     {
         using namespace os::windows;
