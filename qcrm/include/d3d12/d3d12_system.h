@@ -8,7 +8,7 @@ namespace d3d12
     struct system_context
     {
         dxgi::adapter1          m_adapter;
-        dxgi::iswapchain        m_swap_chain;
+        dxgi::iswapchain3       m_swap_chain;
         dxgi::factory4          m_factory;
         device	                m_device;
         command_queue           m_direct_command_queue;
@@ -62,7 +62,11 @@ namespace d3d12
         throw_if_failed<create_device_exception>( factory->EnumAdapters1(0, &adapter));
         throw_if_failed<create_device_exception>( factory->CreateSwapChain(command_queue, &create_default_swap_chain_desc(hwnd), &swap_chain));
 
-        system_context result = { adapter, swap_chain, factory, device, command_queue, hwnd };
+        dxgi::iswapchain3            swap_chain3;
+
+        throw_if_failed<create_device_exception>(swap_chain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&swap_chain3));
+
+        system_context result = { adapter, swap_chain3, factory, device, command_queue, hwnd };
 
         return std::move(result);
     }

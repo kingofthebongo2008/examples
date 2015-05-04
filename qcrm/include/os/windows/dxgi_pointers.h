@@ -19,6 +19,8 @@ namespace dxgi
     typedef os::windows::com_ptr<IDXGIAdapter>                adapter;
     typedef os::windows::com_ptr<IDXGIAdapter1>               adapter1;
     typedef os::windows::com_ptr<IDXGISwapChain>              iswapchain;
+    typedef os::windows::com_ptr<IDXGISwapChain2>             iswapchain2;
+    typedef os::windows::com_ptr<IDXGISwapChain3>             iswapchain3;
 
     typedef os::windows::com_ptr<IDXGISurface>                isurface;
 

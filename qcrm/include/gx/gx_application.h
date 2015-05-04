@@ -44,7 +44,17 @@ namespace gx
             on_render_frame();
         }
 
+        void post_render_frame()
+        {
+            on_post_render_frame();
+        }
+
         virtual void on_render_frame()
+        {
+
+        }
+
+        virtual void on_post_render_frame()
         {
 
         }
@@ -96,6 +106,8 @@ namespace gx
                 {
                     os::windows::throw_if_failed<d3d12::exception>(hr);
                 }
+
+                post_render_frame();
             }
         }
 

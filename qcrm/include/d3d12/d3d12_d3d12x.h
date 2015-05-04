@@ -28,7 +28,7 @@ namespace d3d12x
 
         D3D12_CPU_DESCRIPTOR_HANDLE operator() (uint32_t index) const
         {
-            D3D12_CPU_DESCRIPTOR_HANDLE r = { m_begin.ptr + m_handle_increment_size };
+            D3D12_CPU_DESCRIPTOR_HANDLE r = { m_begin.ptr + index *  m_handle_increment_size };
             return r;
         }
 
@@ -55,7 +55,7 @@ namespace d3d12x
 
         D3D12_CPU_DESCRIPTOR_HANDLE operator() (uint32_t index) const
         {
-            D3D12_CPU_DESCRIPTOR_HANDLE r = { m_begin.ptr + m_handle_increment_size };
+            D3D12_CPU_DESCRIPTOR_HANDLE r = { m_begin.ptr + index * m_handle_increment_size };
             return r;
         }
 
@@ -203,6 +203,19 @@ namespace d3d12x
         throw_if_failed<create_heap_exception>(d->CreateCommandList(nodeMask, type, command_allocator, initial_state, __uuidof(ID3D12CommandList), (void**)&r));
         return std::move(r);
     }
+
+    inline d3d12::graphics_command_list create_graphics_command_list(ID3D12Device* d, _In_  UINT nodeMask, _In_  D3D12_COMMAND_LIST_TYPE type, _In_  ID3D12CommandAllocator *command_allocator, _In_opt_  ID3D12PipelineState *initial_state)
+    {
+        using namespace os::windows;
+        using namespace d3d12;
+
+        d3d12::graphics_command_list r;
+
+        throw_if_failed<create_heap_exception>(d->CreateCommandList(nodeMask, type, command_allocator, initial_state, __uuidof(ID3D12GraphicsCommandList), (void**)&r));
+        return std::move(r);
+    }
+
+    
 
     inline d3d12::command_signature create_command_signature(ID3D12Device* d, _In_  const D3D12_COMMAND_SIGNATURE_DESC* desc, _In_opt_  ID3D12RootSignature *root_signature)
     {
