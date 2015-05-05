@@ -360,4 +360,9 @@ namespace d3d12x
         descriptor_heap < D3D12_DESCRIPTOR_HEAP_TYPE_DSV> heap1(d, descriptor_count);
         return std::move(heap1);
     }
+
+    inline void throw_if_failed( HRESULT r )
+    {
+        os::windows::throw_if_failed<d3d12::exception>(r);
+    }
 }

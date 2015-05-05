@@ -5,6 +5,7 @@
 #include <gx/gx_view_port.h>
 
 #include <sys/sys_profile_timer.h>
+
 #include "d3dx12.h"
 
 class sample_application : public gx::default_application
@@ -18,7 +19,6 @@ public:
         , m_rtv_heap( m_context.m_device.get(), 3 )
         , m_rtv_cpu_heap( m_rtv_heap.create_cpu_heap() )
     {
-        using namespace os::windows;
         m_wait_back_buffer = CreateEventEx(nullptr, FALSE, FALSE, EVENT_ALL_ACCESS);
 
         auto device = this->m_context.m_device.get();
@@ -30,12 +30,12 @@ public:
         m_command_list = d3d12x::create_graphics_command_list(device, 0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_command_allocator, nullptr);
         m_command_queue = m_context.m_direct_command_queue;
 
-        throw_if_failed<d3d12::exception>(m_command_list->Close());
+        d3d12x::throw_if_failed(m_command_list->Close());
 
-        throw_if_failed<d3d12::exception>(m_context.m_swap_chain->GetBuffer(0, __uuidof(ID3D12Resource), (void**)&m_render_target));
+        m_index_last_swap_buffer = 0;
+        m_render_target = dxgi::get_buffer(m_context.m_swap_chain, m_index_last_swap_buffer);
 
         device->CreateRenderTargetView(m_render_target.get(), nullptr, m_rtv_cpu_heap(0) );
-
     }
 
     ~sample_application()
@@ -50,39 +50,11 @@ public:
 
 protected:
 
-    void resize_swap_chain(uint32_t width, uint32_t height)
-    {
-        using namespace d3d12;
-        using namespace os::windows;
-
-        DXGI_SWAP_CHAIN_DESC desc = {};
-
-        //disable dxgi errors
-        width = std::max(width, (uint32_t)(8));
-        height = std::max(height, (uint32_t)(8));
-
-        const uint32_t node_creation_mask[3] = { 0, 0, 0 };
-
-        IUnknown* const queue[] = { m_command_queue.get() };
-
-        throw_if_failed<exception>(m_context.m_swap_chain->GetDesc(&desc));
-        throw_if_failed<exception>(m_context.m_swap_chain->ResizeBuffers1(desc.BufferCount, width, height, desc.BufferDesc.Format, desc.Flags, 0, queue ));
-    }
-
-
-    virtual void on_resize(uint32_t width, uint32_t height) override
-    {
-        
-    }
-
     virtual void on_render_scene()
     {
-        using namespace os::windows;
-
-        throw_if_failed<d3d12::exception>(m_command_allocator->Reset() );
-        throw_if_failed<d3d12::exception>(m_command_list->Reset(m_command_allocator, nullptr ));
+        d3d12x::throw_if_failed(m_command_allocator->Reset() );
+        d3d12x::throw_if_failed(m_command_list->Reset(m_command_allocator, nullptr ));
         
-
         D3D12_RESOURCE_BARRIER b = {};
         b.Transition.pResource = m_render_target;
         b.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
@@ -90,31 +62,23 @@ protected:
         b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
         b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
+        m_command_list->ResourceBarrier(1, &b);
         
-
-        
-        //m_command_list->ResourceBarrier(1, &b);
-        m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_render_target, D3D12_RESOURCE_STATE_PRESENT, D3D12_RESOURCE_STATE_RENDER_TARGET) );
-
-        throw_if_failed<d3d12::exception>(m_command_list->Close());
-        //m_command_list->OMSetRenderTargets(1, &m_rtv_cpu_heap(0), true, nullptr);
-
+        m_command_list->OMSetRenderTargets(1, &m_rtv_cpu_heap(0), true, nullptr);
 
         float clear_color[] = { 0.0f, 0.2f, 0.4f, 1.0f };
-
-        //m_command_list->ClearRenderTargetView(m_rtv_cpu_heap(0), clear_color, 0, nullptr);
-
-
+        m_command_list->ClearRenderTargetView(m_rtv_cpu_heap(0), clear_color, 0, nullptr);
 
         b.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
         b.Transition.StateAfter  = D3D12_RESOURCE_STATE_PRESENT;
 
-        //m_command_list->ResourceBarrier(1, &b);
-        m_command_list->ResourceBarrier(1, &CD3DX12_RESOURCE_BARRIER::Transition(m_render_target, D3D12_RESOURCE_STATE_RENDER_TARGET, D3D12_RESOURCE_STATE_PRESENT ));
+        m_command_list->ResourceBarrier(1, &b);
+        
+        d3d12x::throw_if_failed(m_command_list->Close());
 
-        throw_if_failed<d3d12::exception>(m_command_list->Close());
-
-
+        // Execute the command list.
+        ID3D12CommandList* ppCommandLists[] = { m_command_list.get() };
+        m_command_queue->ExecuteCommandLists( _countof(ppCommandLists), ppCommandLists);
     }
 
     void render_scene()
@@ -127,7 +91,7 @@ protected:
         const auto frame_index = m_frame_index;
 
         //signal for stop rendering
-        os::windows::throw_if_failed<d3d12::exception>(m_wait_back_buffer_fence->Signal(frame_index));
+        d3d12x::throw_if_failed(m_wait_back_buffer_fence->Signal(frame_index));
 
         m_frame_index++;
 
@@ -168,14 +132,25 @@ protected:
     void on_post_render_frame() override
     {
         wait_gpu_for_back_buffer();
+
+        m_index_last_swap_buffer++;
+        m_index_last_swap_buffer = m_index_last_swap_buffer % 3;
+        m_render_target = dxgi::get_buffer(m_context.m_swap_chain, m_index_last_swap_buffer);
+        m_context.m_device->CreateRenderTargetView(m_render_target.get(), nullptr, m_rtv_cpu_heap(0));
     }
 
-    void on_resize(uint32_t width, uint32_t height)
+    void on_resize(uint32_t width, uint32_t height) override
     {
+        wait_gpu_for_back_buffer();
+
+        m_render_target.reset();
 
         base::on_resize(width, height);
 
-        resize_swap_chain(width, height);
+        //reacuire render targets
+        m_index_last_swap_buffer = 0;
+        m_render_target = dxgi::get_buffer(m_context.m_swap_chain, m_index_last_swap_buffer);
+        m_context.m_device->CreateRenderTargetView(m_render_target.get(), nullptr, m_rtv_cpu_heap(0));
 
         //Reset view port dimensions
         m_view_port.set_dimensions(width, height);
@@ -206,6 +181,13 @@ protected:
 
 int32_t wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdLine, int       nCmdShow )
 {
+    // Enable the D3D12 debug layer.
+    {
+        ID3D12Debug* debugController;
+        D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
+        debugController->EnableDebugLayer();
+    }
+
     auto app = new sample_application(L"qcrm");
 
     app->run();

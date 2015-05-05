@@ -70,8 +70,8 @@ namespace gx
             width = std::max(width, (uint32_t)(8));
             height = std::max(height, (uint32_t)(8));
 
-            throw_if_failed<exception>(m_context.m_swap_chain->GetDesc(&desc));
-            throw_if_failed<exception>(m_context.m_swap_chain->ResizeBuffers(desc.BufferCount, width, height,  desc.BufferDesc.Format, desc.Flags));
+            d3d12x::throw_if_failed(m_context.m_swap_chain->GetDesc(&desc));
+            throw_if_failed<exception>(m_context.m_swap_chain->ResizeBuffers(desc.BufferCount, width, height, desc.BufferDesc.Format, desc.Flags ));
         }
 
         private:
@@ -80,7 +80,7 @@ namespace gx
         {
             if (m_occluded_by_another_window)
             {
-                HRESULT hr = m_context.m_swap_chain->Present(0, DXGI_PRESENT_TEST );
+                HRESULT hr = m_context.m_swap_chain->Present(1, DXGI_PRESENT_TEST );
 
                 if ( hr == S_OK)
                 {
@@ -89,7 +89,7 @@ namespace gx
 
                 if (hr != DXGI_STATUS_OCCLUDED)
                 {
-                    os::windows::throw_if_failed<d3d12::exception>(hr);
+                    d3d12x::throw_if_failed(hr);
                 }
             }
             else
@@ -104,7 +104,7 @@ namespace gx
                 }
                 else
                 {
-                    os::windows::throw_if_failed<d3d12::exception>(hr);
+                    d3d12x::throw_if_failed(hr);
                 }
 
                 post_render_frame();
