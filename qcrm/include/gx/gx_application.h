@@ -70,7 +70,7 @@ namespace gx
             width = std::max(width, (uint32_t)(8));
             height = std::max(height, (uint32_t)(8));
 
-            d3d12x::throw_if_failed(m_context.m_swap_chain->GetDesc(&desc));
+            d3d12::throw_if_failed(m_context.m_swap_chain->GetDesc(&desc));
             throw_if_failed<exception>(m_context.m_swap_chain->ResizeBuffers(desc.BufferCount, width, height, desc.BufferDesc.Format, desc.Flags ));
         }
 
@@ -89,7 +89,7 @@ namespace gx
 
                 if (hr != DXGI_STATUS_OCCLUDED)
                 {
-                    d3d12x::throw_if_failed(hr);
+                    d3d12::throw_if_failed(hr);
                 }
             }
             else
@@ -104,7 +104,7 @@ namespace gx
                 }
                 else
                 {
-                    d3d12x::throw_if_failed(hr);
+                    d3d12::throw_if_failed(hr);
                 }
 
                 post_render_frame();

@@ -30,11 +30,10 @@ public:
         m_command_list = d3d12x::create_graphics_command_list(device, 0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_command_allocator, nullptr);
         m_command_queue = m_context.m_direct_command_queue;
 
-        d3d12x::throw_if_failed(m_command_list->Close());
+        d3d12::throw_if_failed(m_command_list->Close());
 
         m_index_last_swap_buffer = 0;
         m_render_target = dxgi::get_buffer(m_context.m_swap_chain, m_index_last_swap_buffer);
-
         device->CreateRenderTargetView(m_render_target.get(), nullptr, m_rtv_cpu_heap(0) );
     }
 
@@ -52,29 +51,23 @@ protected:
 
     virtual void on_render_scene()
     {
-        d3d12x::throw_if_failed(m_command_allocator->Reset() );
-        d3d12x::throw_if_failed(m_command_list->Reset(m_command_allocator, nullptr ));
-        
-        D3D12_RESOURCE_BARRIER b = {};
-        b.Transition.pResource = m_render_target;
-        b.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
-        b.Transition.StateAfter  = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
-        b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        using namespace d3d12x;
+        using namespace d3d12;
 
-        m_command_list->ResourceBarrier(1, &b);
+        throw_if_failed(m_command_allocator->Reset() );
+        throw_if_failed(m_command_list->Reset(m_command_allocator, nullptr ));
         
+        apply_resource_barrier(m_command_list, resource_barrier::present_rt(m_render_target));
+
         m_command_list->OMSetRenderTargets(1, &m_rtv_cpu_heap(0), true, nullptr);
 
         float clear_color[] = { 0.0f, 0.2f, 0.4f, 1.0f };
+
         m_command_list->ClearRenderTargetView(m_rtv_cpu_heap(0), clear_color, 0, nullptr);
 
-        b.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
-        b.Transition.StateAfter  = D3D12_RESOURCE_STATE_PRESENT;
+        apply_resource_barrier(m_command_list, resource_barrier::rt_present(m_render_target));
 
-        m_command_list->ResourceBarrier(1, &b);
-        
-        d3d12x::throw_if_failed(m_command_list->Close());
+        throw_if_failed(m_command_list->Close());
 
         // Execute the command list.
         ID3D12CommandList* ppCommandLists[] = { m_command_list.get() };
@@ -91,7 +84,7 @@ protected:
         const auto frame_index = m_frame_index;
 
         //signal for stop rendering
-        d3d12x::throw_if_failed(m_wait_back_buffer_fence->Signal(frame_index));
+        d3d12::throw_if_failed(m_wait_back_buffer_fence->Signal(frame_index));
 
         m_frame_index++;
 

@@ -11,6 +11,35 @@
 
 namespace d3d12x
 {
+    namespace resource_barrier
+    {
+        inline const D3D12_RESOURCE_BARRIER present_rt(ID3D12Resource* r)
+        {
+            D3D12_RESOURCE_BARRIER b = {};
+
+            b.Transition.pResource = r;
+            b.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+            b.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+            b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+            b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+            return b;
+        }
+
+        inline const D3D12_RESOURCE_BARRIER rt_present(ID3D12Resource* r)
+        {
+            D3D12_RESOURCE_BARRIER b = {};
+
+            b.Transition.pResource = r;
+            b.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+            b.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+            b.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+            b.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+            return b;
+        }
+    }
+
     class gpu_descriptor_heap
     {
     public:
@@ -80,7 +109,8 @@ namespace d3d12x
             desc.Flags = static_cast<D3D12_DESCRIPTOR_HEAP_FLAGS> (descriptor_heap_flags);
             desc.NumDescriptors = descriptor_count;
             desc.NodeMask = node_mask;
-            os::windows::throw_if_failed<create_descriptor_heap_exception >(device->CreateDescriptorHeap(&desc, __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**> (&m_heap)));
+
+            throw_if_failed(device->CreateDescriptorHeap(&desc, __uuidof(ID3D12DescriptorHeap), reinterpret_cast<void**> (&m_heap)));
 
             m_begin_cpu = m_heap->GetCPUDescriptorHandleForHeapStart();
             m_begin_gpu = m_heap->GetGPUDescriptorHandleForHeapStart();
@@ -112,7 +142,7 @@ namespace d3d12x
 
         device  device;
 
-        throw_if_failed<create_device_exception>(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), (void**)&device));
+        throw_if_failed(D3D12CreateDevice(nullptr, D3D_FEATURE_LEVEL_11_0, __uuidof(ID3D12Device), (void**)&device));
         return std::move(device);
     }
 
@@ -122,7 +152,7 @@ namespace d3d12x
         using namespace d3d12;
 
         dxgi::factory factory;
-        throw_if_failed<create_dxgi_factory_exception>(CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory));
+        throw_if_failed(CreateDXGIFactory(__uuidof(IDXGIFactory), (void**)&factory));
 
         return std::move(factory);
     }
@@ -133,7 +163,7 @@ namespace d3d12x
         using namespace d3d12;
 
         dxgi::factory1 factory;
-        throw_if_failed<create_dxgi_factory_exception>(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory));
+        throw_if_failed(CreateDXGIFactory1(__uuidof(IDXGIFactory1), (void**)&factory));
 
         return std::move(factory);
     }
@@ -144,7 +174,7 @@ namespace d3d12x
         using namespace d3d12;
 
         dxgi::factory3 factory;
-        throw_if_failed<create_dxgi_factory_exception>(CreateDXGIFactory1(__uuidof(IDXGIFactory3), (void**)&factory));
+        throw_if_failed(CreateDXGIFactory1(__uuidof(IDXGIFactory3), (void**)&factory));
 
         return std::move(factory);
     }
@@ -155,7 +185,7 @@ namespace d3d12x
         using namespace d3d12;
 
         dxgi::factory4 factory;
-        throw_if_failed<create_dxgi_factory_exception>(CreateDXGIFactory1(__uuidof(IDXGIFactory4), (void**)&factory));
+        throw_if_failed(CreateDXGIFactory1(__uuidof(IDXGIFactory4), (void**)&factory));
 
         return std::move(factory);
     }
@@ -167,7 +197,7 @@ namespace d3d12x
 
         d3d12::command_allocator r;
 
-        throw_if_failed<create_command_allocator_exception>(d->CreateCommandAllocator(type, __uuidof(ID3D12CommandAllocator), (void**)&r));
+        throw_if_failed(d->CreateCommandAllocator(type, __uuidof(ID3D12CommandAllocator), (void**)&r));
         return std::move(r);
     }
 
@@ -178,7 +208,7 @@ namespace d3d12x
 
         d3d12::command_queue r;
 
-        throw_if_failed<create_command_queue_exception>(d->CreateCommandQueue(desc, __uuidof(ID3D12CommandQueue), (void**)&r));
+        throw_if_failed(d->CreateCommandQueue(desc, __uuidof(ID3D12CommandQueue), (void**)&r));
         return std::move(r);
     }
 
@@ -189,7 +219,7 @@ namespace d3d12x
 
         d3d12::heap r;
 
-        throw_if_failed<create_heap_exception>(d->CreateHeap(desc, __uuidof(ID3D12Heap), (void**)&r));
+        throw_if_failed(d->CreateHeap(desc, __uuidof(ID3D12Heap), (void**)&r));
         return std::move(r);
     }
 
@@ -200,7 +230,7 @@ namespace d3d12x
 
         d3d12::command_list r;
 
-        throw_if_failed<create_heap_exception>(d->CreateCommandList(nodeMask, type, command_allocator, initial_state, __uuidof(ID3D12CommandList), (void**)&r));
+        throw_if_failed(d->CreateCommandList(nodeMask, type, command_allocator, initial_state, __uuidof(ID3D12CommandList), (void**)&r));
         return std::move(r);
     }
 
@@ -211,7 +241,7 @@ namespace d3d12x
 
         d3d12::graphics_command_list r;
 
-        throw_if_failed<create_heap_exception>(d->CreateCommandList(nodeMask, type, command_allocator, initial_state, __uuidof(ID3D12GraphicsCommandList), (void**)&r));
+        throw_if_failed(d->CreateCommandList(nodeMask, type, command_allocator, initial_state, __uuidof(ID3D12GraphicsCommandList), (void**)&r));
         return std::move(r);
     }
 
@@ -223,7 +253,7 @@ namespace d3d12x
         using namespace d3d12;
 
         d3d12::command_signature r;
-        throw_if_failed<create_heap_exception>(d->CreateCommandSignature(desc, root_signature, __uuidof(ID3D12CommandSignature), (void**)&r));
+        throw_if_failed(d->CreateCommandSignature(desc, root_signature, __uuidof(ID3D12CommandSignature), (void**)&r));
         return std::move(r);
     }
 
@@ -233,7 +263,7 @@ namespace d3d12x
         using namespace d3d12;
 
         d3d12::resource r;
-        throw_if_failed<create_heap_exception>(d->CreateCommittedResource(heap_properties, heap_flags, resource_desc, initial_resource_state, optimized_clear_value, __uuidof(ID3D12Resource), (void**)&r));
+        throw_if_failed(d->CreateCommittedResource(heap_properties, heap_flags, resource_desc, initial_resource_state, optimized_clear_value, __uuidof(ID3D12Resource), (void**)&r));
         return std::move(r);
     }
 
@@ -243,7 +273,7 @@ namespace d3d12x
         using namespace d3d12;
 
         d3d12::pipeline_state r;
-        throw_if_failed<create_heap_exception>(d->CreateComputePipelineState(desc, __uuidof(ID3D12PipelineState), (void**)&r));
+        throw_if_failed(d->CreateComputePipelineState(desc, __uuidof(ID3D12PipelineState), (void**)&r));
         return std::move(r);
     }
 
@@ -253,7 +283,7 @@ namespace d3d12x
         using namespace d3d12;
 
         d3d12::descriptor_heap r;
-        throw_if_failed<create_heap_exception>(d->CreateDescriptorHeap(desc, __uuidof(ID3D12DescriptorHeap), (void**)&r));
+        throw_if_failed(d->CreateDescriptorHeap(desc, __uuidof(ID3D12DescriptorHeap), (void**)&r));
         return std::move(r);
     }
 
@@ -263,7 +293,7 @@ namespace d3d12x
         using namespace d3d12;
 
         d3d12::fence r;
-        throw_if_failed<create_heap_exception>(d->CreateFence(initial_value, flags, __uuidof(ID3D12Fence), (void**)&r));
+        throw_if_failed(d->CreateFence(initial_value, flags, __uuidof(ID3D12Fence), (void**)&r));
         return std::move(r);
     }
 
@@ -283,7 +313,7 @@ namespace d3d12x
         using namespace d3d12;
 
         d3d12::pipeline_state r;
-        throw_if_failed<create_heap_exception>(d->CreateGraphicsPipelineState(desc, __uuidof(ID3D12PipelineState), (void**)&r));
+        throw_if_failed(d->CreateGraphicsPipelineState(desc, __uuidof(ID3D12PipelineState), (void**)&r));
         return std::move(r);
     }
 
@@ -293,7 +323,7 @@ namespace d3d12x
         using namespace d3d12;
 
         d3d12::resource r;
-        throw_if_failed<create_heap_exception>(d->CreatePlacedResource(heap, heap_offset, desc, initial_state, optimized_clear_value, __uuidof(ID3D12Resource), (void**)&r));
+        throw_if_failed(d->CreatePlacedResource(heap, heap_offset, desc, initial_state, optimized_clear_value, __uuidof(ID3D12Resource), (void**)&r));
         return std::move(r);
     }
 
@@ -303,7 +333,7 @@ namespace d3d12x
         using namespace d3d12;
 
         d3d12::query_heap r;
-        throw_if_failed<create_heap_exception>(d->CreateQueryHeap(desc, __uuidof(ID3D12QueryHeap), (void**)&r));
+        throw_if_failed(d->CreateQueryHeap(desc, __uuidof(ID3D12QueryHeap), (void**)&r));
         return std::move(r);
     }
 
@@ -313,7 +343,7 @@ namespace d3d12x
         using namespace d3d12;
 
         d3d12::resource r;
-        throw_if_failed<create_heap_exception>(d->CreateReservedResource(desc, initial_state, optimized_clear_value, __uuidof(ID3D12Resource), (void**)&r));
+        throw_if_failed(d->CreateReservedResource(desc, initial_state, optimized_clear_value, __uuidof(ID3D12Resource), (void**)&r));
         return std::move(r);
     }
 
@@ -323,7 +353,7 @@ namespace d3d12x
         using namespace d3d12;
 
         d3d12::root_signature r;
-        throw_if_failed<create_heap_exception>(d->CreateRootSignature(node_mask, blob_with_root_signature, blob_length_in_bytes, __uuidof(ID3D12RootSignature), (void**)&r));
+        throw_if_failed(d->CreateRootSignature(node_mask, blob_with_root_signature, blob_length_in_bytes, __uuidof(ID3D12RootSignature), (void**)&r));
         return std::move(r);
     }
 
@@ -333,7 +363,7 @@ namespace d3d12x
         using namespace d3d12;
 
         HANDLE r;
-        throw_if_failed<create_heap_exception>(d->CreateSharedHandle(object, attributes, access, name, &r));
+        throw_if_failed(d->CreateSharedHandle(object, attributes, access, name, &r));
         return std::move(r);
     }
 
@@ -361,8 +391,8 @@ namespace d3d12x
         return std::move(heap1);
     }
 
-    inline void throw_if_failed( HRESULT r )
+    inline void apply_resource_barrier(ID3D12GraphicsCommandList* list, D3D12_RESOURCE_BARRIER barrier)
     {
-        os::windows::throw_if_failed<d3d12::exception>(r);
+        list->ResourceBarrier(1, &barrier);
     }
 }

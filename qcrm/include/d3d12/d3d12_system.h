@@ -59,12 +59,12 @@ namespace d3d12
 
         auto command_queue = d3d12x::create_command_queue(device, &queue_desc);
 
-        throw_if_failed<create_device_exception>( factory->EnumAdapters1(0, &adapter));
-        throw_if_failed<create_device_exception>( factory->CreateSwapChain(command_queue, &create_default_swap_chain_desc(hwnd), &swap_chain));
+        throw_if_failed( factory->EnumAdapters1(0, &adapter));
+        throw_if_failed( factory->CreateSwapChain(command_queue, &create_default_swap_chain_desc(hwnd), &swap_chain));
 
         dxgi::iswapchain3            swap_chain3;
 
-        throw_if_failed<create_device_exception>(swap_chain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&swap_chain3));
+        throw_if_failed(swap_chain->QueryInterface(__uuidof(IDXGISwapChain3), (void**)&swap_chain3));
 
         system_context result = { adapter, swap_chain3, factory, device, command_queue, hwnd };
 
