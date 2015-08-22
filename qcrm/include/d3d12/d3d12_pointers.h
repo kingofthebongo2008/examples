@@ -2,7 +2,7 @@
 
 #include <os/windows/com_pointers.h>
 
-#include <D3D12.h>
+#include <d3d12.h>
 
 namespace d3d12
 {

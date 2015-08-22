@@ -26,12 +26,16 @@ public:
         m_wait_back_buffer_fence = d3d12x::create_fence( device );
         m_frame_index = 1;
 
-        m_command_allocator = d3d12x::create_command_allocator(device, D3D12_COMMAND_LIST_TYPE_DIRECT );
-        m_command_list = d3d12x::create_graphics_command_list(device, 0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_command_allocator, nullptr);
+        for (auto i = 0U; i < m_swap_buffer_count; ++i)
+        {
+            m_command_allocators[i] = d3d12x::create_command_allocator(device, D3D12_COMMAND_LIST_TYPE_DIRECT);
+            m_command_lists[i] = d3d12x::create_graphics_command_list(device, 0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_command_allocators[i], nullptr);
+
+            d3d12::throw_if_failed(m_command_lists[i]->Close());
+        }
+
+
         m_command_queue = m_context.m_direct_command_queue;
-
-        d3d12::throw_if_failed(m_command_list->Close());
-
         m_index_last_swap_buffer = 0;
         m_render_target = dxgi::get_buffer(m_context.m_swap_chain, m_index_last_swap_buffer);
         device->CreateRenderTargetView(m_render_target.get(), nullptr, m_rtv_cpu_heap(0) );
@@ -39,6 +43,7 @@ public:
 
     ~sample_application()
     {
+        wait_gpu_for_all_back_buffers();
         CloseHandle( m_wait_back_buffer );
     }
 
@@ -54,24 +59,26 @@ protected:
         using namespace d3d12x;
         using namespace d3d12;
 
-        throw_if_failed(m_command_allocator->Reset() );
-        throw_if_failed(m_command_list->Reset(m_command_allocator, nullptr ));
-        
-        apply_resource_barrier(m_command_list, resource_barrier::present_rt(m_render_target));
+        auto frame_index = m_frame_index % m_swap_buffer_count;
 
-        m_command_list->OMSetRenderTargets(1, &m_rtv_cpu_heap(0), true, nullptr);
+        throw_if_failed(m_command_allocators[frame_index]->Reset() );
+        throw_if_failed(m_command_lists[frame_index]->Reset(m_command_allocators[frame_index], nullptr ));
+        
+        apply_resource_barrier(m_command_lists[frame_index], resource_barrier::present_rt(m_render_target));
+
+        m_command_lists[frame_index]->OMSetRenderTargets(1, &m_rtv_cpu_heap(0), true, nullptr);
 
         float clear_color[] = { 0.0f, 0.2f, 0.4f, 1.0f };
 
-        m_command_list->ClearRenderTargetView(m_rtv_cpu_heap(0), clear_color, 0, nullptr);
+        m_command_lists[frame_index]->ClearRenderTargetView(m_rtv_cpu_heap(0), clear_color, 0, nullptr);
 
-        apply_resource_barrier(m_command_list, resource_barrier::rt_present(m_render_target));
+        apply_resource_barrier(m_command_lists[frame_index], resource_barrier::rt_present(m_render_target));
 
-        throw_if_failed(m_command_list->Close());
+        throw_if_failed(m_command_lists[frame_index]->Close());
 
         // Execute the command list.
-        ID3D12CommandList* ppCommandLists[] = { m_command_list.get() };
-        m_command_queue->ExecuteCommandLists( _countof(ppCommandLists), ppCommandLists);
+        ID3D12CommandList* command_lists[] = { m_command_lists[frame_index].get() };
+        m_command_queue->ExecuteCommandLists( _countof(command_lists), command_lists);
     }
 
     void render_scene()
@@ -89,9 +96,24 @@ protected:
         m_frame_index++;
 
         //wait for the gpu to finish frame
-        if ( m_wait_back_buffer_fence->GetCompletedValue() < frame_index - 1 )
+        auto completed_frame = m_wait_back_buffer_fence->GetCompletedValue();
+        if ( completed_frame < frame_index - 1  )
         {
             m_wait_back_buffer_fence->SetEventOnCompletion( frame_index - 1 , this->m_wait_back_buffer );
+            WaitForSingleObject(m_wait_back_buffer, INFINITE);
+        }
+    }
+
+    void wait_gpu_for_all_back_buffers()
+    {
+        //insert once fence and wait for it to complete
+        const auto frame_index = m_frame_index;
+        //signal for stop rendering
+        d3d12::throw_if_failed(m_wait_back_buffer_fence->Signal(frame_index+1));
+        auto completed_frame = m_wait_back_buffer_fence->GetCompletedValue();
+        if (completed_frame < frame_index + 2)
+        {
+            m_wait_back_buffer_fence->SetEventOnCompletion(frame_index, this->m_wait_back_buffer);
             WaitForSingleObject(m_wait_back_buffer, INFINITE);
         }
     }
@@ -158,9 +180,9 @@ protected:
     d3d12::fence                            m_wait_back_buffer_fence;
     uint32_t                                m_frame_index;
 
-    
-    d3d12::command_allocator                m_command_allocator;
-    d3d12::graphics_command_list            m_command_list;
+    static const uint32_t                   m_swap_buffer_count = 3;
+    d3d12::command_allocator                m_command_allocators[m_swap_buffer_count];
+    d3d12::graphics_command_list            m_command_lists[m_swap_buffer_count];
     d3d12::command_queue                    m_command_queue;
 
     d3d12::resource                         m_render_target;
@@ -169,7 +191,7 @@ protected:
     d3d12x::cpu_descriptor_heap                              m_rtv_cpu_heap;
 
     uint32_t                                m_index_last_swap_buffer = 0;
-    uint32_t                                m_swap_buffer_count = 3;
+    
 };
 
 int32_t wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdLine, int       nCmdShow )
@@ -178,7 +200,10 @@ int32_t wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdL
     {
         ID3D12Debug* debugController;
         D3D12GetDebugInterface(IID_PPV_ARGS(&debugController));
-        debugController->EnableDebugLayer();
+        if (debugController)
+        {
+            debugController->EnableDebugLayer();
+        }
     }
 
     auto app = new sample_application(L"qcrm");
