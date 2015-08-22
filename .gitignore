@@ -117,7 +117,11 @@ UpgradeLog*.XML
 # NuGet
 packages/
 
+libcompress/
+visibilitybuffer/
 
 
+
+*.sdf
 *.sdf
 *.sdf
