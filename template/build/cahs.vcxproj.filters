@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\src\app\private\main.cpp" />
+    <ClCompile Include="..\src\app\private\precompiled.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\src\app\private\precompiled.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{9ccca0d8-e48c-4315-856c-f97ec746a3e4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\d3d12">
+      <UniqueIdentifier>{f8d31b8c-71e5-41a6-b631-f7747cae786d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\gx">
+      <UniqueIdentifier>{7db9e661-1480-47e9-bfc7-01279f3f4702}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
