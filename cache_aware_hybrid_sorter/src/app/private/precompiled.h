@@ -7,7 +7,7 @@
 
 #define NOMINMAX                        // Exclude windows header macro
 
-#include <SDKDDKVer.h>
+#include <sdkddkver.h>
 
 #include "targetver.h"
 

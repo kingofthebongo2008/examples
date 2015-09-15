@@ -1,6 +1,7 @@
 #include "precompiled.h"
 #include <cstdint>
 #include <limits>
+#include <assert.h>
 
 namespace cahs
 {
@@ -48,8 +49,23 @@ namespace cahs
             {
                 initialize_tree(input, input_lengths);
 
+                //first round of tournament
                 auto winner = get_winner(root());
 
+                auto element_count = stream_count * input_lengths[0];
+                auto ostream = output;
+
+                //cycle through all streams and pull elements
+                for (auto i = 0U; i < element_count; ++i)
+                {
+                    auto key = m_nodes[winner].m_key;
+                    auto stream = m_nodes[winner].m_stream - stream_count;
+
+                    *ostream++ = key;
+
+                    auto new_key = *input[stream]++;
+                    winner = get_new_winner(winner, new_key);
+                }
             }
 
             private:
@@ -85,9 +101,9 @@ namespace cahs
                 for (auto i = 0; i < stream_count; ++i)
                 {
                     auto stream_length = input_lengths[i];
-                    m_save[i]                   = streams[i][stream_length];
-                    streams[i][stream_length]   = eof_of_stream_marker;
-                    streams[i]++;               // make the next elements to get ready to go into the tree. the first ones are already there
+                    m_save[i]                   = streams[i][stream_length]; //save last values, 
+                    streams[i][stream_length]   = eof_of_stream_marker;      //memory for the last stream should have 1 element more allocated. this is requirement, saves 1 copy
+                    streams[i]++;                                            // make the next elements to get ready to go into the tree. the first ones are already there
                 }
             }
 
@@ -104,7 +120,7 @@ namespace cahs
             {
                 if (root >= stream_count)
                 {
-                    return root;
+                    return root;    //leaf? return it as a winner
                 }
                 else
                 {
@@ -126,18 +142,40 @@ namespace cahs
                     }
                 }
             }
+
+            node_index get_new_winner( node_index winner, float new_key )
+            {
+                m_nodes[winner].m_key = new_key;
+                assert(m_nodes[winner].m_stream == winner);
+
+                auto loser = parent(winner);
+
+                while ( loser != 0 )
+                {
+                    auto key = m_nodes[loser].m_key;
+
+                    //new key is losing to the old one
+                    if (new_key > key)
+                    {
+                        new_key = key;
+                        auto new_winner = m_nodes[loser].m_stream;
+                        m_nodes[loser] = m_nodes[winner];
+
+                        winner = new_winner;
+                    }
+
+                    loser = parent(winner);
+                }
+            }
         };
     }
 }
 
 int32_t wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdLine, int       nCmdShow )
 {
-    float  stream_0[3] = { 0.0f, 2.0f, 1.0f };
-    float  stream_1[3] = { 0.0f, 2.0f, 1.0f };
-    float  stream_2[3] = { 0.0f, 2.0f, 1.0f };
-    float  stream_3[3] = { 0.0f, 2.0f, 1.0f };
+    float  stream_0[] = { 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 7.0f, 8.0f, 0.0f };
 
-    float* streams[4] = { stream_0, stream_1,stream_2, stream_3 };
+    float* streams[4] = { stream_0, stream_0 + 2,stream_0 + 4, stream_0 + 6 };
     size_t stream_lengths[4] = { 2, 2, 2, 2 };
     float  output[16];
 
