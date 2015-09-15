@@ -45,7 +45,7 @@ namespace cahs
                 
             }
 
-            void merge(float* input[stream_count], const size_t input_lengths[stream_count], float* output )
+            void merge( float* input[stream_count], const size_t input_lengths[stream_count], float* output )
             {
                 initialize_tree(input, input_lengths);
 
@@ -66,6 +66,8 @@ namespace cahs
                     auto new_key = *input[stream]++;
                     winner = get_new_winner(winner, new_key);
                 }
+
+                restore_stream_markers(input, input_lengths);
             }
 
             private:
@@ -101,7 +103,7 @@ namespace cahs
                 for (auto i = 0; i < stream_count; ++i)
                 {
                     auto stream_length = input_lengths[i];
-                    m_save[i]                   = streams[i][stream_length]; //save last values, 
+                    m_save[i]                   = streams[i][stream_length]; //save last values. case 1: streams can be from separate memory (last element then is the maximum or garbage). case 2: streams can be in the memory sequentially. then stream[last]=stream1[0], but they are moved in the tree already
                     streams[i][stream_length]   = eof_of_stream_marker;      //memory for the last stream should have 1 element more allocated. this is requirement, saves 1 copy
                     streams[i]++;                                            // make the next elements to get ready to go into the tree. the first ones are already there
                 }
@@ -111,7 +113,7 @@ namespace cahs
             {
                 for (auto i = 0; i < stream_count; ++i)
                 {
-                    auto stream_length = input_lengths[stream_count];
+                    auto stream_length = input_lengths[i];
                     streams[i][stream_length] = m_save[i];
                 }
             }
@@ -155,8 +157,10 @@ namespace cahs
                     auto key = m_nodes[loser].m_key;
 
                     //new key is losing to the old one
-                    if (new_key > key)
+                    if (new_key > key) 
                     {
+                        //swap loser and winner and move up the tree
+
                         new_key = key;
                         auto new_winner = m_nodes[loser].m_stream;
                         m_nodes[loser] = m_nodes[winner];
@@ -164,8 +168,10 @@ namespace cahs
                         winner = new_winner;
                     }
 
-                    loser = parent(winner);
+                    loser = parent(loser);
                 }
+
+                return winner;
             }
         };
     }
@@ -177,7 +183,7 @@ int32_t wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPTSTR    lpCmdL
 
     float* streams[4] = { stream_0, stream_0 + 2,stream_0 + 4, stream_0 + 6 };
     size_t stream_lengths[4] = { 2, 2, 2, 2 };
-    float  output[16];
+    float  output[  sizeof( stream_0 ) / sizeof(stream_0[0]) ];
 
     cahs::loser_tree::loser_tree t;
 
