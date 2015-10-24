@@ -17,18 +17,18 @@ namespace SampleFramework11
 
 void BlendStates::Initialize(ID3D11Device* device)
 {
-    DXCall(device->CreateBlendState(&BlendDisabledDesc(), &blendDisabled));
-    DXCall(device->CreateBlendState(&AdditiveBlendDesc(), &additiveBlend));
-    DXCall(device->CreateBlendState(&AlphaBlendDesc(), &alphaBlend));
-    DXCall(device->CreateBlendState(&PreMultipliedAlphaBlendDesc(), &pmAlphaBlend));
-    DXCall(device->CreateBlendState(&ColorWriteDisabledDesc(), &noColor));
-    DXCall(device->CreateBlendState(&AlphaToCoverageDesc(), &alphaToCoverage));
-    DXCall(device->CreateBlendState(&OpacityBlendDesc(), &opacityBlend));
+    DXCall(device->CreateBlendState(BlendDisabledDesc(), &blendDisabled));
+    DXCall(device->CreateBlendState(AdditiveBlendDesc(), &additiveBlend));
+    DXCall(device->CreateBlendState(AlphaBlendDesc(), &alphaBlend));
+    DXCall(device->CreateBlendState(PreMultipliedAlphaBlendDesc(), &pmAlphaBlend));
+    DXCall(device->CreateBlendState(ColorWriteDisabledDesc(), &noColor));
+    DXCall(device->CreateBlendState(AlphaToCoverageDesc(), &alphaToCoverage));
+    DXCall(device->CreateBlendState(OpacityBlendDesc(), &opacityBlend));
 }
 
-D3D11_BLEND_DESC BlendStates::BlendDisabledDesc()
+const D3D11_BLEND_DESC* BlendStates::BlendDisabledDesc()
 {
-    D3D11_BLEND_DESC blendDesc;
+    static D3D11_BLEND_DESC blendDesc;
     blendDesc.AlphaToCoverageEnable = false;
     blendDesc.IndependentBlendEnable = false;
     for(UINT i = 0; i < 8; ++i)
@@ -43,12 +43,12 @@ D3D11_BLEND_DESC BlendStates::BlendDisabledDesc()
         blendDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
     }
 
-    return blendDesc;
+    return &blendDesc;
 }
 
-D3D11_BLEND_DESC BlendStates::AdditiveBlendDesc()
+const D3D11_BLEND_DESC* BlendStates::AdditiveBlendDesc()
 {
-    D3D11_BLEND_DESC blendDesc;
+    static D3D11_BLEND_DESC blendDesc;
     blendDesc.AlphaToCoverageEnable = false;
     blendDesc.IndependentBlendEnable = false;
     for (uint32 i = 0; i < 8; ++i)
@@ -63,12 +63,12 @@ D3D11_BLEND_DESC BlendStates::AdditiveBlendDesc()
         blendDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
     }
 
-    return blendDesc;
+    return &blendDesc;
 }
 
-D3D11_BLEND_DESC BlendStates::AlphaBlendDesc()
+const D3D11_BLEND_DESC* BlendStates::AlphaBlendDesc()
 {
-    D3D11_BLEND_DESC blendDesc;
+    static D3D11_BLEND_DESC blendDesc;
     blendDesc.AlphaToCoverageEnable = false;
     blendDesc.IndependentBlendEnable = true;
     for (uint32 i = 0; i < 8; ++i)
@@ -85,12 +85,12 @@ D3D11_BLEND_DESC BlendStates::AlphaBlendDesc()
 
     blendDesc.RenderTarget[0].BlendEnable = true;
 
-    return blendDesc;
+    return &blendDesc;
 }
 
-D3D11_BLEND_DESC BlendStates::PreMultipliedAlphaBlendDesc()
+const D3D11_BLEND_DESC* BlendStates::PreMultipliedAlphaBlendDesc()
 {
-    D3D11_BLEND_DESC blendDesc;
+    static D3D11_BLEND_DESC blendDesc;
     blendDesc.AlphaToCoverageEnable = false;
     blendDesc.IndependentBlendEnable = false;
     for (uint32 i = 0; i < 8; ++i)
@@ -105,12 +105,12 @@ D3D11_BLEND_DESC BlendStates::PreMultipliedAlphaBlendDesc()
         blendDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
     }
 
-    return blendDesc;
+    return &blendDesc;
 }
 
-D3D11_BLEND_DESC BlendStates::ColorWriteDisabledDesc()
+const D3D11_BLEND_DESC* BlendStates::ColorWriteDisabledDesc()
 {
-    D3D11_BLEND_DESC blendDesc;
+    static D3D11_BLEND_DESC blendDesc;
     blendDesc.AlphaToCoverageEnable = false;
     blendDesc.IndependentBlendEnable = false;
     for (uint32 i = 0; i < 8; ++i)
@@ -125,12 +125,12 @@ D3D11_BLEND_DESC BlendStates::ColorWriteDisabledDesc()
         blendDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
     }
 
-    return blendDesc;
+    return &blendDesc;
 }
 
-D3D11_BLEND_DESC BlendStates::AlphaToCoverageDesc()
+const D3D11_BLEND_DESC* BlendStates::AlphaToCoverageDesc()
 {
-    D3D11_BLEND_DESC blendDesc;
+    static D3D11_BLEND_DESC blendDesc;
     blendDesc.AlphaToCoverageEnable = true;
     blendDesc.IndependentBlendEnable = false;
     for (uint32 i = 0; i < 8; ++i)
@@ -145,12 +145,12 @@ D3D11_BLEND_DESC BlendStates::AlphaToCoverageDesc()
         blendDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
     }
 
-    return blendDesc;
+    return &blendDesc;
 }
 
-D3D11_BLEND_DESC BlendStates::OpacityBlendDesc()
+const D3D11_BLEND_DESC* BlendStates::OpacityBlendDesc()
 {
-    D3D11_BLEND_DESC blendDesc;
+    static D3D11_BLEND_DESC blendDesc;
     blendDesc.AlphaToCoverageEnable = false;
     blendDesc.IndependentBlendEnable = false;
     for (uint32 i = 0; i < 8; ++i)
@@ -165,7 +165,7 @@ D3D11_BLEND_DESC BlendStates::OpacityBlendDesc()
         blendDesc.RenderTarget[i].SrcBlendAlpha = D3D11_BLEND_ONE;
     }
 
-    return blendDesc;
+    return &blendDesc;
 }
 
 void RasterizerStates::Initialize(ID3D11Device* device)

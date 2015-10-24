@@ -41,13 +41,13 @@ public:
     ID3D11BlendState* AlphaToCoverage () { return alphaToCoverage; };
     ID3D11BlendState* OpacityBlend() { return opacityBlend; };
 
-    static D3D11_BLEND_DESC BlendDisabledDesc();
-    static D3D11_BLEND_DESC AdditiveBlendDesc();
-    static D3D11_BLEND_DESC AlphaBlendDesc();
-    static D3D11_BLEND_DESC PreMultipliedAlphaBlendDesc();
-    static D3D11_BLEND_DESC ColorWriteDisabledDesc();
-    static D3D11_BLEND_DESC AlphaToCoverageDesc();
-    static D3D11_BLEND_DESC OpacityBlendDesc();
+    static const D3D11_BLEND_DESC* BlendDisabledDesc();
+    static const D3D11_BLEND_DESC* AdditiveBlendDesc();
+    static const D3D11_BLEND_DESC* AlphaBlendDesc();
+    static const D3D11_BLEND_DESC* PreMultipliedAlphaBlendDesc();
+    static const D3D11_BLEND_DESC* ColorWriteDisabledDesc();
+    static const D3D11_BLEND_DESC* AlphaToCoverageDesc();
+    static const D3D11_BLEND_DESC* OpacityBlendDesc();
 };
 
 

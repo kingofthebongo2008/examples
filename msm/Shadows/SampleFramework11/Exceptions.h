@@ -274,38 +274,42 @@ public:
 
 #if UseAsserts_
 
-#define DXCall(x)                                                           \
-    do                                                                      \
-    {                                                                       \
-        HRESULT hr_ = x;                                                    \
-        AssertMsg_(SUCCEEDED(hr_), GetDXErrorStringAnsi(hr_).c_str());      \
-    }                                                                       \
-    while(0)
+static inline void DXCall(HRESULT x)
+{
+    HRESULT hr_ = x;
 
-#define Win32Call(x)                                                            \
-    do                                                                          \
-    {                                                                           \
-        BOOL res_ = x;                                                          \
-        AssertMsg_(res_ != 0, GetWin32ErrorStringAnsi(GetLastError()).c_str()); \
-    }                                                                           \
-    while(0)
+    AssertMsg_(SUCCEEDED(hr_), GetDXErrorStringAnsi(hr_).c_str());
 
-#define GdiPlusCall(x)                                                                  \
-    do                                                                                  \
-    {                                                                                   \
-        Gdiplus::Status status_ = x;                                                    \
-        AssertMsg_(status_ == Gdiplus::Ok, GetGdiPlusErrorStringAnsi(status_).c_str()); \
-    }                                                                                   \
-    while(0)
+    if (FAILED(x))
+        throw DXException(x);
+}
 
-#define TwCall(x)                                                           \
-    do                                                                      \
-    {                                                                       \
-        int res_ = x;                                                       \
-        AssertMsg_(res_ != 0, GetTwErrorStringAnsi().c_str());              \
-    }                                                                       \
-    while(0)
+static inline void Win32Call( BOOL x )
+{                 
+    BOOL res_ = x;
+    AssertMsg_(res_ != 0, GetWin32ErrorStringAnsi(GetLastError()).c_str());
 
+    if (x == 0)
+        throw Win32Exception(GetLastError());
+}
+
+static inline void GdiPlusCall( Gdiplus::Status x )
+{                                                                                   
+    Gdiplus::Status status_ = x;                                                    
+    AssertMsg_(status_ == Gdiplus::Ok, GetGdiPlusErrorStringAnsi(status_).c_str()); 
+
+    if (x != Gdiplus::Ok)
+        throw GdiPlusException(x);
+}                                                                                   
+
+static inline void TwCall(int x)
+{                                                                       
+    int res_ = x;                                                       
+    AssertMsg_(res_ != 0, GetTwErrorStringAnsi().c_str());              
+
+    if ( x == 0 )
+        throw TwException();
+}                                                                       
 
 #else
 

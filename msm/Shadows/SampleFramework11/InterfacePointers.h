@@ -12,6 +12,22 @@
 namespace SampleFramework11
 {
 
+//D3D12
+_COM_SMARTPTR_TYPEDEF(ID3D12Device, __uuidof(ID3D12Device));
+_COM_SMARTPTR_TYPEDEF(ID3D12DescriptorHeap, __uuidof(ID3D12DescriptorHeap));
+_COM_SMARTPTR_TYPEDEF(ID3D12CommandAllocator, __uuidof(ID3D12CommandAllocator));
+_COM_SMARTPTR_TYPEDEF(ID3D12CommandQueue, __uuidof(ID3D12CommandQueue));
+_COM_SMARTPTR_TYPEDEF(ID3D12Heap, __uuidof(ID3D12Heap));
+_COM_SMARTPTR_TYPEDEF(ID3D12CommandList, __uuidof(ID3D12CommandList));
+_COM_SMARTPTR_TYPEDEF(ID3D12GraphicsCommandList, __uuidof(ID3D12GraphicsCommandList));
+_COM_SMARTPTR_TYPEDEF(ID3D12CommandSignature, __uuidof(ID3D12CommandSignature));
+_COM_SMARTPTR_TYPEDEF(ID3D12RootSignature, __uuidof(ID3D12RootSignature));
+_COM_SMARTPTR_TYPEDEF(ID3D12Resource, __uuidof(ID3D12Resource));
+_COM_SMARTPTR_TYPEDEF(ID3D12PipelineState, __uuidof(ID3D12PipelineState));
+_COM_SMARTPTR_TYPEDEF(ID3D12Fence, __uuidof(ID3D12Fence));
+_COM_SMARTPTR_TYPEDEF(ID3D12QueryHeap, __uuidof(ID3D12QueryHeap));
+
+
 // Device
 _COM_SMARTPTR_TYPEDEF(ID3D11Device, __uuidof(ID3D11Device));
 _COM_SMARTPTR_TYPEDEF(ID3D11DeviceContext, __uuidof(ID3D11DeviceContext));
@@ -67,6 +83,8 @@ typedef ID3D10BlobPtr ID3DBlobPtr;
 _COM_SMARTPTR_TYPEDEF(IDXGISwapChain, __uuidof(IDXGISwapChain));
 _COM_SMARTPTR_TYPEDEF(IDXGIAdapter, __uuidof(IDXGIAdapter));
 _COM_SMARTPTR_TYPEDEF(IDXGIAdapter1, __uuidof(IDXGIAdapter1));
+_COM_SMARTPTR_TYPEDEF(IDXGIAdapter2, __uuidof(IDXGIAdapter2));
+_COM_SMARTPTR_TYPEDEF(IDXGIAdapter3, __uuidof(IDXGIAdapter3));
 _COM_SMARTPTR_TYPEDEF(IDXGIDevice, __uuidof(IDXGIDevice));
 _COM_SMARTPTR_TYPEDEF(IDXGIDevice1, __uuidof(IDXGIDevice1));
 _COM_SMARTPTR_TYPEDEF(IDXGIDeviceSubObject, __uuidof(IDXGIDeviceSubObject));
@@ -77,5 +95,5 @@ _COM_SMARTPTR_TYPEDEF(IDXGIObject, __uuidof(IDXGIObject));
 _COM_SMARTPTR_TYPEDEF(IDXGIOutput, __uuidof(IDXGIOutput));
 _COM_SMARTPTR_TYPEDEF(IDXGIResource, __uuidof(IDXGIResource));
 _COM_SMARTPTR_TYPEDEF(IDXGISurface1, __uuidof(IDXGISurface1));
-
+_COM_SMARTPTR_TYPEDEF(IDXGISurface2, __uuidof(IDXGISurface2));
 }
