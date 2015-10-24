@@ -65,9 +65,9 @@ protected:
     void AfterReset();
     void PrepareFullScreenSettings();
 
-    IDXGIFactory1Ptr                factory;
-    IDXGIAdapter1Ptr                adapter;
-    IDXGIOutputPtr                  output;
+    IDXGIFactory4Ptr                factory;
+    IDXGIAdapter3Ptr                adapter;
+    IDXGIOutput4Ptr                 output;
 
     ID3D11DevicePtr                 device;
     ID3D11DeviceContextPtr          immediateContext;

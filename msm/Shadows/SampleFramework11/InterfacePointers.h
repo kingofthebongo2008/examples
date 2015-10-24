@@ -81,6 +81,9 @@ typedef ID3D10BlobPtr ID3DBlobPtr;
 
 // DXGI
 _COM_SMARTPTR_TYPEDEF(IDXGISwapChain, __uuidof(IDXGISwapChain));
+_COM_SMARTPTR_TYPEDEF(IDXGISwapChain1, __uuidof(IDXGISwapChain1));
+_COM_SMARTPTR_TYPEDEF(IDXGISwapChain2, __uuidof(IDXGISwapChain2));
+_COM_SMARTPTR_TYPEDEF(IDXGISwapChain3, __uuidof(IDXGISwapChain3));
 _COM_SMARTPTR_TYPEDEF(IDXGIAdapter, __uuidof(IDXGIAdapter));
 _COM_SMARTPTR_TYPEDEF(IDXGIAdapter1, __uuidof(IDXGIAdapter1));
 _COM_SMARTPTR_TYPEDEF(IDXGIAdapter2, __uuidof(IDXGIAdapter2));
@@ -90,9 +93,16 @@ _COM_SMARTPTR_TYPEDEF(IDXGIDevice1, __uuidof(IDXGIDevice1));
 _COM_SMARTPTR_TYPEDEF(IDXGIDeviceSubObject, __uuidof(IDXGIDeviceSubObject));
 _COM_SMARTPTR_TYPEDEF(IDXGIFactory, __uuidof(IDXGIFactory));
 _COM_SMARTPTR_TYPEDEF(IDXGIFactory1, __uuidof(IDXGIFactory1));
+_COM_SMARTPTR_TYPEDEF(IDXGIFactory2, __uuidof(IDXGIFactory2));
+_COM_SMARTPTR_TYPEDEF(IDXGIFactory3, __uuidof(IDXGIFactory3));
+_COM_SMARTPTR_TYPEDEF(IDXGIFactory4, __uuidof(IDXGIFactory4));
 _COM_SMARTPTR_TYPEDEF(IDXGIKeyedMutex, __uuidof(IDXGIKeyedMutex));
 _COM_SMARTPTR_TYPEDEF(IDXGIObject, __uuidof(IDXGIObject));
 _COM_SMARTPTR_TYPEDEF(IDXGIOutput, __uuidof(IDXGIOutput));
+_COM_SMARTPTR_TYPEDEF(IDXGIOutput1, __uuidof(IDXGIOutput1));
+_COM_SMARTPTR_TYPEDEF(IDXGIOutput2, __uuidof(IDXGIOutput2));
+_COM_SMARTPTR_TYPEDEF(IDXGIOutput3, __uuidof(IDXGIOutput3));
+_COM_SMARTPTR_TYPEDEF(IDXGIOutput4, __uuidof(IDXGIOutput4));
 _COM_SMARTPTR_TYPEDEF(IDXGIResource, __uuidof(IDXGIResource));
 _COM_SMARTPTR_TYPEDEF(IDXGISurface1, __uuidof(IDXGISurface1));
 _COM_SMARTPTR_TYPEDEF(IDXGISurface2, __uuidof(IDXGISurface2));

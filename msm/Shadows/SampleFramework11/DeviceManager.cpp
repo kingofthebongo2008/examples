@@ -13,6 +13,8 @@
 #include "Exceptions.h"
 #include "Utility.h"
 
+#include <d3d11on12.h>
+
 using std::wstring;
 
 #if _DEBUG
@@ -132,29 +134,30 @@ void DeviceManager::AfterReset()
 
 void DeviceManager::CheckForSuitableOutput()
 {
-    HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory1), reinterpret_cast<void**>(&factory));
+    HRESULT hr = CreateDXGIFactory1(__uuidof(IDXGIFactory4), reinterpret_cast<void**>(&factory));
     if(FAILED(hr))
         throw Exception(L"Unable to create a DXGI 1.1 device.\n "
                         L"Make sure that your OS and driver support DirectX 11");
-
+    
     // Look for an adapter that supports D3D11
     IDXGIAdapter1Ptr curAdapter;
     uint32 adapterIdx = 0;
     LARGE_INTEGER umdVersion;
-    while ( !adapter && SUCCEEDED(factory->EnumAdapters1(adapterIdx++, &adapter)) )
+    while ( !curAdapter && SUCCEEDED(factory->EnumAdapters1(adapterIdx++, &curAdapter)) )
     {
-        if (SUCCEEDED( adapter->CheckInterfaceSupport(__uuidof(ID3D11Device), &umdVersion) ) )
-        {
-            adapter = curAdapter;
-        }
     }
+
+    adapter = curAdapter;
 
     if(!adapter)
         throw Exception(L"Unable to locate a DXGI 1.1 adapter that supports a D3D11 device.\n"
                         L"Make sure that your OS and driver support DirectX 11");
 
+    IDXGIOutputPtr o;
     // We'll just use the first output
-    DXCall(adapter->EnumOutputs(0, &output));
+    DXCall(adapter->EnumOutputs(0, &o));
+
+    DXCall(o->QueryInterface(__uuidof(IDXGIOutput4), reinterpret_cast<void**>(&output)));
 }
 
 void DeviceManager::PrepareFullScreenSettings()
