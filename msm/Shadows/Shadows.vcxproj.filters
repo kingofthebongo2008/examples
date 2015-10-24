@@ -271,7 +271,5 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="AppSettings.cs" />
-    <CustomBuild Include="..\Externals\AntTweakBar\bin\AntTweakBar64.dll" />
-    <CustomBuild Include="..\Externals\d3dcompiler_46.dll" />
   </ItemGroup>
 </Project>

@@ -15,6 +15,7 @@
     <RootNamespace>SampleTest</RootNamespace>
     <Keyword>Win32Proj</Keyword>
     <ProjectName>Shadows</ProjectName>
+    <WindowsTargetPlatformVersion>10.0.10240.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
@@ -70,6 +71,7 @@
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -88,6 +90,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PrecompiledHeaderFile>PCH.h</PrecompiledHeaderFile>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -183,24 +186,6 @@
     <ClInclude Include="SharedConstants.h" />
   </ItemGroup>
   <ItemGroup>
-    <CustomBuild Include="..\Externals\AntTweakBar\bin\AntTweakBar64.dll">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copy %(FullPath) $(ProjectDir)%(Filename)%(Extension)</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Copying external DLL</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)%(Filename)%(Extension)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">copy %(FullPath) $(ProjectDir)%(Filename)%(Extension)</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Copying external DLL</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)%(Filename)%(Extension)</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="..\Externals\d3dcompiler_46.dll">
-      <FileType>Document</FileType>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">copy %(FullPath) $(ProjectDir)%(Filename)%(Extension)</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Copying external DLL</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)%(Filename)%(Extension)</Outputs>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">copy %(FullPath) $(ProjectDir)%(Filename)%(Extension)</Command>
-      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Copying external DLL</Message>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)%(Filename)%(Extension)</Outputs>
-    </CustomBuild>
     <None Include="DepthOnly.hlsl" />
     <None Include="DepthReduction.hlsl" />
     <None Include="Mesh.hlsl" />

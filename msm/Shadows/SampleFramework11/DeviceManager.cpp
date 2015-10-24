@@ -82,12 +82,12 @@ void DeviceManager::Initialize(HWND outputWindow)
     desc.OutputWindow = outputWindow;
     desc.Windowed = !fullScreen;
 
-    uint32 flags = D3D11_CREATE_DEVICE_SINGLETHREADED;
+    uint32 flags = 0;
     #if UseDebugDevice_
         flags |= D3D11_CREATE_DEVICE_DEBUG;
     #endif
 
-    DXCall(D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, flags,
+    DXCall(D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_WARP, NULL, flags,
                                          NULL, 0, D3D11_SDK_VERSION, &desc, &swapChain,
                                          &device, NULL, &immediateContext));
 
@@ -141,9 +141,13 @@ void DeviceManager::CheckForSuitableOutput()
     IDXGIAdapter1Ptr curAdapter;
     uint32 adapterIdx = 0;
     LARGE_INTEGER umdVersion;
-    while(!adapter && SUCCEEDED(factory->EnumAdapters1(0, &adapter)))
-        if(SUCCEEDED(adapter->CheckInterfaceSupport(__uuidof(ID3D11Device), &umdVersion)))
+    while ( !adapter && SUCCEEDED(factory->EnumAdapters1(adapterIdx++, &adapter)) )
+    {
+        if (SUCCEEDED( adapter->CheckInterfaceSupport(__uuidof(ID3D11Device), &umdVersion) ) )
+        {
             adapter = curAdapter;
+        }
+    }
 
     if(!adapter)
         throw Exception(L"Unable to locate a DXGI 1.1 adapter that supports a D3D11 device.\n"
