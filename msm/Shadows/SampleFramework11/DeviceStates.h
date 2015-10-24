@@ -78,14 +78,14 @@ public:
     ID3D11RasterizerState* NoCullScissor() { return noCullScissor; };
     ID3D11RasterizerState* Wireframe() { return wireframe; };
 
-    static D3D11_RASTERIZER_DESC NoCullDesc();
-    static D3D11_RASTERIZER_DESC FrontFaceCullDesc();
-    static D3D11_RASTERIZER_DESC FrontFaceCullScissorDesc();
-    static D3D11_RASTERIZER_DESC BackFaceCullDesc();
-    static D3D11_RASTERIZER_DESC BackFaceCullScissorDesc();
-    static D3D11_RASTERIZER_DESC NoCullNoMSDesc();
-    static D3D11_RASTERIZER_DESC NoCullScissorDesc();
-    static D3D11_RASTERIZER_DESC WireframeDesc();
+    static const D3D11_RASTERIZER_DESC* NoCullDesc();
+    static const D3D11_RASTERIZER_DESC* FrontFaceCullDesc();
+    static const D3D11_RASTERIZER_DESC* FrontFaceCullScissorDesc();
+    static const D3D11_RASTERIZER_DESC* BackFaceCullDesc();
+    static const D3D11_RASTERIZER_DESC* BackFaceCullScissorDesc();
+    static const D3D11_RASTERIZER_DESC* NoCullNoMSDesc();
+    static const D3D11_RASTERIZER_DESC* NoCullScissorDesc();
+    static const D3D11_RASTERIZER_DESC* WireframeDesc();
 };
 
 
@@ -111,13 +111,13 @@ public:
     ID3D11DepthStencilState* DepthStencilWriteEnabled() { return depthStencilWriteEnabled; };
     ID3D11DepthStencilState* StencilTestEnabled() { return depthStencilWriteEnabled; };
 
-    static D3D11_DEPTH_STENCIL_DESC DepthDisabledDesc();
-    static D3D11_DEPTH_STENCIL_DESC DepthEnabledDesc();
-    static D3D11_DEPTH_STENCIL_DESC ReverseDepthEnabledDesc();
-    static D3D11_DEPTH_STENCIL_DESC DepthWriteEnabledDesc();
-    static D3D11_DEPTH_STENCIL_DESC ReverseDepthWriteEnabledDesc();
-    static D3D11_DEPTH_STENCIL_DESC DepthStencilWriteEnabledDesc();
-    static D3D11_DEPTH_STENCIL_DESC StencilEnabledDesc();
+    static const D3D11_DEPTH_STENCIL_DESC* DepthDisabledDesc();
+    static const D3D11_DEPTH_STENCIL_DESC* DepthEnabledDesc();
+    static const D3D11_DEPTH_STENCIL_DESC* ReverseDepthEnabledDesc();
+    static const D3D11_DEPTH_STENCIL_DESC* DepthWriteEnabledDesc();
+    static const D3D11_DEPTH_STENCIL_DESC* ReverseDepthWriteEnabledDesc();
+    static const D3D11_DEPTH_STENCIL_DESC* DepthStencilWriteEnabledDesc();
+    static const D3D11_DEPTH_STENCIL_DESC* StencilEnabledDesc();
 };
 
 
@@ -143,13 +143,13 @@ public:
     ID3D11SamplerState* ShadowMap() { return shadowMap; };
     ID3D11SamplerState* ShadowMapPCF() { return shadowMapPCF; };
 
-    static D3D11_SAMPLER_DESC LinearDesc();
-    static D3D11_SAMPLER_DESC LinearClampDesc();
-    static D3D11_SAMPLER_DESC LinearBorderDesc();
-    static D3D11_SAMPLER_DESC PointDesc();
-    static D3D11_SAMPLER_DESC AnisotropicDesc();
-    static D3D11_SAMPLER_DESC ShadowMapDesc();
-    static D3D11_SAMPLER_DESC ShadowMapPCFDesc();
+    static const D3D11_SAMPLER_DESC* LinearDesc();
+    static const D3D11_SAMPLER_DESC* LinearClampDesc();
+    static const D3D11_SAMPLER_DESC* LinearBorderDesc();
+    static const D3D11_SAMPLER_DESC* PointDesc();
+    static const D3D11_SAMPLER_DESC* AnisotropicDesc();
+    static const D3D11_SAMPLER_DESC* ShadowMapDesc();
+    static const D3D11_SAMPLER_DESC* ShadowMapPCFDesc();
 };
 
 }

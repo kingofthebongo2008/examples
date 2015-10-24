@@ -637,13 +637,13 @@ void MeshRenderer::Initialize(ID3D11Device* device, ID3D11DeviceContext* context
 
     LoadShaders();
 
-    D3D11_RASTERIZER_DESC rsDesc = RasterizerStates::NoCullDesc();
+    D3D11_RASTERIZER_DESC rsDesc = *RasterizerStates::NoCullDesc();
     rsDesc.DepthClipEnable = FALSE;
     DXCall(device->CreateRasterizerState(&rsDesc, &shadowRSState));
 
     for(uint32 anisotropy = 0; anisotropy < uint32(ShadowAnisotropy::NumValues); ++anisotropy)
     {
-        D3D11_SAMPLER_DESC sampDesc = SamplerStates::AnisotropicDesc();
+        D3D11_SAMPLER_DESC sampDesc = *SamplerStates::AnisotropicDesc();
         sampDesc.MaxAnisotropy = AppSettings::NumAnisotropicSamples(anisotropy);
         DXCall(device->CreateSamplerState(&sampDesc, &evsmSamplers[anisotropy]));
     }

@@ -170,19 +170,19 @@ const D3D11_BLEND_DESC* BlendStates::OpacityBlendDesc()
 
 void RasterizerStates::Initialize(ID3D11Device* device)
 {
-    DXCall(device->CreateRasterizerState(&NoCullDesc(), &noCull));
-    DXCall(device->CreateRasterizerState(&FrontFaceCullDesc(), &cullFrontFaces));
-    DXCall(device->CreateRasterizerState(&FrontFaceCullScissorDesc(), &cullFrontFacesScissor));
-    DXCall(device->CreateRasterizerState(&BackFaceCullDesc(), &cullBackFaces));
-    DXCall(device->CreateRasterizerState(&BackFaceCullScissorDesc(), &cullBackFacesScissor));
-    DXCall(device->CreateRasterizerState(&NoCullNoMSDesc(), &noCullNoMS));
-    DXCall(device->CreateRasterizerState(&NoCullScissorDesc(), &noCullScissor));
-    DXCall(device->CreateRasterizerState(&WireframeDesc(), &wireframe));
+    DXCall(device->CreateRasterizerState(NoCullDesc(), &noCull));
+    DXCall(device->CreateRasterizerState(FrontFaceCullDesc(), &cullFrontFaces));
+    DXCall(device->CreateRasterizerState(FrontFaceCullScissorDesc(), &cullFrontFacesScissor));
+    DXCall(device->CreateRasterizerState(BackFaceCullDesc(), &cullBackFaces));
+    DXCall(device->CreateRasterizerState(BackFaceCullScissorDesc(), &cullBackFacesScissor));
+    DXCall(device->CreateRasterizerState(NoCullNoMSDesc(), &noCullNoMS));
+    DXCall(device->CreateRasterizerState(NoCullScissorDesc(), &noCullScissor));
+    DXCall(device->CreateRasterizerState(WireframeDesc(), &wireframe));
 }
 
-D3D11_RASTERIZER_DESC RasterizerStates::NoCullDesc()
+const D3D11_RASTERIZER_DESC* RasterizerStates::NoCullDesc()
 {
-    D3D11_RASTERIZER_DESC rastDesc;
+    static D3D11_RASTERIZER_DESC rastDesc;
 
     rastDesc.AntialiasedLineEnable = false;
     rastDesc.CullMode = D3D11_CULL_NONE;
@@ -195,12 +195,12 @@ D3D11_RASTERIZER_DESC RasterizerStates::NoCullDesc()
     rastDesc.ScissorEnable = false;
     rastDesc.SlopeScaledDepthBias = 0;
 
-    return rastDesc;
+    return &rastDesc;
 }
 
-D3D11_RASTERIZER_DESC RasterizerStates::FrontFaceCullDesc()
+const D3D11_RASTERIZER_DESC* RasterizerStates::FrontFaceCullDesc()
 {
-    D3D11_RASTERIZER_DESC rastDesc;
+    static D3D11_RASTERIZER_DESC rastDesc;
 
     rastDesc.AntialiasedLineEnable = false;
     rastDesc.CullMode = D3D11_CULL_FRONT;
@@ -213,12 +213,12 @@ D3D11_RASTERIZER_DESC RasterizerStates::FrontFaceCullDesc()
     rastDesc.ScissorEnable = false;
     rastDesc.SlopeScaledDepthBias = 0;
 
-    return rastDesc;
+    return &rastDesc;
 }
 
-D3D11_RASTERIZER_DESC RasterizerStates::FrontFaceCullScissorDesc()
+const D3D11_RASTERIZER_DESC* RasterizerStates::FrontFaceCullScissorDesc()
 {
-    D3D11_RASTERIZER_DESC rastDesc;
+    static D3D11_RASTERIZER_DESC rastDesc;
 
     rastDesc.AntialiasedLineEnable = false;
     rastDesc.CullMode = D3D11_CULL_FRONT;
@@ -231,12 +231,12 @@ D3D11_RASTERIZER_DESC RasterizerStates::FrontFaceCullScissorDesc()
     rastDesc.ScissorEnable = true;
     rastDesc.SlopeScaledDepthBias = 0;
 
-    return rastDesc;
+    return &rastDesc;
 }
 
-D3D11_RASTERIZER_DESC RasterizerStates::BackFaceCullDesc()
+const D3D11_RASTERIZER_DESC* RasterizerStates::BackFaceCullDesc()
 {
-    D3D11_RASTERIZER_DESC rastDesc;
+    static D3D11_RASTERIZER_DESC rastDesc;
 
     rastDesc.AntialiasedLineEnable = false;
     rastDesc.CullMode = D3D11_CULL_BACK;
@@ -249,12 +249,12 @@ D3D11_RASTERIZER_DESC RasterizerStates::BackFaceCullDesc()
     rastDesc.ScissorEnable = false;
     rastDesc.SlopeScaledDepthBias = 0;
 
-    return rastDesc;
+    return &rastDesc;
 }
 
-D3D11_RASTERIZER_DESC RasterizerStates::BackFaceCullScissorDesc()
+const D3D11_RASTERIZER_DESC* RasterizerStates::BackFaceCullScissorDesc()
 {
-    D3D11_RASTERIZER_DESC rastDesc;
+    static D3D11_RASTERIZER_DESC rastDesc;
 
     rastDesc.AntialiasedLineEnable = false;
     rastDesc.CullMode = D3D11_CULL_BACK;
@@ -267,12 +267,12 @@ D3D11_RASTERIZER_DESC RasterizerStates::BackFaceCullScissorDesc()
     rastDesc.ScissorEnable = true;
     rastDesc.SlopeScaledDepthBias = 0;
 
-    return rastDesc;
+    return &rastDesc;
 }
 
-D3D11_RASTERIZER_DESC RasterizerStates::NoCullNoMSDesc()
+const D3D11_RASTERIZER_DESC* RasterizerStates::NoCullNoMSDesc()
 {
-    D3D11_RASTERIZER_DESC rastDesc;
+    static D3D11_RASTERIZER_DESC rastDesc;
 
     rastDesc.AntialiasedLineEnable = false;
     rastDesc.CullMode = D3D11_CULL_NONE;
@@ -285,12 +285,12 @@ D3D11_RASTERIZER_DESC RasterizerStates::NoCullNoMSDesc()
     rastDesc.ScissorEnable = false;
     rastDesc.SlopeScaledDepthBias = 0;
 
-    return rastDesc;
+    return &rastDesc;
 }
 
-D3D11_RASTERIZER_DESC RasterizerStates::NoCullScissorDesc()
+const D3D11_RASTERIZER_DESC* RasterizerStates::NoCullScissorDesc()
 {
-    D3D11_RASTERIZER_DESC rastDesc;
+    static D3D11_RASTERIZER_DESC rastDesc;
 
     rastDesc.AntialiasedLineEnable = false;
     rastDesc.CullMode = D3D11_CULL_NONE;
@@ -303,12 +303,12 @@ D3D11_RASTERIZER_DESC RasterizerStates::NoCullScissorDesc()
     rastDesc.ScissorEnable = true;
     rastDesc.SlopeScaledDepthBias = 0;
 
-    return rastDesc;
+    return &rastDesc;
 }
 
-D3D11_RASTERIZER_DESC RasterizerStates::WireframeDesc()
+const D3D11_RASTERIZER_DESC* RasterizerStates::WireframeDesc()
 {
-    D3D11_RASTERIZER_DESC rastDesc;
+    static D3D11_RASTERIZER_DESC rastDesc;
 
     rastDesc.AntialiasedLineEnable = false;
     rastDesc.CullMode = D3D11_CULL_NONE;
@@ -321,23 +321,23 @@ D3D11_RASTERIZER_DESC RasterizerStates::WireframeDesc()
     rastDesc.ScissorEnable = false;
     rastDesc.SlopeScaledDepthBias = 0;
 
-    return rastDesc;
+    return &rastDesc;
 }
 
 void DepthStencilStates::Initialize(ID3D11Device* device)
 {
-    DXCall(device->CreateDepthStencilState(&DepthDisabledDesc(), &depthDisabled));
-    DXCall(device->CreateDepthStencilState(&DepthEnabledDesc(), &depthEnabled));
-    DXCall(device->CreateDepthStencilState(&ReverseDepthEnabledDesc(), &revDepthEnabled));
-    DXCall(device->CreateDepthStencilState(&DepthWriteEnabledDesc(), &depthWriteEnabled));
-    DXCall(device->CreateDepthStencilState(&ReverseDepthWriteEnabledDesc(), &revDepthWriteEnabled));
-    DXCall(device->CreateDepthStencilState(&DepthStencilWriteEnabledDesc(), &depthStencilWriteEnabled));
-    DXCall(device->CreateDepthStencilState(&StencilEnabledDesc(), &stencilEnabled));
+    DXCall(device->CreateDepthStencilState(DepthDisabledDesc(), &depthDisabled));
+    DXCall(device->CreateDepthStencilState(DepthEnabledDesc(), &depthEnabled));
+    DXCall(device->CreateDepthStencilState(ReverseDepthEnabledDesc(), &revDepthEnabled));
+    DXCall(device->CreateDepthStencilState(DepthWriteEnabledDesc(), &depthWriteEnabled));
+    DXCall(device->CreateDepthStencilState(ReverseDepthWriteEnabledDesc(), &revDepthWriteEnabled));
+    DXCall(device->CreateDepthStencilState(DepthStencilWriteEnabledDesc(), &depthStencilWriteEnabled));
+    DXCall(device->CreateDepthStencilState(StencilEnabledDesc(), &stencilEnabled));
 }
 
-D3D11_DEPTH_STENCIL_DESC DepthStencilStates::DepthDisabledDesc()
+const D3D11_DEPTH_STENCIL_DESC* DepthStencilStates::DepthDisabledDesc()
 {
-    D3D11_DEPTH_STENCIL_DESC dsDesc;
+    static D3D11_DEPTH_STENCIL_DESC dsDesc;
     dsDesc.DepthEnable = false;
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
     dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
@@ -350,12 +350,12 @@ D3D11_DEPTH_STENCIL_DESC DepthStencilStates::DepthDisabledDesc()
     dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
     dsDesc.BackFace = dsDesc.FrontFace;
 
-    return dsDesc;
+    return &dsDesc;
 }
 
-D3D11_DEPTH_STENCIL_DESC DepthStencilStates::DepthEnabledDesc()
+const D3D11_DEPTH_STENCIL_DESC* DepthStencilStates::DepthEnabledDesc()
 {
-    D3D11_DEPTH_STENCIL_DESC dsDesc;
+    static D3D11_DEPTH_STENCIL_DESC dsDesc;
     dsDesc.DepthEnable = true;
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
     dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
@@ -368,12 +368,12 @@ D3D11_DEPTH_STENCIL_DESC DepthStencilStates::DepthEnabledDesc()
     dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
     dsDesc.BackFace = dsDesc.FrontFace;
 
-    return dsDesc;
+    return &dsDesc;
 }
 
-D3D11_DEPTH_STENCIL_DESC DepthStencilStates::ReverseDepthEnabledDesc()
+const D3D11_DEPTH_STENCIL_DESC* DepthStencilStates::ReverseDepthEnabledDesc()
 {
-    D3D11_DEPTH_STENCIL_DESC dsDesc;
+    static D3D11_DEPTH_STENCIL_DESC dsDesc;
     dsDesc.DepthEnable = true;
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
     dsDesc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
@@ -386,12 +386,12 @@ D3D11_DEPTH_STENCIL_DESC DepthStencilStates::ReverseDepthEnabledDesc()
     dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
     dsDesc.BackFace = dsDesc.FrontFace;
 
-    return dsDesc;
+    return &dsDesc;
 }
 
-D3D11_DEPTH_STENCIL_DESC DepthStencilStates::DepthWriteEnabledDesc()
+const D3D11_DEPTH_STENCIL_DESC* DepthStencilStates::DepthWriteEnabledDesc()
 {
-    D3D11_DEPTH_STENCIL_DESC dsDesc;
+    static D3D11_DEPTH_STENCIL_DESC dsDesc;
     dsDesc.DepthEnable = true;
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
@@ -404,12 +404,12 @@ D3D11_DEPTH_STENCIL_DESC DepthStencilStates::DepthWriteEnabledDesc()
     dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
     dsDesc.BackFace = dsDesc.FrontFace;
 
-    return dsDesc;
+    return &dsDesc;
 }
 
-D3D11_DEPTH_STENCIL_DESC DepthStencilStates::ReverseDepthWriteEnabledDesc()
+const D3D11_DEPTH_STENCIL_DESC* DepthStencilStates::ReverseDepthWriteEnabledDesc()
 {
-    D3D11_DEPTH_STENCIL_DESC dsDesc;
+    static D3D11_DEPTH_STENCIL_DESC dsDesc;
     dsDesc.DepthEnable = true;
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     dsDesc.DepthFunc = D3D11_COMPARISON_GREATER_EQUAL;
@@ -422,12 +422,12 @@ D3D11_DEPTH_STENCIL_DESC DepthStencilStates::ReverseDepthWriteEnabledDesc()
     dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
     dsDesc.BackFace = dsDesc.FrontFace;
 
-    return dsDesc;
+    return &dsDesc;
 }
 
-D3D11_DEPTH_STENCIL_DESC DepthStencilStates::DepthStencilWriteEnabledDesc()
+const D3D11_DEPTH_STENCIL_DESC* DepthStencilStates::DepthStencilWriteEnabledDesc()
 {
-    D3D11_DEPTH_STENCIL_DESC dsDesc;
+    static D3D11_DEPTH_STENCIL_DESC dsDesc;
     dsDesc.DepthEnable = true;
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
@@ -440,12 +440,12 @@ D3D11_DEPTH_STENCIL_DESC DepthStencilStates::DepthStencilWriteEnabledDesc()
     dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
     dsDesc.BackFace = dsDesc.FrontFace;
 
-    return dsDesc;
+    return &dsDesc;
 }
 
-D3D11_DEPTH_STENCIL_DESC DepthStencilStates::StencilEnabledDesc()
+const D3D11_DEPTH_STENCIL_DESC* DepthStencilStates::StencilEnabledDesc()
 {
-    D3D11_DEPTH_STENCIL_DESC dsDesc;
+    static D3D11_DEPTH_STENCIL_DESC dsDesc;
     dsDesc.DepthEnable = true;
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
     dsDesc.DepthFunc = D3D11_COMPARISON_LESS_EQUAL;
@@ -458,23 +458,23 @@ D3D11_DEPTH_STENCIL_DESC DepthStencilStates::StencilEnabledDesc()
     dsDesc.FrontFace.StencilFunc = D3D11_COMPARISON_EQUAL;
     dsDesc.BackFace = dsDesc.FrontFace;
 
-    return dsDesc;
+    return &dsDesc;
 }
 
 void SamplerStates::Initialize(ID3D11Device* device)
 {
-    DXCall(device->CreateSamplerState(&LinearDesc(), &linear));
-    DXCall(device->CreateSamplerState(&LinearClampDesc(), &linearClamp));
-    DXCall(device->CreateSamplerState(&LinearBorderDesc(), &linearBorder));
-    DXCall(device->CreateSamplerState(&PointDesc(), &point));
-    DXCall(device->CreateSamplerState(&AnisotropicDesc(), &anisotropic));
-    DXCall(device->CreateSamplerState(&ShadowMapDesc(), &shadowMap));
-    DXCall(device->CreateSamplerState(&ShadowMapPCFDesc(), &shadowMapPCF));
+    DXCall(device->CreateSamplerState(LinearDesc(), &linear));
+    DXCall(device->CreateSamplerState(LinearClampDesc(), &linearClamp));
+    DXCall(device->CreateSamplerState(LinearBorderDesc(), &linearBorder));
+    DXCall(device->CreateSamplerState(PointDesc(), &point));
+    DXCall(device->CreateSamplerState(AnisotropicDesc(), &anisotropic));
+    DXCall(device->CreateSamplerState(ShadowMapDesc(), &shadowMap));
+    DXCall(device->CreateSamplerState(ShadowMapPCFDesc(), &shadowMapPCF));
 }
 
-D3D11_SAMPLER_DESC SamplerStates::LinearDesc()
+const D3D11_SAMPLER_DESC* SamplerStates::LinearDesc()
 {
-    D3D11_SAMPLER_DESC sampDesc;
+    static D3D11_SAMPLER_DESC sampDesc;
 
     sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -487,12 +487,12 @@ D3D11_SAMPLER_DESC SamplerStates::LinearDesc()
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    return sampDesc;
+    return &sampDesc;
 }
 
-D3D11_SAMPLER_DESC SamplerStates::LinearClampDesc()
+const D3D11_SAMPLER_DESC* SamplerStates::LinearClampDesc()
 {
-    D3D11_SAMPLER_DESC sampDesc;
+    static D3D11_SAMPLER_DESC sampDesc;
 
     sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -505,12 +505,12 @@ D3D11_SAMPLER_DESC SamplerStates::LinearClampDesc()
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    return sampDesc;
+    return &sampDesc;
 }
 
-D3D11_SAMPLER_DESC SamplerStates::LinearBorderDesc()
+const D3D11_SAMPLER_DESC* SamplerStates::LinearBorderDesc()
 {
-    D3D11_SAMPLER_DESC sampDesc;
+    static D3D11_SAMPLER_DESC sampDesc;
 
     sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_BORDER;
@@ -523,12 +523,12 @@ D3D11_SAMPLER_DESC SamplerStates::LinearBorderDesc()
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    return sampDesc;
+    return &sampDesc;
 }
 
-D3D11_SAMPLER_DESC SamplerStates::PointDesc()
+const D3D11_SAMPLER_DESC* SamplerStates::PointDesc()
 {
-    D3D11_SAMPLER_DESC sampDesc;
+    static D3D11_SAMPLER_DESC sampDesc;
 
     sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -541,12 +541,12 @@ D3D11_SAMPLER_DESC SamplerStates::PointDesc()
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    return sampDesc;
+    return &sampDesc;
 }
 
-D3D11_SAMPLER_DESC SamplerStates::AnisotropicDesc()
+const D3D11_SAMPLER_DESC* SamplerStates::AnisotropicDesc()
 {
-    D3D11_SAMPLER_DESC sampDesc;
+    static D3D11_SAMPLER_DESC sampDesc;
 
     sampDesc.Filter = D3D11_FILTER_ANISOTROPIC;
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -559,12 +559,12 @@ D3D11_SAMPLER_DESC SamplerStates::AnisotropicDesc()
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    return sampDesc;
+    return &sampDesc;
 }
 
-D3D11_SAMPLER_DESC SamplerStates::ShadowMapDesc()
+const D3D11_SAMPLER_DESC* SamplerStates::ShadowMapDesc()
 {
-    D3D11_SAMPLER_DESC sampDesc;
+    static D3D11_SAMPLER_DESC sampDesc;
 
     sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_POINT;
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -577,12 +577,12 @@ D3D11_SAMPLER_DESC SamplerStates::ShadowMapDesc()
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    return sampDesc;
+    return &sampDesc;
 }
 
-D3D11_SAMPLER_DESC SamplerStates::ShadowMapPCFDesc()
+const D3D11_SAMPLER_DESC* SamplerStates::ShadowMapPCFDesc()
 {
-    D3D11_SAMPLER_DESC sampDesc;
+    static D3D11_SAMPLER_DESC sampDesc;
 
     sampDesc.Filter = D3D11_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
     sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -595,7 +595,7 @@ D3D11_SAMPLER_DESC SamplerStates::ShadowMapPCFDesc()
     sampDesc.MinLOD = 0;
     sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
 
-    return sampDesc;
+    return &sampDesc;
 }
 
 }
