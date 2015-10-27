@@ -89,7 +89,7 @@ void DeviceManager::Initialize(HWND outputWindow)
         flags |= D3D11_CREATE_DEVICE_DEBUG;
     #endif
 
-    DXCall(D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_WARP, NULL, flags,
+    DXCall(D3D11CreateDeviceAndSwapChain(NULL, D3D_DRIVER_TYPE_HARDWARE, NULL, flags,
                                          NULL, 0, D3D11_SDK_VERSION, &desc, &swapChain,
                                          &device, NULL, &immediateContext));
 
