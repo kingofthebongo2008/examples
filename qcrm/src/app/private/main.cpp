@@ -49,7 +49,7 @@ public:
 
     void shutdown()
     {
-        wait_gpu_for_back_buffer();
+        wait_gpu_for_all_back_buffers();
     }
 
 protected:
@@ -90,8 +90,8 @@ protected:
     {
         const auto frame_index = m_frame_index;
 
-        //signal for stop rendering
-        d3d12::throw_if_failed(m_wait_back_buffer_fence->Signal(frame_index));
+        //signal for stop rendering this frame
+        d3d12::throw_if_failed( m_command_queue->Signal(m_wait_back_buffer_fence, frame_index) );
 
         m_frame_index++;
 
@@ -106,16 +106,11 @@ protected:
 
     void wait_gpu_for_all_back_buffers()
     {
-        //insert once fence and wait for it to complete
-        const auto frame_index = m_frame_index;
+        
         //signal for stop rendering
-        d3d12::throw_if_failed(m_wait_back_buffer_fence->Signal(frame_index+1));
-        auto completed_frame = m_wait_back_buffer_fence->GetCompletedValue();
-        if (completed_frame < frame_index + 2)
-        {
-            m_wait_back_buffer_fence->SetEventOnCompletion(frame_index, this->m_wait_back_buffer);
-            WaitForSingleObject(m_wait_back_buffer, INFINITE);
-        }
+        d3d12::throw_if_failed(m_command_queue->Signal(m_wait_back_buffer_fence, ++m_frame_index));
+        m_wait_back_buffer_fence->SetEventOnCompletion(m_frame_index, this->m_wait_back_buffer);
+        WaitForSingleObject(m_wait_back_buffer, INFINITE);
     }
 
     virtual void on_update_scene()
