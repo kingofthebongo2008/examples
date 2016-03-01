@@ -155,6 +155,11 @@ static ID3DBlob* CompileShader(const wchar* path, const char* functionName, cons
 
         ID3DBlob* compiledShader;
         ID3DBlobPtr errorMessages;
+        wchar_t    buffer[256];
+
+        wsprintf(buffer, L"%s\n", path);
+
+        OutputDebugString(buffer);
         HRESULT hr = D3DCompileFromFile(path, defines, D3D_COMPILE_STANDARD_FILE_INCLUDE, functionName,
                                         profile, flags, 0, &compiledShader, &errorMessages);
 

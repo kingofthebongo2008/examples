@@ -1,0 +1,112 @@
+
+Image Quilting, Texture Transfer and Wang Tiling
+Implemented by Robert Burke, rob@mle.media.mit.edu
+First release, 10 Aug 2003
+
+1. Overview
+2. Using the Applications
+3. Programming Notes
+4. For More Information
+
+
+1. Overview
+
+These programs provide C# implementations of key ideas from two Siggraph papers: Efros and Freeman's "Image Quilting for Texture Synthesis and Transfer" (2001) and Cohen et. al.'s "Wang Tiles for Image and Texture Generation.  They also serve as two utilities: one for generating Wang Tiles for non-periodically tiling the plane with textures; and one for performing texture transfer.
+
+The reader is referred to the following Siggraph papers for more information about the algorithms:
+
+Efros, A. A. and W. T. Freeman (2001). Image Quilting for Texture Synthesis and Transfer. Siggraph 2001, Los Angeles, California.
+Cohen, M. F., J. Shade, et al. (2003). Wang Tiles for Image and Texture Generation. Siggraph 2003, San Diego.
+
+
+2. Using the Applications
+
+2.1. The Wang Tiler Interface
+
+The "Texture Quilting and Wang Tiling Utility" takes a small sample of a texture and performs Efros and Freemans' Image Quilting technique to generate a large block of texture.  It also takes a large block of texture (either generated using Image Quilting, or loaded in from another source) and generates a set of non-periodic Wang Tiles using Cohen et. al.'s algorithm.
+
+2.1.1. Performing Quilting 
+
+Load a valid source bitmap and click "Generate Quilt" to begin.  
+
+The Quilting Width and Quilting Height parameters control the size of the quilting texture that will be generated, in pixels.
+
+The Block Size controls the dimensions (width and height) of candidate blocks obtained from the Source Bitmap, in pixels.
+
+Block Overlap controls the number of overlapping pixels between blocks laid down onto the quilt.  The Block Overlap parameter should be about 1/6 of the Block Size.
+
+Num Candidate Blocks controls the number of candidate samples that will be randomly selected from the source bitmap as candidates for each new tile.  
+
+The "best" Candidate Block is not necessarily always selected.  Error Tolerance controls how far the total error of a block may be from the "best" match (computed using the L2 norm on pixel values) before it is considered for random selection using a flat distribution.  Following Efros and Freeman, we use 0.1 as the default value.  (If the lowest error measure is n, and the Error Tolerance parameter is k, the highest allowable error is n*(1+k) .)
+
+You can save your quilt using the "Save Quilt" button.  It will be saved as a .BMP format file (regardless of what extension you give it).
+
+2.1.2. Performing Wang Tiling 
+
+With a valid Quilt Texture loaded into the Quilting Utility, click "Generate Wang Tiles."  Then save them in one of two formats: as individual .BMP format files numbered 0..(n-1) using the "Save Individual Tiles" button, or concatenated into a mega-.BMP (useful for texture mapping) using the "Save MegaTile" button.
+
+IMPORTANT: The Wang Tile Colors box lists the colors on the edges of the Wang Tiles that you would like generated.  These are listed in NESW (north, east, south, west) order.  Colors are assigned arbitrary numbers.  It makes no difference which number is assigned to which color.  WangTiles12.txt and WangTiles18.txt contain the equivalent NESW color definitions for the two sets of Wang Tiles shown in Figures 1c and 1d of the Cohen et al paper.  Paste either of these into the "Wang Tile Colours" box on the form and you're good to go.  The contents of WangTile12.txt are the default.
+
+The One Pixel Overlap Between Tiles is useful for generating texture maps that don't have unsightly seams.  (To get a sense of the issue, if you're using DirectX 9, search "Directly Mapping Texels to Pixels" in the documentation index.)
+
+The Wang Tile Size parameter controls the width and height of each Wang Tile, in pixels.
+
+The system randomly choosing subimages from the Quilt for use on the borders of Wang Tiles until either Max Attempts have been made, or a fit is found better (less) than or equal to Max Matching Error.  Note that the default Max Matching Error of 1000 more or less disables this possibility; a match that low would, in normal conditions, be miraculous.
+
+2.3. The Image Quilting Texture Transfer Interface
+
+Load four bitmaps: the source texture, its correspondence map, the target image, and its correspondence map.  The correspondence maps are compared to determine the similarity between the source texture and the target image.  The source texture is quilted together, respecting both the correspondence map and the texture synthesis requirements.  (Note that the target bitmap isn't actually used by the algorithm, just its correspondence map.)
+
+The synthesis is iterative, as described by Efros and Freeman in Section 3.  On each iteration the block size is reduced, and the alpha value, which varies whether the weights on the error metric favor the correspondence map or the texture synthesis requirements, is adjusted.  As in the paper, the alpha for iteration i is a_i=0.8*(i-1)/(N-1) + 0.1. 
+
+Largest Block Size controls the block size for the first iteration.  Iterations controls the number of iteration.  Block Reduction % Per Iteration controls just that.  Block Overlap % controls the percentage of Block Size pixels that will be used to overlap the previous tile.  (Note that in the Wang Tiling application, the parameter you provide is a pixel value; here it is a percentage, and should still be around 1/6 of the Block Size, or 0.17).
+
+Num Candidate Blocks and Error Tolerance work as described for the Wang Tiling application in 2.1.1.
+
+2.4. Known Issues 
+
+The Image Quilter will produce a quilt containing a border of (Block Overlap) size pixels that contains artifacts.  This border is ignored during Wang Tile creation.  (Make sure that you don't change the "Block Overlap" value before performing a Wang Tiling, as this is how it determines the size of the border to ignore.)
+
+
+3. Programming Notes
+
+3.1. General
+
+I'm using the .net Framework's System.Drawing Bitmap classes, and these are well-known to be far from speed-optimized.  In particular, the GetPixel and SetPixel functions are sluggish, and I use these prolifically in inner loops.  Thus the details of the implementation should hopefully be transparent, but the code is far from speed-optimized.
+
+3.2. Quilting
+
+The guts are all in the ImageQuilter.cs file.
+
+The error function for comparing two pixels is defined in WangAppUtil.cs (as the L2 Error norm).  
+
+Efros and Freeman don't discuss anything about color blending along the minimum error boundary cut seam; however, we blend the values of the Colors within the seam.
+
+3.3. Wang Tiling
+
+The guts are all in the WangTiler.cs file.
+
+The error function for comparing two pixels is defined in WangAppUtil.cs (as the L2 Error norm).  
+
+I started the implantation with the intention of implementing Inhomogeneity as described in sections 3.4 and 3.5 of Cohen et. al.'s paper, but ran out of time.  You know yourself there'd be massive karma for anyone who wanted to finish that...
+
+
+4. For More Information
+
+About the algorithms and the papers:
+Google the title of either of these papers to find the home pages of the esteemed authors.
+
+Here are the home pages of the first authors:
+http://www.cs.berkeley.edu/~efros/research/quilting.html
+http://research.microsoft.com/~cohen/
+
+About the implementation:
+E-mail me, rob@mle.media.mit.edu
+
+It should go without saying that, since this was a weekend project, it's provided as-is, without any warranties, and all that jazz.  And I know it's possible to set parameters or provide inputs that cause crashes, but hopefully the code is transparent enough that you will be able to figure out what's going on.  But I hope it will be useful to someone out there.  
+
+If you'd like to contribute (for example, by implementing quilting Inhomogeneity, or by experimenting with the quilting algorithm from another paper like Kwatra et. al.'s Siggraph 2003 paper on GraphCut textures), please let me know!
+
+~rob
+10 Aug 2003
+rob@mle.media.mit.edu

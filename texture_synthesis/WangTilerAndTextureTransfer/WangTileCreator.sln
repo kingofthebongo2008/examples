@@ -1,0 +1,29 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WangTiler", "WangTiler.csproj", "{FF3DC3A7-05FF-4B52-83E3-A8E828948898}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TextureTransfer", "TextureTransfer.csproj", "{FF3DC3A7-05FF-4B52-83E3-A8E828948898}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{FF3DC3A7-05FF-4B52-83E3-A8E828948898}.Debug.ActiveCfg = Debug|.NET
+		{FF3DC3A7-05FF-4B52-83E3-A8E828948898}.Debug.Build.0 = Debug|.NET
+		{FF3DC3A7-05FF-4B52-83E3-A8E828948898}.Release.ActiveCfg = Release|.NET
+		{FF3DC3A7-05FF-4B52-83E3-A8E828948898}.Release.Build.0 = Release|.NET
+		{FF3DC3A7-05FF-4B52-83E3-A8E828948898}.Debug.ActiveCfg = Debug|.NET
+		{FF3DC3A7-05FF-4B52-83E3-A8E828948898}.Debug.Build.0 = Debug|.NET
+		{FF3DC3A7-05FF-4B52-83E3-A8E828948898}.Release.ActiveCfg = Release|.NET
+		{FF3DC3A7-05FF-4B52-83E3-A8E828948898}.Release.Build.0 = Release|.NET
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

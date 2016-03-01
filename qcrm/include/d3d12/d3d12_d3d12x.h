@@ -135,7 +135,7 @@ namespace d3d12x
         d3d12::descriptor_heap      m_heap;
     };
 
-    inline d3d12::device create_device(_In_opt_ IUnknown* pAdapter, D3D_FEATURE_LEVEL MinimumFeatureLevel)
+    inline d3d12::device create_device( IUnknown* pAdapter, D3D_FEATURE_LEVEL MinimumFeatureLevel)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -223,7 +223,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline d3d12::command_list create_command_list(ID3D12Device* d, _In_  UINT nodeMask, _In_  D3D12_COMMAND_LIST_TYPE type, _In_  ID3D12CommandAllocator *command_allocator, _In_opt_  ID3D12PipelineState *initial_state)
+    inline d3d12::command_list create_command_list(ID3D12Device* d,   UINT nodeMask,   D3D12_COMMAND_LIST_TYPE type,   ID3D12CommandAllocator *command_allocator,   ID3D12PipelineState *initial_state)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -234,7 +234,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline d3d12::graphics_command_list create_graphics_command_list(ID3D12Device* d, _In_  UINT nodeMask, _In_  D3D12_COMMAND_LIST_TYPE type, _In_  ID3D12CommandAllocator *command_allocator, _In_opt_  ID3D12PipelineState *initial_state)
+    inline d3d12::graphics_command_list create_graphics_command_list(ID3D12Device* d,   UINT nodeMask,   D3D12_COMMAND_LIST_TYPE type,   ID3D12CommandAllocator *command_allocator,   ID3D12PipelineState *initial_state)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -247,7 +247,7 @@ namespace d3d12x
 
     
 
-    inline d3d12::command_signature create_command_signature(ID3D12Device* d, _In_  const D3D12_COMMAND_SIGNATURE_DESC* desc, _In_opt_  ID3D12RootSignature *root_signature)
+    inline d3d12::command_signature create_command_signature(ID3D12Device* d,   const D3D12_COMMAND_SIGNATURE_DESC* desc,   ID3D12RootSignature *root_signature)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -257,7 +257,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline d3d12::resource create_committed_resource(ID3D12Device* d, _In_  const D3D12_HEAP_PROPERTIES *heap_properties, D3D12_HEAP_FLAGS heap_flags, _In_  const D3D12_RESOURCE_DESC *resource_desc, D3D12_RESOURCE_STATES initial_resource_state, _In_opt_  const D3D12_CLEAR_VALUE * optimized_clear_value)
+    inline d3d12::resource create_committed_resource(ID3D12Device* d,   const D3D12_HEAP_PROPERTIES *heap_properties, D3D12_HEAP_FLAGS heap_flags,   const D3D12_RESOURCE_DESC *resource_desc, D3D12_RESOURCE_STATES initial_resource_state,   const D3D12_CLEAR_VALUE * optimized_clear_value)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -267,7 +267,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline d3d12::pipeline_state create_compute_pipeline_state(ID3D12Device* d, _In_  const D3D12_COMPUTE_PIPELINE_STATE_DESC * desc)
+    inline d3d12::pipeline_state create_compute_pipeline_state(ID3D12Device* d,   const D3D12_COMPUTE_PIPELINE_STATE_DESC * desc)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -277,7 +277,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline d3d12::descriptor_heap create_descriptor_heap(ID3D12Device* d, _In_  const D3D12_DESCRIPTOR_HEAP_DESC * desc)
+    inline d3d12::descriptor_heap create_descriptor_heap(ID3D12Device* d,   const D3D12_DESCRIPTOR_HEAP_DESC * desc)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -287,7 +287,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline d3d12::fence create_fence(ID3D12Device* d, _In_  uint64_t initial_value, D3D12_FENCE_FLAGS flags)
+    inline d3d12::fence create_fence(ID3D12Device* d,   uint64_t initial_value, D3D12_FENCE_FLAGS flags)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -297,7 +297,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline d3d12::fence create_fence(ID3D12Device* d, _In_  uint64_t initial_value)
+    inline d3d12::fence create_fence(ID3D12Device* d,   uint64_t initial_value)
     {
         return create_fence(d, initial_value, D3D12_FENCE_FLAG_NONE);
     }
@@ -307,7 +307,7 @@ namespace d3d12x
         return create_fence(d, 0, D3D12_FENCE_FLAG_NONE);
     }
 
-    inline d3d12::pipeline_state create_graphics_pipeline_state(ID3D12Device* d, _In_  const D3D12_GRAPHICS_PIPELINE_STATE_DESC * desc)
+    inline d3d12::pipeline_state create_graphics_pipeline_state(ID3D12Device* d,   const D3D12_GRAPHICS_PIPELINE_STATE_DESC * desc)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -317,7 +317,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline d3d12::resource create_placed_resource(ID3D12Device* d, _In_  ID3D12Heap * heap, UINT64 heap_offset, _In_  const D3D12_RESOURCE_DESC *desc, D3D12_RESOURCE_STATES initial_state, _In_opt_  const D3D12_CLEAR_VALUE * optimized_clear_value)
+    inline d3d12::resource create_placed_resource(ID3D12Device* d,   ID3D12Heap * heap, UINT64 heap_offset,   const D3D12_RESOURCE_DESC *desc, D3D12_RESOURCE_STATES initial_state,   const D3D12_CLEAR_VALUE * optimized_clear_value)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -327,7 +327,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline d3d12::query_heap create_query_heap(ID3D12Device* d, _In_  const D3D12_QUERY_HEAP_DESC * desc)
+    inline d3d12::query_heap create_query_heap(ID3D12Device* d,   const D3D12_QUERY_HEAP_DESC * desc)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -337,7 +337,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline d3d12::resource create_reserved_resource(ID3D12Device* d, _In_  const D3D12_RESOURCE_DESC *desc, D3D12_RESOURCE_STATES initial_state, _In_opt_  const D3D12_CLEAR_VALUE * optimized_clear_value)
+    inline d3d12::resource create_reserved_resource(ID3D12Device* d,   const D3D12_RESOURCE_DESC *desc, D3D12_RESOURCE_STATES initial_state,   const D3D12_CLEAR_VALUE * optimized_clear_value)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -347,7 +347,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline d3d12::root_signature create_root_signature(ID3D12Device* d, _In_  uint32_t node_mask, _In_reads_(blob_length_in_bytes)  const void *blob_with_root_signature, _In_  size_t blob_length_in_bytes)
+    inline d3d12::root_signature create_root_signature(ID3D12Device* d,   uint32_t node_mask, _In_reads_(blob_length_in_bytes)  const void *blob_with_root_signature,   size_t blob_length_in_bytes)
     {
         using namespace os::windows;
         using namespace d3d12;
@@ -357,7 +357,7 @@ namespace d3d12x
         return std::move(r);
     }
 
-    inline HANDLE create_shared_handle(ID3D12Device* d, _In_  ID3D12DeviceChild *object, _In_opt_  const SECURITY_ATTRIBUTES *attributes, DWORD access, _In_opt_  LPCWSTR name, _Out_  HANDLE * handle)
+    inline HANDLE create_shared_handle(ID3D12Device* d,   ID3D12DeviceChild *object,   const SECURITY_ATTRIBUTES *attributes, DWORD access,   LPCWSTR name, _Out_  HANDLE * handle)
     {
         using namespace os::windows;
         using namespace d3d12;

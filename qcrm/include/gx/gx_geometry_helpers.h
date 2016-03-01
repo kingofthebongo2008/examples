@@ -13,11 +13,11 @@ namespace gx
     {
         auto size = count_triplet / 3;
         auto padded_size = 24 * ((size + 23) / 24);
-
+        
         std::vector<math::half> positions_h(4 * padded_size);
-
+        
         math::convert_3_x_f32_f16_stream(positions_x_y_z, 3 * padded_size, w, &positions_h[0]);
-
+        
         return std::move(positions_h);
     }
 
