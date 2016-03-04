@@ -34,46 +34,6 @@ DeviceResources::DeviceResources() :
 // Configures resources that don't depend on the Direct3D device.
 void DeviceResources::CreateDeviceIndependentResources()
 {
-    // Initialize Direct2D resources
-    D2D1_FACTORY_OPTIONS options = {};
-    
-
-#if defined(_DEBUG)
-    // If the project is in a debug build, enable Direct2D debugging via SDK Layers.
-    options.debugLevel = D2D1_DEBUG_LEVEL_INFORMATION;
-#endif
-
-    // Initialize the Direct2D Factory
-    DX::ThrowIfFailed(
-        D2D1CreateFactory(
-        D2D1_FACTORY_TYPE_SINGLE_THREADED,
-        __uuidof(ID2D1Factory2),
-        &options,
-        &m_d2dFactory
-        )
-        );
-
-    // Initialize the DirectWrite Factory
-    DX::ThrowIfFailed(
-        DWriteCreateFactory(
-        DWRITE_FACTORY_TYPE_SHARED,
-        __uuidof(IDWriteFactory2),
-        &m_dwriteFactory
-        )
-        );
-
-   
-    /*
-    // Initialize the Windows Imaging Component (WIC) Factory
-    DX::ThrowIfFailed(
-        CoCreateInstance(
-        CLSID_WICImagingFactory2,
-        nullptr,
-        CLSCTX_INPROC_SERVER,
-        IID_PPV_ARGS(&m_wicFactory)
-        )
-        );
-    */
    
 }
 
@@ -170,17 +130,6 @@ void DeviceResources::CreateDeviceResources()
     ComPtr<IDXGIDevice3> dxgiDevice;
     DX::ThrowIfFailed(
         m_d3dDevice.As(&dxgiDevice)
-        );
-
-    DX::ThrowIfFailed(
-        m_d2dFactory->CreateDevice(dxgiDevice.Get(), &m_d2dDevice)
-        );
-
-    DX::ThrowIfFailed(
-        m_d2dDevice->CreateDeviceContext(
-        D2D1_DEVICE_CONTEXT_OPTIONS_NONE,
-        &m_d2dContext
-        )
         );
 }
 
@@ -336,19 +285,6 @@ void DeviceResources::CreateWindowSizeDependentResources()
     DX::ThrowIfFailed(
         m_swapChain->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer))
         );
-
-    DX::ThrowIfFailed(
-        m_d2dContext->CreateBitmapFromDxgiSurface(
-        dxgiBackBuffer.Get(),
-        &bitmapProperties,
-        &m_d2dTargetBitmap
-        )
-        );
-
-    m_d2dContext->SetTarget(m_d2dTargetBitmap.Get());
-
-    // Grayscale text anti-aliasing is recommended for all Windows Store apps.
-    m_d2dContext->SetTextAntialiasMode(D2D1_TEXT_ANTIALIAS_MODE_GRAYSCALE);
 }
 
 // This method is called when the CoreWindow is created (or re-created)
@@ -358,7 +294,6 @@ void DeviceResources::SetWindow(HWND window)
 
     // SetDpi() will call CreateWindowSizeDependentResources()
     // if those resources have not been created yet.
-    m_d2dContext->SetDpi(96.0f, 96.0f);
     UpdateForWindowSizeChange();
 }
 
@@ -368,8 +303,6 @@ void DeviceResources::UpdateForWindowSizeChange()
     ID3D11RenderTargetView* nullViews[] = {nullptr};
     m_d3dContext->OMSetRenderTargets(ARRAYSIZE(nullViews), nullViews, nullptr);
     m_d3dRenderTargetView = nullptr;
-    m_d2dContext->SetTarget(nullptr);
-    m_d2dTargetBitmap = nullptr;
     m_d3dDepthStencilView = nullptr;
     m_d3dContext->Flush();
     CreateWindowSizeDependentResources();
