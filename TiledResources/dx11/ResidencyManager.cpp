@@ -34,8 +34,8 @@ void ResidencyManager::CreateDeviceDependentResources()
     auto context = m_deviceResources->GetD3DDeviceContext();
 
     // Create the constant buffer for viewer constants.
-    D3D11_BUFFER_DESC constantBufferDesc;
-    ZeroMemory(&constantBufferDesc, sizeof(constantBufferDesc));
+    D3D11_BUFFER_DESC constantBufferDesc = {};
+    
     constantBufferDesc.ByteWidth = 16;
     constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -58,8 +58,8 @@ void ResidencyManager::CreateDeviceDependentResources()
         -0.5f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f,
         0.5f, 0.0f, -1.0f, -1.0f, -1.0f, 0.0f
     };
-    D3D11_BUFFER_DESC vertexBufferDesc;
-    ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
+    D3D11_BUFFER_DESC vertexBufferDesc = {};
+    
     vertexBufferDesc.ByteWidth = sizeof(vertexBufferData);
     vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -82,8 +82,8 @@ void ResidencyManager::CreateDeviceDependentResources()
         6,7,11,
         7,2,11
     };
-    D3D11_BUFFER_DESC indexBufferDesc;
-    ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
+    D3D11_BUFFER_DESC indexBufferDesc = {};
+    
     indexBufferDesc.ByteWidth = sizeof(indexBufferData);
     indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -92,8 +92,8 @@ void ResidencyManager::CreateDeviceDependentResources()
     m_indexCount = ARRAYSIZE(indexBufferData);
 
     // Create wrapping point sampler.
-    D3D11_SAMPLER_DESC samplerDesc;
-    ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+    D3D11_SAMPLER_DESC samplerDesc = {};
+    
     samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_POINT;
     samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -103,8 +103,8 @@ void ResidencyManager::CreateDeviceDependentResources()
     DX::ThrowIfFailed(device->CreateSamplerState(&samplerDesc, &m_sampler));
 
     // Create the tile pool.
-    D3D11_BUFFER_DESC tilePoolDesc;
-    ZeroMemory(&tilePoolDesc, sizeof(tilePoolDesc));
+    D3D11_BUFFER_DESC tilePoolDesc = {};
+    
     tilePoolDesc.ByteWidth = SampleSettings::TileSizeInBytes * SampleSettings::TileResidency::PoolSizeInTiles;
     tilePoolDesc.Usage = D3D11_USAGE_DEFAULT;
     tilePoolDesc.MiscFlags = D3D11_RESOURCE_MISC_TILE_POOL;
@@ -217,9 +217,8 @@ void ResidencyManager::EnqueueSamples(const std::vector<DecodedSample>& samples)
             for (short mip = actualMip; mip < static_cast<short>(managedResource->textureDesc.MipLevels); mip++)
             {
                 // Calculate the tile coordinate.
-                TileKey tileKey;
+                TileKey tileKey = {};
                 tileKey.resource = managedResource->texture;
-                ZeroMemory(&tileKey.coordinate, sizeof(tileKey.coordinate));
                 tileKey.coordinate.Subresource = mip + sample.face * managedResource->textureDesc.MipLevels;
                 float tileX = managedResource->subresourceTilings[tileKey.coordinate.Subresource].WidthInTiles * sample.u;
                 tileX = min(managedResource->subresourceTilings[tileKey.coordinate.Subresource].WidthInTiles - 1, max(0, tileX));
@@ -483,8 +482,8 @@ void ResidencyManager::ProcessQueues()
 #endif
 
         std::vector<UINT> rangeCounts(perResourceArguments.second.rangeFlags.size(), 1);
-        D3D11_TILE_REGION_SIZE size;
-        ZeroMemory(&size,sizeof(size));
+        D3D11_TILE_REGION_SIZE size = {};
+
         size.NumTiles = 1;
         std::vector<D3D11_TILE_REGION_SIZE> sizes(perResourceArguments.second.rangeFlags.size(),size);
         DX::ThrowIfFailed(

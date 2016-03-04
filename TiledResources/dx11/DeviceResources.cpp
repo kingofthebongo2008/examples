@@ -35,8 +35,8 @@ DeviceResources::DeviceResources() :
 void DeviceResources::CreateDeviceIndependentResources()
 {
     // Initialize Direct2D resources
-    D2D1_FACTORY_OPTIONS options;
-    ZeroMemory(&options, sizeof(D2D1_FACTORY_OPTIONS));
+    D2D1_FACTORY_OPTIONS options = {};
+    
 
 #if defined(_DEBUG)
     // If the project is in a debug build, enable Direct2D debugging via SDK Layers.
@@ -62,6 +62,8 @@ void DeviceResources::CreateDeviceIndependentResources()
         )
         );
 
+   
+    /*
     // Initialize the Windows Imaging Component (WIC) Factory
     DX::ThrowIfFailed(
         CoCreateInstance(
@@ -71,6 +73,8 @@ void DeviceResources::CreateDeviceIndependentResources()
         IID_PPV_ARGS(&m_wicFactory)
         )
         );
+    */
+   
 }
 
 // Configures the Direct3D device, and stores handles to it and the device context.
@@ -85,7 +89,8 @@ void DeviceResources::CreateDeviceResources()
     UINT i = 0;
     while (true)
     {
-        //if (i == 0){ i++; continue; } // reenable this (assuming the hw adapter is adapter 0) to make it run on warp
+        if (i == 0){ i++; continue; } // reenable this (assuming the hw adapter is adapter 0) to make it run on warp
+        if (i == 1) { i++; continue; } // reenable this (assuming the hw adapter is adapter 0) to make it run on warp
         ComPtr<IDXGIAdapter1> adapter;
         HRESULT ehr = m_dxgiFactory->EnumAdapters1(i, &adapter);
         if (ehr == DXGI_ERROR_NOT_FOUND)
