@@ -36,7 +36,7 @@ TiledResourcesMain::TiledResourcesMain(const std::shared_ptr<DeviceResources>& d
     m_residencyManager = std::unique_ptr<ResidencyManager>(new ResidencyManager(m_deviceResources));
 
     m_samplingRenderer->SetDebugMode(m_debugMode);
-    m_residencyManager->SetDebugMode(true);
+    m_residencyManager->SetDebugMode(m_debugMode);
 
     CreateDeviceDependentResourcesAsync().then([this]()
     {

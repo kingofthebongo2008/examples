@@ -428,8 +428,11 @@ void ResidencyManager::ProcessQueues()
 
             // Add the new NULL-mapping to the argument list.
             coalescedMapArguments[tileToEvict->managedResource->texture].coordinates.push_back(tileToEvict->coordinate);
-            coalescedMapArguments[tileToEvict->managedResource->texture].rangeFlags.push_back(D3D11_TILE_RANGE_NULL);
-            coalescedMapArguments[tileToEvict->managedResource->texture].physicalOffsets.push_back(physicalTileOffset);
+            //coalescedMapArguments[tileToEvict->managedResource->texture].rangeFlags.push_back(D3D11_TILE_RANGE_NULL);
+            //coalescedMapArguments[tileToEvict->managedResource->texture].physicalOffsets.push_back(physicalTileOffset);
+
+            coalescedMapArguments[tileToEvict->managedResource->texture].rangeFlags.push_back(D3D11_TILE_RANGE_REUSE_SINGLE_TILE);
+            coalescedMapArguments[tileToEvict->managedResource->texture].physicalOffsets.push_back(m_defaultTileIndex);
 
             // Update the residency map to remove this level of detail.
             int baseTilesCoveredWidth = tileToEvict->managedResource->subresourceTilings[0].WidthInTiles / tileToEvict->managedResource->subresourceTilings[tileToEvict->coordinate.Subresource].WidthInTiles;
@@ -523,7 +526,8 @@ void ResidencyManager::ProcessQueues()
     {
         for (size_t i = 0; i < perResourceArguments.second.coordinates.size(); i++)
         {
-            if (perResourceArguments.second.rangeFlags[i] != D3D11_TILE_RANGE_NULL)
+            //if (perResourceArguments.second.rangeFlags[i] != D3D11_TILE_RANGE_NULL || perResourceArguments.second.physicalOffsets[i] != m_defaultTileIndex )
+            if (perResourceArguments.second.physicalOffsets[i] != m_defaultTileIndex)
             {
                 D3D11_TILE_REGION_SIZE regionSize = {} ;
                 

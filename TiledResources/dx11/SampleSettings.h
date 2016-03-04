@@ -50,7 +50,7 @@ namespace TiledResources
             {
                 static const unsigned int DimensionSize = 16384;
                 static const DXGI_FORMAT Format =  DXGI_FORMAT_BC5_SNORM;
-                static const unsigned int UnpackedMipCount = 7; // Set to Log2(DimensionSize / Standard Width of Format) + 1.
+                static const unsigned int UnpackedMipCount = 6; // Set to Log2(DimensionSize / Standard Width of Format) + 1.
             }
         }
         namespace Sampling
