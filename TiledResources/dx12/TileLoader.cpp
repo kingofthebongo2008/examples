@@ -8,7 +8,6 @@
 #include "pch.h"
 #include "DirectXHelper.h"
 #include "SampleSettings.h"
-#include "ResidencyManager.h"
 #include "TileLoader.h"
 
 using namespace TiledResources;
@@ -17,7 +16,7 @@ using namespace concurrency;
 
 #define ADD_TILE_BORDERS 1
 
-TileLoader::TileLoader(const std::wstring & filename, std::vector<D3D11_SUBRESOURCE_TILING>* tilingInfo, bool border) :
+TileLoader::TileLoader(const std::wstring & filename, std::vector<D3D12_SUBRESOURCE_TILING>* tilingInfo, bool border) :
     m_filename(filename),
     m_tilingInfo(tilingInfo),
     m_border(border)
@@ -62,7 +61,7 @@ TileLoader::TileLoader(const std::wstring & filename, std::vector<D3D11_SUBRESOU
     }
 }
 
-task<std::vector<byte>> TileLoader::LoadTileAsync(D3D11_TILED_RESOURCE_COORDINATE coordinate)
+task<std::vector<byte>> TileLoader::LoadTileAsync(D3D12_TILED_RESOURCE_COORDINATE coordinate)
 {
     UINT subresourceInFile = (coordinate.Subresource / m_subresourcesPerFaceInResource) * m_subresourcesPerFaceInFile + coordinate.Subresource % m_subresourcesPerFaceInResource;
     size_t fileOffset = (m_subresourceTileOffsets[subresourceInFile] + (coordinate.Y * m_tilingInfo->at(coordinate.Subresource).WidthInTiles + coordinate.X)) * SampleSettings::TileSizeInBytes;

@@ -7,17 +7,15 @@
 
 #pragma once
 
-#include "ResidencyManager.h"
-
 namespace TiledResources
 {
     class TileLoader
     {
     public:
-        TileLoader(const std::wstring & filename, std::vector<D3D11_SUBRESOURCE_TILING>* tilingInfo, bool border);
-        concurrency::task<std::vector<byte>> LoadTileAsync(D3D11_TILED_RESOURCE_COORDINATE coordinate);
+        TileLoader(const std::wstring & filename, std::vector<D3D12_SUBRESOURCE_TILING>* tilingInfo, bool border);
+        concurrency::task<std::vector<byte>> LoadTileAsync(D3D12_TILED_RESOURCE_COORDINATE coordinate);
     private:
-        std::vector<D3D11_SUBRESOURCE_TILING>* m_tilingInfo;
+        std::vector<D3D12_SUBRESOURCE_TILING>* m_tilingInfo;
         std::vector<size_t> m_subresourceTileOffsets;
         concurrency::task<std::vector<byte>> m_getFileTask;
         Microsoft::WRL::Wrappers::FileHandle m_fileHandle;
