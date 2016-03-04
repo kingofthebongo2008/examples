@@ -63,6 +63,9 @@ namespace TiledResources
         Microsoft::WRL::ComPtr<ID3D11Texture2D> m_normalTexture;
         Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> m_normalTextureView;
         ID3D11ShaderResourceView* m_normalTextureResidencyView;
+        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_viewerState;
+
+
 
         unsigned int m_terrainIndexCount;
 

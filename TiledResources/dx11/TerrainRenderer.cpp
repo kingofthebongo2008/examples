@@ -33,8 +33,7 @@ void TerrainRenderer::CreateDeviceDependentResources()
     auto device = m_deviceResources->GetD3DDevice();
 
     // Create a constant buffer for the vertex transformation matrices.
-    D3D11_BUFFER_DESC vertexShaderConstantBufferDesc;
-    ZeroMemory(&vertexShaderConstantBufferDesc, sizeof(vertexShaderConstantBufferDesc));
+    D3D11_BUFFER_DESC vertexShaderConstantBufferDesc = {};
     vertexShaderConstantBufferDesc.ByteWidth = sizeof(XMFLOAT4X4) * 4;
     vertexShaderConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     vertexShaderConstantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -42,8 +41,7 @@ void TerrainRenderer::CreateDeviceDependentResources()
     DX::ThrowIfFailed(device->CreateBuffer(&vertexShaderConstantBufferDesc, nullptr, &m_vertexShaderConstantBuffer));
 
     // Create a constant buffer for information about environment lighting.
-    D3D11_BUFFER_DESC pixelShaderConstantBufferDesc;
-    ZeroMemory(&pixelShaderConstantBufferDesc, sizeof(pixelShaderConstantBufferDesc));
+    D3D11_BUFFER_DESC pixelShaderConstantBufferDesc = {};
     pixelShaderConstantBufferDesc.ByteWidth = sizeof(XMFLOAT4);
     pixelShaderConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     pixelShaderConstantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -51,14 +49,13 @@ void TerrainRenderer::CreateDeviceDependentResources()
     DX::ThrowIfFailed(device->CreateBuffer(&pixelShaderConstantBufferDesc, nullptr, &m_pixelShaderConstantBuffer));
 
     // Create a tiled texture and view for the diffuse layer.
-    D3D11_TEXTURE2D_DESC diffuseTextureDesc;
-    ZeroMemory(&diffuseTextureDesc, sizeof(diffuseTextureDesc));
+    D3D11_TEXTURE2D_DESC diffuseTextureDesc = {};
     diffuseTextureDesc.Width = SampleSettings::TerrainAssets::Diffuse::DimensionSize;
     diffuseTextureDesc.Height = SampleSettings::TerrainAssets::Diffuse::DimensionSize;
     diffuseTextureDesc.ArraySize = 6;
     diffuseTextureDesc.Format = SampleSettings::TerrainAssets::Diffuse::Format;
     diffuseTextureDesc.SampleDesc.Count = 1;
-    if (m_deviceResources->GetTiledResourcesTier() <= D3D11_TILED_RESOURCES_TIER_1)
+    //    if (m_deviceResources->GetTiledResourcesTier() <= D3D11_TILED_RESOURCES_TIER_1)
     {
         // On Tier 1, texture arrays (including texture cubes) may not include packed MIPs.
         diffuseTextureDesc.MipLevels = SampleSettings::TerrainAssets::Diffuse::UnpackedMipCount;
@@ -68,22 +65,20 @@ void TerrainRenderer::CreateDeviceDependentResources()
     diffuseTextureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_TILED;
     DX::ThrowIfFailed(device->CreateTexture2D(&diffuseTextureDesc, nullptr, &m_diffuseTexture));
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC diffuseTextureViewDesc;
-    ZeroMemory(&diffuseTextureViewDesc,sizeof(diffuseTextureViewDesc));
+    D3D11_SHADER_RESOURCE_VIEW_DESC diffuseTextureViewDesc = {};
     diffuseTextureViewDesc.Format = diffuseTextureDesc.Format;
     diffuseTextureViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
     diffuseTextureViewDesc.TextureCube.MipLevels = -1; // Full MIP chain.
     DX::ThrowIfFailed(device->CreateShaderResourceView(m_diffuseTexture.Get(), &diffuseTextureViewDesc, &m_diffuseTextureView));
 
     // Create a tiled texture and view for the normal layer.
-    D3D11_TEXTURE2D_DESC normalTextureDesc;
-    ZeroMemory(&normalTextureDesc, sizeof(normalTextureDesc));
+    D3D11_TEXTURE2D_DESC normalTextureDesc = {};
     normalTextureDesc.Width = SampleSettings::TerrainAssets::Normal::DimensionSize;
     normalTextureDesc.Height = SampleSettings::TerrainAssets::Normal::DimensionSize;
     normalTextureDesc.ArraySize = 6;
     normalTextureDesc.Format = SampleSettings::TerrainAssets::Normal::Format;
     normalTextureDesc.SampleDesc.Count = 1;
-    if (m_deviceResources->GetTiledResourcesTier() <= D3D11_TILED_RESOURCES_TIER_1)
+  //  if (m_deviceResources->GetTiledResourcesTier() <= D3D11_TILED_RESOURCES_TIER_1)
     {
         // On Tier 1, texture arrays (including texture cubes) may not include packed MIPs.
         normalTextureDesc.MipLevels = SampleSettings::TerrainAssets::Normal::UnpackedMipCount;
@@ -93,16 +88,14 @@ void TerrainRenderer::CreateDeviceDependentResources()
     normalTextureDesc.MiscFlags = D3D11_RESOURCE_MISC_TEXTURECUBE | D3D11_RESOURCE_MISC_TILED;
     DX::ThrowIfFailed(device->CreateTexture2D(&normalTextureDesc, nullptr, &m_normalTexture));
 
-    D3D11_SHADER_RESOURCE_VIEW_DESC normalTextureViewDesc;
-    ZeroMemory(&normalTextureViewDesc,sizeof(normalTextureViewDesc));
+    D3D11_SHADER_RESOURCE_VIEW_DESC normalTextureViewDesc = {};
     normalTextureViewDesc.Format = normalTextureDesc.Format;
     normalTextureViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
     normalTextureViewDesc.TextureCube.MipLevels = -1; // Full MIP chain.
     DX::ThrowIfFailed(device->CreateShaderResourceView(m_normalTexture.Get(), &normalTextureViewDesc, &m_normalTextureView));
     
     // Create a wrapping trilinear sampler.
-    D3D11_SAMPLER_DESC samplerDesc;
-    ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+    D3D11_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D11_FILTER_ANISOTROPIC;// D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
     samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -125,6 +118,14 @@ void TerrainRenderer::CreateDeviceDependentResources()
         samplerDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
     }
     DX::ThrowIfFailed(device->CreateSamplerState(&samplerDesc, &m_maxFilterSampler));
+
+    D3D11_DEPTH_STENCIL_DESC dss = {};
+    dss.DepthEnable = true;
+    dss.DepthFunc = D3D11_COMPARISON_LESS;
+    dss.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    DX::ThrowIfFailed(device->CreateDepthStencilState(&dss, &m_viewerState));
+
+
 }
 
 task<void> TerrainRenderer::CreateDeviceDependentResourcesAsync()
@@ -156,8 +157,7 @@ task<void> TerrainRenderer::CreateDeviceDependentResourcesAsync()
     auto vbTask = DX::ReadDataAsync(L"geometry.vb.bin").then([this](std::vector<byte> fileData)
     {
         auto device = m_deviceResources->GetD3DDevice();
-        D3D11_BUFFER_DESC vertexBufferDesc;
-        ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
+        D3D11_BUFFER_DESC vertexBufferDesc = {};
         vertexBufferDesc.ByteWidth = static_cast<UINT>(fileData.size());
         vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
         vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -169,8 +169,7 @@ task<void> TerrainRenderer::CreateDeviceDependentResourcesAsync()
     auto ibTask = DX::ReadDataAsync(L"geometry.ib.bin").then([this](std::vector<byte> fileData)
     {
         auto device = m_deviceResources->GetD3DDevice();
-        D3D11_BUFFER_DESC indexBufferDesc;
-        ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
+        D3D11_BUFFER_DESC indexBufferDesc = {};
         indexBufferDesc.ByteWidth = static_cast<UINT>(fileData.size());
         indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
         indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -259,6 +258,7 @@ void TerrainRenderer::SetTargetsForRendering(FreeCamera const& camera)
     // Set pipeline state from the Pixel Shader through the Output Merger.
     auto targetView = m_deviceResources->GetBackBufferRenderTargetView();
     context->OMSetRenderTargets(1, &targetView, m_deviceResources->GetDepthStencilView());
+
     //float clear [4] = { 0.92f, 0.65f, 0.41f, 1.0f };
     //XMFLOAT3 p = camera.GetPosition();
     //float camHeight;
@@ -284,6 +284,8 @@ void TerrainRenderer::SetTargetsForRendering(FreeCamera const& camera)
         m_normalTextureResidencyView
     };
     context->PSSetShaderResources(0, ARRAYSIZE(textureViews), textureViews);
+
+    context->OMSetDepthStencilState(m_viewerState.Get(), 0);
 }
 
 void TerrainRenderer::Draw()

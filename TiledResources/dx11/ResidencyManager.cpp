@@ -20,7 +20,7 @@ unsigned g_frame = 0;
 
 ResidencyManager::ResidencyManager(const std::shared_ptr<DeviceResources>& deviceResources) :
     m_deviceResources(deviceResources),
-    m_debugMode(false),
+    m_debugMode(true),
     m_activeTileLoadingOperations(0),
     m_reservedTiles(0),
     m_defaultTileIndex(-1)
@@ -109,6 +109,19 @@ void ResidencyManager::CreateDeviceDependentResources()
     tilePoolDesc.Usage = D3D11_USAGE_DEFAULT;
     tilePoolDesc.MiscFlags = D3D11_RESOURCE_MISC_TILE_POOL;
     DX::ThrowIfFailed(device->CreateBuffer(&tilePoolDesc, nullptr, &m_tilePool));
+
+    {
+        D3D11_DEPTH_STENCIL_DESC dss = {};
+        dss.DepthEnable = true;
+        dss.DepthFunc = D3D11_COMPARISON_LESS;
+        dss.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+        DX::ThrowIfFailed(device->CreateDepthStencilState(&dss, &m_viewerState));
+    }
+
+    {
+        D3D11_DEPTH_STENCIL_DESC dss = {};
+        DX::ThrowIfFailed(device->CreateDepthStencilState(&dss, &m_viewerDisabledState));
+    }
 }
 
 task<void> ResidencyManager::CreateDeviceDependentResourcesAsync()
@@ -171,6 +184,7 @@ void ResidencyManager::RenderVisualization()
     context->VSSetConstantBuffers(0, 1, m_viewerVertexShaderConstantBuffer.GetAddressOf());
     context->PSSetShader(m_viewerPixelShader.Get(), nullptr, 0);
     context->PSSetSamplers(0, 1, m_sampler.GetAddressOf());
+    context->OMSetDepthStencilState(m_viewerDisabledState.Get(), 0);
     
     // Render each resource's residency map in its own visualizer.
     float yOffset = 0;
@@ -511,8 +525,8 @@ void ResidencyManager::ProcessQueues()
         {
             if (perResourceArguments.second.rangeFlags[i] != D3D11_TILE_RANGE_NULL)
             {
-                D3D11_TILE_REGION_SIZE regionSize;
-                ZeroMemory(&regionSize, sizeof(regionSize));
+                D3D11_TILE_REGION_SIZE regionSize = {} ;
+                
                 regionSize.NumTiles = 1;
                 context->UpdateTiles(
                     perResourceArguments.first,
@@ -610,8 +624,7 @@ void ResidencyManager::Reset()
         // all tiles to a dummy tile that will serve as the NULL tile.
 
         // Create a temporary texture to clear the dummy tile to zero.
-        D3D11_TEXTURE2D_DESC tempTextureDesc;
-        ZeroMemory(&tempTextureDesc, sizeof(tempTextureDesc));
+        D3D11_TEXTURE2D_DESC tempTextureDesc = {};
         tempTextureDesc.Width = 256;
         tempTextureDesc.Height = 256;
         tempTextureDesc.MipLevels = 1;
@@ -624,10 +637,8 @@ void ResidencyManager::Reset()
         DX::ThrowIfFailed(device->CreateTexture2D(&tempTextureDesc, nullptr, &tempTexture));
 
         // Map the single tile in the buffer to physical tile 0.
-        D3D11_TILED_RESOURCE_COORDINATE startCoordinate;
-        ZeroMemory(&startCoordinate, sizeof(startCoordinate));
-        D3D11_TILE_REGION_SIZE regionSize;
-        ZeroMemory(&regionSize, sizeof(regionSize));
+        D3D11_TILED_RESOURCE_COORDINATE startCoordinate = {};
+        D3D11_TILE_REGION_SIZE regionSize = {};
         regionSize.NumTiles = 1;
         UINT rangeFlags = D3D11_TILE_RANGE_REUSE_SINGLE_TILE;
         m_defaultTileIndex = m_reservedTiles++;
@@ -703,8 +714,8 @@ ID3D11ShaderResourceView* ResidencyManager::ManageTexture(ID3D11Texture2D* textu
     resource->loader.reset(new TileLoader(filename, &resource->subresourceTilings, false));
 
     // Create the residency texture.
-    D3D11_TEXTURE2D_DESC textureDesc;
-    ZeroMemory(&textureDesc,sizeof(textureDesc));
+    D3D11_TEXTURE2D_DESC textureDesc = {};
+    
     textureDesc.Width = max(resource->subresourceTilings[0].WidthInTiles, resource->subresourceTilings[0].HeightInTiles);
     textureDesc.Height = textureDesc.Width;
     textureDesc.MipLevels = 1;
@@ -717,8 +728,8 @@ ID3D11ShaderResourceView* ResidencyManager::ManageTexture(ID3D11Texture2D* textu
     DX::ThrowIfFailed(device->CreateTexture2D(&textureDesc, nullptr, &resource->residencyTexture));
 
     // Create the shader resource view that will be used by both the terrain renderer and the visualizer.
-    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
-    ZeroMemory(&shaderResourceViewDesc, sizeof(shaderResourceViewDesc));
+    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
+    
     shaderResourceViewDesc.Format = textureDesc.Format;
     shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURECUBE;
     shaderResourceViewDesc.TextureCube.MipLevels = 1;
@@ -753,8 +764,7 @@ task<void> ResidencyManager::InitializeManagedResourcesAsync()
         }
 
         // Start the load tasks.
-        D3D11_TILED_RESOURCE_COORDINATE coordinate;
-        ZeroMemory(&coordinate, sizeof(coordinate));
+        D3D11_TILED_RESOURCE_COORDINATE coordinate = {};
         for (short face = 0; face < 6; face++)
         {
             for (int i = 0; i < resource->packedMipDesc.NumPackedMips; i++)

@@ -36,7 +36,7 @@ TiledResourcesMain::TiledResourcesMain(const std::shared_ptr<DeviceResources>& d
     m_residencyManager = std::unique_ptr<ResidencyManager>(new ResidencyManager(m_deviceResources));
 
     m_samplingRenderer->SetDebugMode(m_debugMode);
-    m_residencyManager->SetDebugMode(m_debugMode);
+    m_residencyManager->SetDebugMode(true);
 
     CreateDeviceDependentResourcesAsync().then([this]()
     {
@@ -187,6 +187,11 @@ bool TiledResourcesMain::Render()
     m_residencyManager->EnqueueSamples(samples);
     m_residencyManager->ProcessQueues();
     m_residencyManager->RenderVisualization();
+
+
+    ID3D11RenderTargetView* nullViews[] = { nullptr };
+    auto context = this->m_deviceResources->GetD3DDeviceContext();
+    context->OMSetRenderTargets(ARRAYSIZE(nullViews), nullViews, nullptr);
 
     return true;
 }

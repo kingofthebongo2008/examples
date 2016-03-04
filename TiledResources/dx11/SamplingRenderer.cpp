@@ -19,7 +19,7 @@ using namespace Windows::Foundation;
 SamplingRenderer::SamplingRenderer(const std::shared_ptr<DeviceResources>& deviceResources) :
     m_deviceResources(deviceResources),
     m_sampleIndex(0),
-    m_debugMode(false)
+    m_debugMode(true)
 {
     srand(0);
     CreateDeviceDependentResources();
@@ -31,8 +31,7 @@ void SamplingRenderer::CreateDeviceDependentResources()
     auto device = m_deviceResources->GetD3DDevice();
 
     // Create a constant buffer for viewer constants.
-    D3D11_BUFFER_DESC constantBufferDesc;
-    ZeroMemory(&constantBufferDesc, sizeof(constantBufferDesc));
+    D3D11_BUFFER_DESC constantBufferDesc = {};
     constantBufferDesc.ByteWidth = 16;
     constantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     constantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -47,8 +46,7 @@ void SamplingRenderer::CreateDeviceDependentResources()
         -1.0f, -1.0f, 0.0f, 1.0f,
          1.0f, -1.0f, 1.0f, 1.0f
     };
-    D3D11_BUFFER_DESC vertexBufferDesc;
-    ZeroMemory(&vertexBufferDesc, sizeof(vertexBufferDesc));
+    D3D11_BUFFER_DESC vertexBufferDesc = {};
     vertexBufferDesc.ByteWidth = sizeof(vertexBufferData);
     vertexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     vertexBufferDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
@@ -61,8 +59,7 @@ void SamplingRenderer::CreateDeviceDependentResources()
         0, 1, 2,
         3, 2, 1
     };
-    D3D11_BUFFER_DESC indexBufferDesc;
-    ZeroMemory(&indexBufferDesc, sizeof(indexBufferDesc));
+    D3D11_BUFFER_DESC indexBufferDesc = {};
     indexBufferDesc.ByteWidth = sizeof(indexBufferData);
     indexBufferDesc.Usage = D3D11_USAGE_DEFAULT;
     indexBufferDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
@@ -70,8 +67,8 @@ void SamplingRenderer::CreateDeviceDependentResources()
     DX::ThrowIfFailed(device->CreateBuffer(&indexBufferDesc, &indexBufferInitialData, &m_viewerIndexBuffer));
 
     // Create a constant buffer for sampling constants.
-    D3D11_BUFFER_DESC pixelShaderConstantBufferDesc;
-    ZeroMemory(&pixelShaderConstantBufferDesc, sizeof(pixelShaderConstantBufferDesc));
+    D3D11_BUFFER_DESC pixelShaderConstantBufferDesc = {};
+    
     pixelShaderConstantBufferDesc.ByteWidth = 16; // Minimum size for a constant buffer.
     pixelShaderConstantBufferDesc.Usage = D3D11_USAGE_DYNAMIC;
     pixelShaderConstantBufferDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -84,8 +81,7 @@ void SamplingRenderer::CreateDeviceDependentResources()
     DX::ThrowIfFailed(device->CreateBuffer(&pixelShaderConstantBufferDesc, &constantBufferInitialData, &m_pixelShaderConstantBuffer));
 
     // Create clamped bilinear sampler.
-    D3D11_SAMPLER_DESC samplerDesc;
-    ZeroMemory(&samplerDesc, sizeof(samplerDesc));
+    D3D11_SAMPLER_DESC samplerDesc = {};
     samplerDesc.Filter = D3D11_FILTER_MIN_MAG_LINEAR_MIP_POINT;
     samplerDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
     samplerDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
@@ -93,6 +89,20 @@ void SamplingRenderer::CreateDeviceDependentResources()
     samplerDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
     samplerDesc.MaxLOD = D3D11_FLOAT32_MAX;
     DX::ThrowIfFailed(device->CreateSamplerState(&samplerDesc, &m_viewerSampler));
+
+    {
+        D3D11_DEPTH_STENCIL_DESC dss = {};
+        dss.DepthEnable = true;
+        dss.DepthFunc = D3D11_COMPARISON_LESS;
+        dss.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+        DX::ThrowIfFailed(device->CreateDepthStencilState(&dss, &m_viewerState));
+    }
+
+    {
+        D3D11_DEPTH_STENCIL_DESC dss = {};
+        DX::ThrowIfFailed(device->CreateDepthStencilState(&dss, &m_viewerDisabledState));
+    }
+
 }
 
 task<void> SamplingRenderer::CreateDeviceDependentResourcesAsync()
@@ -141,8 +151,7 @@ void SamplingRenderer::CreateWindowSizeDependentResources()
     m_viewport.MaxDepth = 1.0f;
 
     // Create a render target texture for the sampling pass.
-    D3D11_TEXTURE2D_DESC textureDesc;
-    ZeroMemory(&textureDesc,sizeof(textureDesc));
+    D3D11_TEXTURE2D_DESC textureDesc = {};
     textureDesc.Width = targetWidth;
     textureDesc.Height = targetHeight;
     textureDesc.MipLevels = 1;
@@ -160,23 +169,21 @@ void SamplingRenderer::CreateWindowSizeDependentResources()
     DX::ThrowIfFailed(device->CreateTexture2D(&textureDesc, nullptr, &m_colorStagingTexture));
 
     // Create the render target view.
-    D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
-    ZeroMemory(&renderTargetViewDesc, sizeof(renderTargetViewDesc));
+    D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc = {};
     renderTargetViewDesc.Format = textureDesc.Format;
     renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
     DX::ThrowIfFailed(device->CreateRenderTargetView(m_colorTexture.Get(), &renderTargetViewDesc, &m_colorTextureRenderTargetView));
 
     // Create the shader resource view that will be used by the visualizer.
-    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc;
-    ZeroMemory(&shaderResourceViewDesc, sizeof(shaderResourceViewDesc));
+    D3D11_SHADER_RESOURCE_VIEW_DESC shaderResourceViewDesc = {};
     shaderResourceViewDesc.Format = textureDesc.Format;
     shaderResourceViewDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
     shaderResourceViewDesc.Texture2D.MipLevels = 1;
     DX::ThrowIfFailed(device->CreateShaderResourceView(m_colorTexture.Get(), &shaderResourceViewDesc, &m_colorTextureView));
 
     // Create a depth texture and view to match the render target texture.
-    D3D11_TEXTURE2D_DESC depthTextureDesc;
-    ZeroMemory(&depthTextureDesc,sizeof(depthTextureDesc));
+    D3D11_TEXTURE2D_DESC depthTextureDesc = {};
+
     depthTextureDesc.Width = textureDesc.Width;
     depthTextureDesc.Height = textureDesc.Height;
     depthTextureDesc.MipLevels = 1;
@@ -187,8 +194,7 @@ void SamplingRenderer::CreateWindowSizeDependentResources()
     depthTextureDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
     DX::ThrowIfFailed(device->CreateTexture2D(&depthTextureDesc, nullptr, &m_depthTexture));
 
-    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
-    ZeroMemory(&depthStencilViewDesc,sizeof(depthStencilViewDesc));
+    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc = {};
     depthStencilViewDesc.Format = depthTextureDesc.Format;
     depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
     DX::ThrowIfFailed(device->CreateDepthStencilView(m_depthTexture.Get(), &depthStencilViewDesc, &m_depthTextureDepthStencilView));
@@ -236,6 +242,8 @@ void SamplingRenderer::SetTargetsForSampling()
     context->PSSetShader(m_samplingPixelShader.Get(), nullptr, 0);
     context->PSSetConstantBuffers(0, 1, m_pixelShaderConstantBuffer.GetAddressOf());
     context->PSSetSamplers(0, 1, m_viewerSampler.GetAddressOf());
+
+    context->OMSetDepthStencilState(m_viewerState.Get(), 0);
 }
 
 void SamplingRenderer::RenderVisualization()
@@ -247,6 +255,7 @@ void SamplingRenderer::RenderVisualization()
     context->OMSetRenderTargets(1, &targetView, nullptr);
     UINT stride = sizeof(float) * 4;
     UINT offset = 0;
+    context->OMSetDepthStencilState(m_viewerDisabledState.Get(), 0);
     context->IASetVertexBuffers(0, 1, m_viewerVertexBuffer.GetAddressOf(), &stride, &offset);
     context->IASetInputLayout(m_viewerInputLayout.Get());
     context->IASetIndexBuffer(m_viewerIndexBuffer.Get(), DXGI_FORMAT_R32_UINT, 0);
@@ -392,8 +401,7 @@ DecodedSample SamplingRenderer::DecodeSample(unsigned int encodedSample)
             v = (1.0f - y / -z) / 2.0f;
         }
     }
-    DecodedSample decodedSample;
-    ZeroMemory(&decodedSample, sizeof(decodedSample));
+    DecodedSample decodedSample = {};
     decodedSample.u = u;
     decodedSample.v = v;
     decodedSample.mip = mip;

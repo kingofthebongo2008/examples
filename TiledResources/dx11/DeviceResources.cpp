@@ -89,8 +89,8 @@ void DeviceResources::CreateDeviceResources()
     UINT i = 0;
     while (true)
     {
-        if (i == 0){ i++; continue; } // reenable this (assuming the hw adapter is adapter 0) to make it run on warp
-        if (i == 1) { i++; continue; } // reenable this (assuming the hw adapter is adapter 0) to make it run on warp
+        //if (i == 0) { i++; continue; } // reenable this (assuming the hw adapter is adapter 0) to make it run on warp
+        //if (i == 1) { i++; continue; } // reenable this (assuming the hw adapter is adapter 0) to make it run on warp
         ComPtr<IDXGIAdapter1> adapter;
         HRESULT ehr = m_dxgiFactory->EnumAdapters1(i, &adapter);
         if (ehr == DXGI_ERROR_NOT_FOUND)
@@ -117,8 +117,8 @@ void DeviceResources::CreateDeviceResources()
             ComPtr<ID3D11DeviceContext> con;
             D3D_FEATURE_LEVEL featureLevel;
             HRESULT chr = D3D11CreateDevice(
-                adapter.Get(),
-                D3D_DRIVER_TYPE_UNKNOWN,
+                adapter.Get(), //nullptr,//adapter.Get(),
+                D3D_DRIVER_TYPE_UNKNOWN, //D3D_DRIVER_TYPE_WARP, //D3D_DRIVER_TYPE_UNKNOWN,
                 NULL,
                 flags,
                 featureLevels,
