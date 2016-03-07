@@ -22,16 +22,17 @@ namespace TiledResources
         RECT                    GetWindowBounds() const                 { return m_windowBounds; }
 
         // D3D Accessors.
-        ID3D11Device2*          GetD3DDevice() const                    { return m_d3dDevice.Get(); }
-        ID3D11DeviceContext2*   GetD3DDeviceContext() const             { return m_d3dContext.Get(); }
-        IDXGISwapChain1*        GetSwapChain() const                    { return m_swapChain.Get(); }
-        D3D_FEATURE_LEVEL       GetDeviceFeatureLevel() const           { return m_d3dFeatureLevel; }
-        ID3D11RenderTargetView* GetBackBufferRenderTargetView() const   { return m_d3dRenderTargetView.Get(); }
-        ID3D11DepthStencilView* GetDepthStencilView() const             { return m_d3dDepthStencilView.Get(); }
-        D3D11_VIEWPORT          GetScreenViewport() const               { return m_screenViewport; }
+        ID3D12Device*               GetD3DDevice() const                    { return m_d3dDevice.Get(); }
+        ID3D11DeviceContext2*       GetD3DDeviceContext() const             { return m_d3dContext.Get(); }
+        IDXGISwapChain1*            GetSwapChain() const                    { return m_swapChain.Get(); }
+        D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const           { return m_d3dFeatureLevel; }
+        ID3D11RenderTargetView*     GetBackBufferRenderTargetView() const   { return m_d3dRenderTargetView.Get(); }
+        ID3D11DepthStencilView*     GetDepthStencilView() const             { return m_d3dDepthStencilView.Get(); }
+        
+        D3D12_VIEWPORT              GetScreenViewport() const               { return m_screenViewport; }
 
         // Sample-specific Accessors.
-        D3D11_TILED_RESOURCES_TIER GetTiledResourcesTier() const        { return m_tiledResourcesTier; }
+        D3D12_TILED_RESOURCES_TIER GetTiledResourcesTier() const        { return m_tiledResourcesTier; }
 
     private:
         void CreateDeviceIndependentResources();
@@ -60,6 +61,6 @@ namespace TiledResources
         RECT              m_windowBounds;
 
         // Tiled Resources Tier.
-        D3D11_TILED_RESOURCES_TIER m_tiledResourcesTier;
+        D3D12_TILED_RESOURCES_TIER m_tiledResourcesTier;
     };
 }

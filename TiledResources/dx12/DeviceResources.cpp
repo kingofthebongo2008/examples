@@ -271,16 +271,6 @@ void DeviceResources::CreateWindowSizeDependentResources()
 
     m_d3dContext->RSSetViewports(1, &m_screenViewport);
 
-    // Create a Direct2D target bitmap associated with the
-    // swap chain back buffer and set it as the current target.
-    D2D1_BITMAP_PROPERTIES1 bitmapProperties =
-        D2D1::BitmapProperties1(
-        D2D1_BITMAP_OPTIONS_TARGET | D2D1_BITMAP_OPTIONS_CANNOT_DRAW,
-        D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-        96.0f,
-        96.0f
-        );
-
     ComPtr<IDXGISurface2> dxgiBackBuffer;
     DX::ThrowIfFailed(
         m_swapChain->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer))

@@ -11,30 +11,30 @@
 #include "FreeCamera.h"
 #include "SamplingRenderer.h"
 #include "TileLoader.h"
-
+#include "GpuTexture2D.h"
 
 namespace TiledResources
 {
     // Data and metadata for a tiled resource layer.
     struct ManagedTiledResource
     {
-        ID3D11Texture2D* texture;
-        D3D11_TEXTURE2D_DESC textureDesc;
+        GpuTexture2D*        texture;
+        D3D12_RESOURCE_DESC  textureDesc;
         UINT totalTiles;
-        D3D11_PACKED_MIP_DESC packedMipDesc;
-        D3D11_TILE_SHAPE tileShape;
-        std::vector<D3D11_SUBRESOURCE_TILING> subresourceTilings;
+        D3D12_PACKED_MIP_INFO packedMipDesc;
+        D3D12_TILE_SHAPE tileShape;
+        std::vector<D3D12_SUBRESOURCE_TILING> subresourceTilings;
         std::unique_ptr<TileLoader> loader;
         std::vector<byte> residency[6];
-        Microsoft::WRL::ComPtr<ID3D11Texture2D> residencyTexture;
-        Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> residencyTextureView;
+        
+        GpuTexture2D           residencyTexture;
     };
 
     // Unique identifier for a tile.
     struct TileKey
     {
-        D3D11_TILED_RESOURCE_COORDINATE coordinate;
-        ID3D11Texture2D* resource;
+        D3D12_TILED_RESOURCE_COORDINATE coordinate;
+        GpuTexture2D*                   resource;
     };
 
     // Define the < relational operator for use as a key in std::map.
@@ -62,7 +62,7 @@ namespace TiledResources
     struct TrackedTile
     {
         ManagedTiledResource* managedResource;
-        D3D11_TILED_RESOURCE_COORDINATE coordinate;
+        D3D12_TILED_RESOURCE_COORDINATE coordinate;
         short mipLevel;
         short face;
         UINT physicalTileOffset;
@@ -79,7 +79,7 @@ namespace TiledResources
         concurrency::task<void> CreateDeviceDependentResourcesAsync();
         void ReleaseDeviceDependentResources();
 
-        ID3D11ShaderResourceView* ManageTexture(ID3D11Texture2D* texture, const std::wstring& filename);
+        //ID3D11ShaderResourceView* ManageTexture(ID3D11Texture2D* texture, const std::wstring& filename);
         concurrency::task<void> InitializeManagedResourcesAsync();
         void EnqueueSamples(const std::vector<DecodedSample>& samples);
         void ProcessQueues();
@@ -96,6 +96,7 @@ namespace TiledResources
         // Cached pointer to device resources.
         std::shared_ptr<DeviceResources> m_deviceResources;
 
+        /*
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_viewerVertexBuffer;
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_viewerIndexBuffer;
         Microsoft::WRL::ComPtr<ID3D11InputLayout> m_viewerInputLayout;
@@ -133,6 +134,7 @@ namespace TiledResources
         UINT m_defaultTileIndex;
 
         bool m_debugMode;
+        */
     };
 
     static bool LoadPredicate(const std::shared_ptr<TiledResources::TrackedTile>& a, const std::shared_ptr<TiledResources::TrackedTile>& b)

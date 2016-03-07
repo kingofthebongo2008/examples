@@ -81,6 +81,8 @@ namespace DX
     // Check for SDK Layer support.
     inline bool SdkLayersAvailable()
     {
+        return false;
+        /*
         HRESULT hr = D3D11CreateDevice(
             nullptr,
             D3D_DRIVER_TYPE_NULL,       // There is no need to create a real hardware device.
@@ -95,6 +97,7 @@ namespace DX
             );
 
         return SUCCEEDED(hr);
+        */
     }
 #endif
 }

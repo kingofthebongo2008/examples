@@ -19,17 +19,20 @@ using namespace Windows::Foundation;
 unsigned g_frame = 0;
 
 ResidencyManager::ResidencyManager(const std::shared_ptr<DeviceResources>& deviceResources) :
-    m_deviceResources(deviceResources),
-    m_debugMode(true),
-    m_activeTileLoadingOperations(0),
-    m_reservedTiles(0),
-    m_defaultTileIndex(-1)
 {
+    /*
+    m_deviceResources(deviceResources),
+        m_debugMode(true),
+        m_activeTileLoadingOperations(0),
+        m_reservedTiles(0),
+        m_defaultTileIndex(-1)
     CreateDeviceDependentResources();
+    */
 }
 
 void ResidencyManager::CreateDeviceDependentResources()
 {
+    /*
     auto device = m_deviceResources->GetD3DDevice();
     auto context = m_deviceResources->GetD3DDeviceContext();
 
@@ -122,10 +125,12 @@ void ResidencyManager::CreateDeviceDependentResources()
         D3D11_DEPTH_STENCIL_DESC dss = {};
         DX::ThrowIfFailed(device->CreateDepthStencilState(&dss, &m_viewerDisabledState));
     }
+    */
 }
 
 task<void> ResidencyManager::CreateDeviceDependentResourcesAsync()
 {
+    /*
     // Load and create the vertex shader and input layout.
     auto vsTask = DX::ReadDataAsync(L"ResidencyViewer.vs.cso").then([this](std::vector<byte> fileData)
     {
@@ -147,10 +152,12 @@ task<void> ResidencyManager::CreateDeviceDependentResourcesAsync()
     });
 
     return (vsTask && psTask);
+    */
 }
 
 void ResidencyManager::ReleaseDeviceDependentResources()
 {
+    /*
     m_viewerVertexBuffer.Reset();
     m_viewerIndexBuffer.Reset();
     m_viewerInputLayout.Reset();
@@ -165,10 +172,12 @@ void ResidencyManager::ReleaseDeviceDependentResources()
     m_seenTileList.clear();
     m_loadingTileList.clear();
     m_mappedTileList.clear();
+    */
 }
 
 void ResidencyManager::RenderVisualization()
 {
+    /*
     auto context = m_deviceResources->GetD3DDeviceContext();
 
     // Set up pipeline state for rendering the visualization.
@@ -210,10 +219,12 @@ void ResidencyManager::RenderVisualization()
         // Render the visualization.
         context->DrawIndexed(m_indexCount, 0, 0);
     }
+    */
 }
 
 void ResidencyManager::EnqueueSamples(const std::vector<DecodedSample>& samples)
 {
+    /*
     for (auto sample : samples)
     {
         // Interpret each sample in the context of each managed resource.
@@ -329,10 +340,12 @@ void ResidencyManager::EnqueueSamples(const std::vector<DecodedSample>& samples)
         }
     }
     g_frame++;
+    */
 }
 
 void ResidencyManager::ProcessQueues()
 {
+    /*
     auto context = m_deviceResources->GetD3DDeviceContext();
 
     // Sort the tile lists.
@@ -574,15 +587,17 @@ void ResidencyManager::ProcessQueues()
                 );
         }
     }
+    */
 }
 
 void ResidencyManager::SetDebugMode(bool value)
 {
-    m_debugMode = value;
+    //m_debugMode = value;
 }
 
 void ResidencyManager::Reset()
 {
+    /*
     auto device = m_deviceResources->GetD3DDevice();
     auto context = m_deviceResources->GetD3DDeviceContext();
 
@@ -687,12 +702,14 @@ void ResidencyManager::Reset()
             context->TiledResourceBarrier(NULL, resource->texture);
         }
     }
+    */
 }
 
 std::wstring g_diffuseFilename;
 
 ID3D11ShaderResourceView* ResidencyManager::ManageTexture(ID3D11Texture2D* texture, const std::wstring& filename)
 {
+    /*
     auto device = m_deviceResources->GetD3DDevice();
 
 
@@ -749,10 +766,12 @@ ID3D11ShaderResourceView* ResidencyManager::ManageTexture(ID3D11Texture2D* textu
 
     // Return the residency view.
     return resource->residencyTextureView.Get();
+    */
 }
 
 task<void> ResidencyManager::InitializeManagedResourcesAsync()
 {
+    /*
     auto device = m_deviceResources->GetD3DDevice();
     auto context = m_deviceResources->GetD3DDeviceContext();
 
@@ -805,10 +824,12 @@ task<void> ResidencyManager::InitializeManagedResourcesAsync()
     }
 
     return when_all(tileLoadTasks.begin(), tileLoadTasks.end());
+    */
 }
-
 
 void ResidencyManager::SetBorderMode(bool value)
 {
+    /*
     m_managedResources[0]->loader.reset(new TileLoader(g_diffuseFilename, &m_managedResources[0]->subresourceTilings, value));
+    */
 }

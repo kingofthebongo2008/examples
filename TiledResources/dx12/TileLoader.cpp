@@ -10,7 +10,11 @@
 #include "SampleSettings.h"
 #include "TileLoader.h"
 
+#include "GpuResourceCreateContext.h"
+
 using namespace TiledResources;
+
+GpuResourceDescriptorHeap h(nullptr, 200);
 
 using namespace concurrency;
 

@@ -61,7 +61,7 @@ namespace TiledResources
         Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_viewerState;
         Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_viewerDisabledState;
         Microsoft::WRL::ComPtr<ID3D11Buffer> m_viewerVertexShaderConstantBuffer;
-        CD3D11_VIEWPORT m_viewport;
+        CD3D12_VIEWPORT m_viewport;
         unsigned int m_sampleIndex;
         unsigned int m_sampleCount;
 
