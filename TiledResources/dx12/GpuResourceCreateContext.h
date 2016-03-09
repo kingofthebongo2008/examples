@@ -17,9 +17,50 @@ namespace TiledResources
 {
     namespace details
     {
+        inline SIZE_T Align(SIZE_T size, SIZE_T alignment)
+        {
+            return ( size + alignment - 1 ) & ( alignment - 1 );
+        }
+
+        inline SIZE_T MB(SIZE_T size)
+        {
+            return size * 1024 * 1024;
+        }
+
         inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateUploadHeap( ID3D12Device* device, SIZE_T size )
         {
+            D3D12_HEAP_DESC d                 = {};
+            d.Properties.Type                 = D3D12_HEAP_TYPE_UPLOAD;
+            d.Properties.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
+            d.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+            d.Properties.CreationNodeMask     = 1;
+            d.Properties.VisibleNodeMask      = 1;
 
+            d.Alignment                       = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            d.SizeInBytes                     = Align(size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+
+            Microsoft::WRL::ComPtr<ID3D12Heap> result;
+
+            DX::ThrowIfFailed(device->CreateHeap(&d, IID_PPV_ARGS(&result)));
+            return result;
+        }
+
+        inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateReadBackHeap(ID3D12Device* device, SIZE_T size)
+        {
+            D3D12_HEAP_DESC d = {};
+            d.Properties.Type = D3D12_HEAP_TYPE_READBACK;
+            d.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+            d.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+            d.Properties.CreationNodeMask = 1;
+            d.Properties.VisibleNodeMask = 1;
+
+            d.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            d.SizeInBytes = Align(size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+
+            Microsoft::WRL::ComPtr<ID3D12Heap> result;
+
+            DX::ThrowIfFailed(device->CreateHeap(&d, IID_PPV_ARGS(&result)));
+            return result;
         }
     }
 
@@ -32,8 +73,11 @@ namespace TiledResources
         , m_texturesDescriptorHeap( device, 256 )
         , m_frameIndex(0)
         {
-            
+            m_uploadHeap[0] = details::CreateUploadHeap( device, details::MB(24) );
+            m_uploadHeap[1] = details::CreateUploadHeap(device, details::MB(24));
+            m_uploadHeap[2] = details::CreateUploadHeap(device, details::MB(24));
         }
+
 
         GpuTexture2D CreateTexture2D()
         {
