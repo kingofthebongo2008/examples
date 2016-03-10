@@ -32,17 +32,17 @@ namespace TiledResources
             return size * 1024 * 1024;
         }
 
-        class FramePlacementHeapAllocator
+        class PlacementHeapAllocator
         {
             public:
 
-			FramePlacementHeapAllocator();
-			FramePlacementHeapAllocator(ID3D12Device* device, Microsoft::WRL::ComPtr<ID3D12Heap> heap, SIZE_T size); 
+            PlacementHeapAllocator();
+            PlacementHeapAllocator(ID3D12Device* device, Microsoft::WRL::ComPtr<ID3D12Heap> heap, SIZE_T size);
 
-			void CreatePlacedResource(const D3D12_RESOURCE_DESC *desc, D3D12_RESOURCE_STATES initialState, const D3D12_CLEAR_VALUE *optimizedClearValue, REFIID riid, void **resource);
-			void CreatePlacedResource(const D3D12_RESOURCE_DESC *desc, D3D12_RESOURCE_STATES initialState, REFIID riid, void **resource);
+            void CreatePlacedResource(const D3D12_RESOURCE_DESC *desc, D3D12_RESOURCE_STATES initialState, const D3D12_CLEAR_VALUE *optimizedClearValue, REFIID riid, void **resource);
+            void CreatePlacedResource(const D3D12_RESOURCE_DESC *desc, D3D12_RESOURCE_STATES initialState, REFIID riid, void **resource);
 
-			private:
+            private:
             ID3D12Device*					   m_device;
             Microsoft::WRL::ComPtr<ID3D12Heap> m_heap;
             UINT64							   m_heapOffset;
@@ -54,14 +54,22 @@ namespace TiledResources
     {
         public:
 
-		GpuResourceCreateContext(ID3D12Device* device);
+        GpuResourceCreateContext(ID3D12Device* device);
+    
+        //Read only assets
+        GpuTexture2D            CreateTexture2D();
 
-		GpuTexture2D CreateTexture2D();
-		GpuUploadBuffer CreateUploadBuffer(SIZE_T size);
-		GpuReadBackBuffer CreateReadBackBuffer(SIZE_T size);
-		GpuTiledCubeTexture CreateTiledCubeTexture();
+        //Transfer accross the pci bus
+        GpuUploadBuffer         CreateUploadBuffer(SIZE_T size);
+        GpuReadBackBuffer       CreateReadBackBuffer(SIZE_T size);
 
-		void Sync();
+        //Render Targets
+        GpuColorBuffer          CreateColorBuffer(UINT width, UINT height, DXGI_FORMAT format);
+
+        //Tiled Resources
+        GpuTiledCubeTexture     CreateTiledCubeTexture();
+
+        void Sync();
 
         private:
 
@@ -71,10 +79,19 @@ namespace TiledResources
         Microsoft::WRL::ComPtr<ID3D12Heap>      m_renderTargets;
         Microsoft::WRL::ComPtr<ID3D12Heap>      m_tiledResources;
         
-        details::FramePlacementHeapAllocator    m_uploadAllocator[3];
-        details::FramePlacementHeapAllocator    m_readbackAllocator[3];
-        
+        details::PlacementHeapAllocator         m_uploadAllocator[3];
+        details::PlacementHeapAllocator         m_readBackAllocator[3];
 
         UINT                                    m_frameIndex;
+
+        details::PlacementHeapAllocator*        GetUploadAllocator()
+        {
+            return &m_uploadAllocator[m_frameIndex];
+        }
+
+        details::PlacementHeapAllocator*   GetReadBackAllocator()
+        {
+            return &m_readBackAllocator[m_frameIndex];
+        }
     };
 }
