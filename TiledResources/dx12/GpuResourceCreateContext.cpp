@@ -41,6 +41,26 @@ namespace TiledResources
             return Desc;
         }
 
+        inline D3D12_RESOURCE_DESC DescribeDepthBuffer(UINT width, UINT height, UINT d, DXGI_FORMAT format, UINT flags)
+        {
+            return DescribeColorBuffer(width, height, d, format, flags);
+        }
+
+        inline D3D12_RESOURCE_DESC DescribeColorBuffer(UINT width, UINT height, DXGI_FORMAT format, UINT flags)
+        {
+            return DescribeColorBuffer(width, height, 1, format, flags);
+        }
+
+        inline D3D12_RESOURCE_DESC DescribeDepthBuffer(UINT width, UINT height, DXGI_FORMAT format, UINT flags)
+        {
+            return DescribeColorBuffer(width, height, 1, format, flags | D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+        }
+
+        inline D3D12_RESOURCE_DESC DescribeDepthBuffer(UINT width, UINT height, DXGI_FORMAT format)
+        {
+            return DescribeColorBuffer(width, height, 1, format, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
+        }
+
         inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateUploadHeap(ID3D12Device* device, SIZE_T size)
         {
             D3D12_HEAP_DESC d = {};
@@ -63,6 +83,24 @@ namespace TiledResources
         {
             D3D12_HEAP_DESC d = {};
             d.Properties.Type = D3D12_HEAP_TYPE_READBACK;
+            d.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+            d.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+            d.Properties.CreationNodeMask = 1;
+            d.Properties.VisibleNodeMask = 1;
+
+            d.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            d.SizeInBytes = Align(size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+
+            Microsoft::WRL::ComPtr<ID3D12Heap> result;
+
+            DX::ThrowIfFailed(device->CreateHeap(&d, IID_PPV_ARGS(&result)));
+            return result;
+        }
+
+        inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateDefaultHeap(ID3D12Device* device, SIZE_T size)
+        {
+            D3D12_HEAP_DESC d = {};
+            d.Properties.Type = D3D12_HEAP_TYPE_DEFAULT;
             d.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
             d.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
             d.Properties.CreationNodeMask = 1;
@@ -118,6 +156,11 @@ namespace TiledResources
         {
             return PlacementHeapAllocator(d, CreateReadBackHeap(d, size), size);
         }
+
+        static inline PlacementHeapAllocator CreateDefaultHeapAllocator(ID3D12Device* d, SIZE_T size)
+        {
+            return PlacementHeapAllocator(d, CreateDefaultHeap(d, size), size);
+        }
     }
 
     GpuResourceCreateContext::GpuResourceCreateContext(ID3D12Device* device) :
@@ -132,6 +175,10 @@ namespace TiledResources
         m_readBackAllocator[0] = details::CreateReadbackAllocator(device, details::MB(32));
         m_readBackAllocator[1] = details::CreateReadbackAllocator(device, details::MB(32));
         m_readBackAllocator[2] = details::CreateReadbackAllocator(device, details::MB(32));
+
+        m_renderTargetAllocator     = details::CreateDefaultHeapAllocator(device, details::MB(32));
+        m_tiledResourcesAllocator   = details::CreateDefaultHeapAllocator(device, details::MB(32));
+
     }
 
     GpuTexture2D GpuResourceCreateContext::CreateTexture2D()
@@ -141,7 +188,7 @@ namespace TiledResources
 
     GpuUploadBuffer GpuResourceCreateContext::CreateUploadBuffer(SIZE_T size)
     {
-        auto desc = details::DescribeBuffer(size);
+        auto desc   = details::DescribeBuffer(size);
         Microsoft::WRL::ComPtr<ID3D12Resource>  resource;
         auto allocator = GetUploadAllocator();
 
@@ -164,9 +211,36 @@ namespace TiledResources
         return GpuTiledCubeTexture(nullptr, m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate());
     }
 
-    GpuColorBuffer      GpuResourceCreateContext::CreateColorBuffer(UINT width, UINT height, DXGI_FORMAT format)
+    GpuColorBuffer  GpuResourceCreateContext::CreateColorBuffer(UINT width, UINT height, DXGI_FORMAT format)
     {
+        D3D12_CLEAR_VALUE get_clear_value(DXGI_FORMAT f)
+        {
+        
+            return v;
+        }
 
+        D3D12_CLEAR_VALUE v = {};
+        v.Format = f;
+
+        auto desc = details::DescribeColorBuffer(width, height, format, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS );
+
+        Microsoft::WRL::ComPtr<ID3D12Resource>  resource;
+        auto allocator = GetReadBackAllocator();
+
+        allocator->CreatePlacedResource(&desc, D3D12_RESOURCE_STATE_COMMON, IID_PPV_ARGS(&resource));
+        return GpuColorBuffer(resource.Get(), m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate() );
+    }
+
+    //Depth Buffer
+    GpuDepthBuffer  GpuResourceCreateContext::CreateDepthBuffer(UINT width, UINT height, DXGI_FORMAT format)
+    {
+        auto desc = details::DescribeColorBuffer(width, height, format, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+
+        Microsoft::WRL::ComPtr<ID3D12Resource>  resource;
+        auto allocator = GetReadBackAllocator();
+
+        allocator->CreatePlacedResource(&desc, D3D12_RESOURCE_STATE_COMMON, IID_PPV_ARGS(&resource));
+        return GpuColorBuffer(resource.Get(), m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate());
     }
 
     void GpuResourceCreateContext::Sync()

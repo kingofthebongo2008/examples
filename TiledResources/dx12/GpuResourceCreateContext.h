@@ -52,6 +52,7 @@ namespace TiledResources
 
     class GpuResourceCreateContext
     {
+
         public:
 
         GpuResourceCreateContext(ID3D12Device* device);
@@ -66,6 +67,9 @@ namespace TiledResources
         //Render Targets
         GpuColorBuffer          CreateColorBuffer(UINT width, UINT height, DXGI_FORMAT format);
 
+        //Depth Buffer
+        GpuDepthBuffer          CreateDepthBuffer(UINT width, UINT height, DXGI_FORMAT format);
+
         //Tiled Resources
         GpuTiledCubeTexture     CreateTiledCubeTexture();
 
@@ -76,14 +80,13 @@ namespace TiledResources
         Microsoft::WRL::ComPtr<ID3D12Device>    m_device;
         GpuResourceDescriptorHeap               m_texturesDescriptorHeap;
 
-        Microsoft::WRL::ComPtr<ID3D12Heap>      m_renderTargets;
-        Microsoft::WRL::ComPtr<ID3D12Heap>      m_tiledResources;
-        
         details::PlacementHeapAllocator         m_uploadAllocator[3];
         details::PlacementHeapAllocator         m_readBackAllocator[3];
 
-        UINT                                    m_frameIndex;
+        details::PlacementHeapAllocator         m_renderTargetAllocator;
+        details::PlacementHeapAllocator         m_tiledResourcesAllocator;
 
+        UINT                                    m_frameIndex;
         details::PlacementHeapAllocator*        GetUploadAllocator()
         {
             return &m_uploadAllocator[m_frameIndex];
