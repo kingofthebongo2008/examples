@@ -36,7 +36,7 @@ namespace TiledResources
         const GpuCommandContext*    GetD3DDeviceContext() const             { return &m_d3dContext; }
         IDXGISwapChain*             GetSwapChain() const                    { return m_swapChain.Get(); }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const           { return m_d3dFeatureLevel; }
-        const GpuBackBuffer*        GetBackBufferRenderTargetView() const   { return &m_d3dRenderTargetView0; }
+        const GpuBackBuffer*        GetBackBufferRenderTargetView() const   { return &m_d3dRenderTargetView[ m_frameIndex & 0x1 ] ; }
         const GpuDepthBuffer*       GetDepthStencilView() const             { return &m_d3dDepthStencilView; }
         
         D3D12_VIEWPORT              GetScreenViewport() const               { return m_screenViewport; }
@@ -47,6 +47,7 @@ namespace TiledResources
 
         void Sync();
         void WaitGpuForAllBackBuffers();
+        void WaitForGpuBackBuffer();
 
     private:
         void CreateDeviceIndependentResources();
@@ -55,20 +56,19 @@ namespace TiledResources
 
         DXGI_MODE_ROTATION ComputeDisplayRotation();
 
-        std::unique_ptr<GpuResourceCreateContext>                           m_resourceCreateContext;
         // Direct3D objects.
         Microsoft::WRL::ComPtr<ID3D12Device>                                m_d3dDevice;
         Microsoft::WRL::ComPtr <ID3D12CommandQueue>                         m_directQueue;
         GpuCommandContext                                                   m_d3dContext;
         Microsoft::WRL::ComPtr<IDXGISwapChain>                              m_swapChain;
         Microsoft::WRL::ComPtr<IDXGIFactory4>                               m_dxgiFactory;
+        std::unique_ptr<GpuResourceCreateContext>                           m_resourceCreateContext;
         #if defined(_DEBUG)
         Microsoft::WRL::ComPtr<ID3D12Debug>                                 m_debug;
         #endif
 
         // Direct3D rendering objects. Required for 3D.
-        GpuBackBuffer                                                       m_d3dRenderTargetView0;
-        GpuBackBuffer                                                       m_d3dRenderTargetView1;
+        GpuBackBuffer                                                       m_d3dRenderTargetView[2];
         GpuDepthBuffer                                                      m_d3dDepthStencilView;
         D3D12_VIEWPORT                                                      m_screenViewport;
 

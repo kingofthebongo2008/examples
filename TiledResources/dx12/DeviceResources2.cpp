@@ -211,8 +211,8 @@ void DeviceResources::CreateWindowSizeDependentResources()
 
     m_resourceCreateContext  = std::make_unique< GpuResourceCreateContext >(m_d3dDevice.Get());
 
-    m_d3dRenderTargetView0   =  m_resourceCreateContext->CreateBackBuffer(backBuffer0.Get());
-    m_d3dRenderTargetView1   =  m_resourceCreateContext->CreateBackBuffer(backBuffer1.Get());
+    m_d3dRenderTargetView[0] =  m_resourceCreateContext->CreateBackBuffer(backBuffer0.Get());
+    m_d3dRenderTargetView[1] =  m_resourceCreateContext->CreateBackBuffer(backBuffer1.Get());
     m_d3dDepthStencilView    =  m_resourceCreateContext->CreateDepthBuffer(m_d3dRenderTargetSize.cx, m_d3dRenderTargetSize.cy, DXGI_FORMAT_D24_UNORM_S8_UINT);
 
     // Set the 3D rendering viewport to target the entire window.
@@ -244,25 +244,48 @@ void DeviceResources::UpdateForWindowSizeChange()
     m_d3dContext->OMSetRenderTargets(ARRAYSIZE(nullViews), nullViews, nullptr);
     m_d3dContext->Flush();
     */
+    WaitGpuForAllBackBuffers();
     CreateWindowSizeDependentResources();
 }
 
 void DeviceResources::Sync()
 {
-    m_frameIndex++;
+    WaitForGpuBackBuffer();
 }
 
 void DeviceResources::WaitGpuForAllBackBuffers()
 {
     m_directQueue->Signal(m_waitBackBufferFence.Get(), m_frameIndex + 1);
-    m_waitBackBufferFence->SetEventOnCompletion(m_frameIndex, m_waitBackBuffer);
+    m_waitBackBufferFence->SetEventOnCompletion(m_frameIndex + 1, m_waitBackBuffer);
     WaitForSingleObject( m_waitBackBuffer, INFINITE );
     m_frameIndex++;
 }
 
+void DeviceResources::WaitForGpuBackBuffer()
+{
+    const auto frameIndex = m_frameIndex;
+
+    //signal for stop rendering this frame
+    m_directQueue->Signal(m_waitBackBufferFence.Get(), frameIndex);
+
+    m_frameIndex++;
+
+    //wait for the gpu to finish frame
+    auto completedFrame = m_waitBackBufferFence->GetCompletedValue();
+    
+    INT64 difference = static_cast<INT64> (frameIndex) - static_cast<INT64> (completedFrame);
+    if (difference > 1)
+    {
+        m_waitBackBufferFence->SetEventOnCompletion(frameIndex - 1, this->m_waitBackBuffer);
+        WaitForSingleObject(m_waitBackBuffer, INFINITE);
+    }
+}
+
+
 // Present the contents of the swap chain to the screen.
 void DeviceResources::Present()
 {
+    Sync();
     // The first argument instructs DXGI to block until VSync, putting the application
     // to sleep until the next VSync. This ensures we don't waste any cycles rendering
     // frames that will never be displayed to the screen.
