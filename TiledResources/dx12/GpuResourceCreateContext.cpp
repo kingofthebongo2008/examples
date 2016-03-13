@@ -261,7 +261,6 @@ namespace TiledResources
         auto desc = details::DescribeColorBuffer(width, height, format, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL );
 
         Microsoft::WRL::ComPtr<ID3D12Resource>  resource;
-        //auto allocator = GetReadBackAllocator();
 
         m_renderTargetAllocator.CreatePlacedResource(&desc, D3D12_RESOURCE_STATE_COMMON, &v, IID_PPV_ARGS(&resource));
 
@@ -283,6 +282,7 @@ namespace TiledResources
         {
             viewDesc.Format = stencilFormat;
         }
+
         m_device->CreateShaderResourceView(resource.Get(), &viewDesc, srvStencil);
 
         DescriptorHandle srv[2] = { srvDepth, srvStencil };
@@ -294,7 +294,7 @@ namespace TiledResources
         DescriptorHandle dsvReadDepthStencil     = m_depthBufferDescriptorHeap.Allocate();
 
         D3D12_DEPTH_STENCIL_VIEW_DESC desc2      = {};
-
+        desc2.Format                             = format;
         desc2.ViewDimension                      = D3D12_DSV_DIMENSION_TEXTURE2D;
         desc2.Texture2D.MipSlice                 = 0;
         desc2.Flags                              = D3D12_DSV_FLAG_NONE;

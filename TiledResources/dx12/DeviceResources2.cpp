@@ -31,16 +31,21 @@ DeviceResources::DeviceResources() :
     CreateDeviceResources();
 }
 
+DeviceResources::~DeviceResources()
+{
+    WaitGpuForAllBackBuffers();
+    CloseHandle(m_waitBackBuffer);
+}
+
 // Configures resources that don't depend on the Direct3D device.
 void DeviceResources::CreateDeviceIndependentResources()
 {
-   
+    m_waitBackBuffer = CreateEventEx(nullptr, FALSE, FALSE, EVENT_ALL_ACCESS);
 }
 
 // Configures the Direct3D device, and stores handles to it and the device context.
 void DeviceResources::CreateDeviceResources()
 {
-
     HR hr = S_OK;
 
 #if defined(_DEBUG) // this must be first, before everything else, otherwise d3d12 has problems
@@ -118,7 +123,9 @@ void DeviceResources::CreateDeviceResources()
     queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 
     DX::ThrowIfFailed(m_d3dDevice->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&m_directQueue)));
+    DX::ThrowIfFailed(m_d3dDevice->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS( &m_waitBackBufferFence)));
 
+    m_frameIndex = 0;
 }
 
 // These resources need to be recreated every time the window size is changed.
@@ -141,6 +148,8 @@ void DeviceResources::CreateWindowSizeDependentResources()
 
     if (m_swapChain)
     {
+        WaitGpuForAllBackBuffers();
+        //todo: check this
         // If the swap chain already exists, resize it.
         HRESULT hr = m_swapChain->ResizeBuffers(
             2, // Double-buffered swap chain.
@@ -200,10 +209,11 @@ void DeviceResources::CreateWindowSizeDependentResources()
     ComPtr<ID3D12Resource> backBuffer1;
     DX::ThrowIfFailed(m_swapChain->GetBuffer(1, IID_PPV_ARGS(&backBuffer1)));
 
-    m_resourceCreateContext = std::make_unique< GpuResourceCreateContext >(m_d3dDevice.Get());
+    m_resourceCreateContext  = std::make_unique< GpuResourceCreateContext >(m_d3dDevice.Get());
 
-    m_d3dRenderTargetView   =  m_resourceCreateContext->CreateBackBuffer(backBuffer0.Get());
-    m_d3dDepthStencilView   =  m_resourceCreateContext->CreateDepthBuffer(m_d3dRenderTargetSize.cx, m_d3dRenderTargetSize.cy, DXGI_FORMAT_D24_UNORM_S8_UINT);
+    m_d3dRenderTargetView0   =  m_resourceCreateContext->CreateBackBuffer(backBuffer0.Get());
+    m_d3dRenderTargetView1   =  m_resourceCreateContext->CreateBackBuffer(backBuffer1.Get());
+    m_d3dDepthStencilView    =  m_resourceCreateContext->CreateDepthBuffer(m_d3dRenderTargetSize.cx, m_d3dRenderTargetSize.cy, DXGI_FORMAT_D24_UNORM_S8_UINT);
 
     // Set the 3D rendering viewport to target the entire window.
     m_screenViewport.TopLeftX = 0.0f;
@@ -213,6 +223,7 @@ void DeviceResources::CreateWindowSizeDependentResources()
     m_screenViewport.MinDepth = 0.0f;
     m_screenViewport.MaxDepth = 1.0f;
    
+    m_frameIndex = 0;
 }
 
 // This method is called when the CoreWindow is created (or re-created)
@@ -236,6 +247,18 @@ void DeviceResources::UpdateForWindowSizeChange()
     CreateWindowSizeDependentResources();
 }
 
+void DeviceResources::Sync()
+{
+    m_frameIndex++;
+}
+
+void DeviceResources::WaitGpuForAllBackBuffers()
+{
+    m_directQueue->Signal(m_waitBackBufferFence.Get(), m_frameIndex + 1);
+    m_waitBackBufferFence->SetEventOnCompletion(m_frameIndex, m_waitBackBuffer);
+    WaitForSingleObject( m_waitBackBuffer, INFINITE );
+    m_frameIndex++;
+}
 
 // Present the contents of the swap chain to the screen.
 void DeviceResources::Present()

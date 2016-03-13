@@ -24,6 +24,7 @@ namespace TiledResources
     {
     public:
         DeviceResources();
+        ~DeviceResources();
         void SetWindow(HWND window);
         void UpdateForWindowSizeChange();
         void Present();
@@ -35,13 +36,17 @@ namespace TiledResources
         const GpuCommandContext*    GetD3DDeviceContext() const             { return &m_d3dContext; }
         IDXGISwapChain*             GetSwapChain() const                    { return m_swapChain.Get(); }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const           { return m_d3dFeatureLevel; }
-        const GpuBackBuffer*        GetBackBufferRenderTargetView() const   { return &m_d3dRenderTargetView; }
+        const GpuBackBuffer*        GetBackBufferRenderTargetView() const   { return &m_d3dRenderTargetView0; }
         const GpuDepthBuffer*       GetDepthStencilView() const             { return &m_d3dDepthStencilView; }
         
         D3D12_VIEWPORT              GetScreenViewport() const               { return m_screenViewport; }
 
         // Sample-specific Accessors.
         D3D12_TILED_RESOURCES_TIER GetTiledResourcesTier() const            { return m_tiledResourcesTier; }
+
+
+        void Sync();
+        void WaitGpuForAllBackBuffers();
 
     private:
         void CreateDeviceIndependentResources();
@@ -62,7 +67,8 @@ namespace TiledResources
         #endif
 
         // Direct3D rendering objects. Required for 3D.
-        GpuBackBuffer                                                       m_d3dRenderTargetView;
+        GpuBackBuffer                                                       m_d3dRenderTargetView0;
+        GpuBackBuffer                                                       m_d3dRenderTargetView1;
         GpuDepthBuffer                                                      m_d3dDepthStencilView;
         D3D12_VIEWPORT                                                      m_screenViewport;
 
@@ -76,5 +82,10 @@ namespace TiledResources
 
         // Tiled Resources Tier.
         D3D12_TILED_RESOURCES_TIER                                          m_tiledResourcesTier;
+
+        HANDLE                                                              m_waitBackBuffer;
+        Microsoft::WRL::ComPtr<ID3D12Fence>                                 m_waitBackBufferFence;
+        UINT64                                                              m_frameIndex;
+
     };
 }

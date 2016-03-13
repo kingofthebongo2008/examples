@@ -86,7 +86,7 @@ namespace TiledResources
         GpuPixelBufferDescriptorHeap            m_pixelBufferDescriptorHeap;
         GpuDepthBufferDescriptorHeap            m_depthBufferDescriptorHeap;
 
-        details::PlacementHeapAllocator         m_uploadAllocator[3];
+        details::PlacementHeapAllocator         m_uploadAllocator[3];   //holds only buffers
         details::PlacementHeapAllocator         m_readBackAllocator[3];
 
         details::PlacementHeapAllocator         m_renderTargetAllocator;
