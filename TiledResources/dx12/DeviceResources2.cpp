@@ -194,12 +194,15 @@ void DeviceResources::CreateWindowSizeDependentResources()
     }
 
     // Create a render target view of the swap chain back buffer.
-    ComPtr<ID3D12Resource> backBuffer;
-    DX::ThrowIfFailed( m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)) );
+    ComPtr<ID3D12Resource> backBuffer0;
+    DX::ThrowIfFailed( m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer0)) );
+
+    ComPtr<ID3D12Resource> backBuffer1;
+    DX::ThrowIfFailed(m_swapChain->GetBuffer(1, IID_PPV_ARGS(&backBuffer1)));
 
     m_resourceCreateContext = std::make_unique< GpuResourceCreateContext >(m_d3dDevice.Get());
 
-    m_d3dRenderTargetView   =  m_resourceCreateContext->CreateBackBuffer(backBuffer.Get());
+    m_d3dRenderTargetView   =  m_resourceCreateContext->CreateBackBuffer(backBuffer0.Get());
     m_d3dDepthStencilView   =  m_resourceCreateContext->CreateDepthBuffer(m_d3dRenderTargetSize.cx, m_d3dRenderTargetSize.cy, DXGI_FORMAT_D24_UNORM_S8_UINT);
 
     // Set the 3D rendering viewport to target the entire window.

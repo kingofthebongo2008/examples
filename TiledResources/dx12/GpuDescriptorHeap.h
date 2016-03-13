@@ -95,5 +95,7 @@ namespace TiledResources
         UINT64                                       m_incrementSize;
     };
 
-    using GpuResourceDescriptorHeap = GpuDescriptorHeap< D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE >;
+    using GpuResourceDescriptorHeap     = GpuDescriptorHeap< D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE >;
+    using GpuPixelBufferDescriptorHeap  = GpuDescriptorHeap< D3D12_DESCRIPTOR_HEAP_TYPE_RTV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE>;
+    using GpuDepthBufferDescriptorHeap  = GpuDescriptorHeap< D3D12_DESCRIPTOR_HEAP_TYPE_DSV, D3D12_DESCRIPTOR_HEAP_FLAG_NONE>;
 }

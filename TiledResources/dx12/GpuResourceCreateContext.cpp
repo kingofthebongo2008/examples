@@ -61,17 +61,18 @@ namespace TiledResources
             return DescribeColorBuffer(width, height, 1, format, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL);
         }
 
-        inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateUploadHeap(ID3D12Device* device, SIZE_T size)
+        inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateUploadHeap(ID3D12Device* device, SIZE_T size, D3D12_HEAP_FLAGS flags )
         {
             D3D12_HEAP_DESC d = {};
-            d.Properties.Type                 = D3D12_HEAP_TYPE_UPLOAD;
-            d.Properties.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
+            d.Properties.Type = D3D12_HEAP_TYPE_UPLOAD;
+            d.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
             d.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-            d.Properties.CreationNodeMask     = 1;
-            d.Properties.VisibleNodeMask      = 1;
+            d.Properties.VisibleNodeMask = 1;
+            d.Properties.CreationNodeMask = 1;
 
             d.Alignment     = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
             d.SizeInBytes   = Align(size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            d.Flags         = flags;
 
             Microsoft::WRL::ComPtr<ID3D12Heap> result;
 
@@ -79,7 +80,17 @@ namespace TiledResources
             return result;
         }
 
-        inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateReadBackHeap(ID3D12Device* device, SIZE_T size)
+        inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateUploadBufferHeap( ID3D12Device* device, SIZE_T size )
+        {
+            return CreateUploadHeap(device, size, D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS);
+        }
+
+        inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateUploadTextureHeap(ID3D12Device* device, SIZE_T size)
+        {
+            return CreateUploadHeap(device, size, D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES);
+        }
+
+        inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateReadBackHeap(ID3D12Device* device, SIZE_T size, D3D12_HEAP_FLAGS flags)
         {
             D3D12_HEAP_DESC d = {};
             d.Properties.Type = D3D12_HEAP_TYPE_READBACK;
@@ -90,6 +101,7 @@ namespace TiledResources
 
             d.Alignment     = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
             d.SizeInBytes   = Align(size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            d.Flags         = D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES;
 
             Microsoft::WRL::ComPtr<ID3D12Heap> result;
 
@@ -97,7 +109,7 @@ namespace TiledResources
             return result;
         }
 
-        inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateDefaultHeap(ID3D12Device* device, SIZE_T size)
+        inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateDefaultHeap(ID3D12Device* device, SIZE_T size, D3D12_HEAP_FLAGS flags )
         {
             D3D12_HEAP_DESC d = {};
             d.Properties.Type = D3D12_HEAP_TYPE_DEFAULT;
@@ -106,8 +118,9 @@ namespace TiledResources
             d.Properties.CreationNodeMask = 1;
             d.Properties.VisibleNodeMask = 1;
 
-            d.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-            d.SizeInBytes = Align(size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            d.Alignment     = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            d.SizeInBytes   = Align(size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            d.Flags         = flags;
 
             Microsoft::WRL::ComPtr<ID3D12Heap> result;
 
@@ -147,37 +160,43 @@ namespace TiledResources
             return CreatePlacedResource(desc, initialState, nullptr, riid, resource);
         }
 
-        static inline PlacementHeapAllocator CreateUploadAllocator(ID3D12Device* d, SIZE_T size)
+        static inline PlacementHeapAllocator CreateUploadBuffersAllocator(ID3D12Device* d, SIZE_T size)
         {
-            return PlacementHeapAllocator(d, CreateUploadHeap(d, size), size);
+            return PlacementHeapAllocator(d, CreateUploadHeap(d, size, D3D12_HEAP_FLAG_ALLOW_ONLY_BUFFERS), size);
         }
 
-        static inline PlacementHeapAllocator CreateReadbackAllocator(ID3D12Device* d, SIZE_T size)
+        static inline PlacementHeapAllocator CreateUploadTexturesAllocator(ID3D12Device* d, SIZE_T size)
         {
-            return PlacementHeapAllocator(d, CreateReadBackHeap(d, size), size);
+            return PlacementHeapAllocator(d, CreateUploadHeap(d, size, D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES), size);
         }
 
-        static inline PlacementHeapAllocator CreateDefaultHeapAllocator(ID3D12Device* d, SIZE_T size)
+        static inline PlacementHeapAllocator CreateReadbackTexturesAllocator(ID3D12Device* d, SIZE_T size)
         {
-            return PlacementHeapAllocator(d, CreateDefaultHeap(d, size), size);
+            return PlacementHeapAllocator(d, CreateReadBackHeap(d, size, D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES), size);
+        }
+        static inline PlacementHeapAllocator CreateDefaultHeapTexturesAllocator(ID3D12Device* d, SIZE_T size)
+        {
+            return PlacementHeapAllocator(d, CreateDefaultHeap(d, size, D3D12_HEAP_FLAG_ALLOW_ONLY_RT_DS_TEXTURES), size);
         }
     }
 
     GpuResourceCreateContext::GpuResourceCreateContext(ID3D12Device* device) :
         m_device(device)
         , m_texturesDescriptorHeap(device, 256)
+        , m_pixelBufferDescriptorHeap(device, 256)
+        , m_depthBufferDescriptorHeap(device, 256)
         , m_frameIndex(0)
     {
-        m_uploadAllocator[0] = details::CreateUploadAllocator(device, details::MB(32));
-        m_uploadAllocator[1] = details::CreateUploadAllocator(device, details::MB(32));
-        m_uploadAllocator[2] = details::CreateUploadAllocator(device, details::MB(32));
+        m_uploadAllocator[0] = details::CreateUploadBuffersAllocator(device, details::MB(32));
+        m_uploadAllocator[1] = details::CreateUploadBuffersAllocator(device, details::MB(32));
+        m_uploadAllocator[2] = details::CreateUploadBuffersAllocator(device, details::MB(32));
 
-        m_readBackAllocator[0] = details::CreateReadbackAllocator(device, details::MB(32));
-        m_readBackAllocator[1] = details::CreateReadbackAllocator(device, details::MB(32));
-        m_readBackAllocator[2] = details::CreateReadbackAllocator(device, details::MB(32));
+        m_readBackAllocator[0] = details::CreateReadbackTexturesAllocator(device, details::MB(32));
+        m_readBackAllocator[1] = details::CreateReadbackTexturesAllocator(device, details::MB(32));
+        m_readBackAllocator[2] = details::CreateReadbackTexturesAllocator(device, details::MB(32));
 
-        m_renderTargetAllocator     = details::CreateDefaultHeapAllocator(device, details::MB(32));
-        m_tiledResourcesAllocator   = details::CreateDefaultHeapAllocator(device, details::MB(32));
+        m_renderTargetAllocator     = details::CreateDefaultHeapTexturesAllocator(device, details::MB(32));
+        m_tiledResourcesAllocator   = details::CreateDefaultHeapTexturesAllocator(device, details::MB(32));
 
     }
 
@@ -227,7 +246,7 @@ namespace TiledResources
 
         allocator->CreatePlacedResource(&desc, D3D12_RESOURCE_STATE_COMMON, &v, IID_PPV_ARGS(&resource));
 
-        auto handle = m_texturesDescriptorHeap.Allocate();
+        auto handle = m_pixelBufferDescriptorHeap.Allocate();
         m_device->CreateRenderTargetView( resource.Get() , &rtv, handle);
 
         return GpuColorBuffer(resource.Get(), handle, m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate() );
@@ -242,9 +261,9 @@ namespace TiledResources
         auto desc = details::DescribeColorBuffer(width, height, format, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL );
 
         Microsoft::WRL::ComPtr<ID3D12Resource>  resource;
-        auto allocator = GetReadBackAllocator();
+        //auto allocator = GetReadBackAllocator();
 
-        allocator->CreatePlacedResource(&desc, D3D12_RESOURCE_STATE_COMMON, &v, IID_PPV_ARGS(&resource));
+        m_renderTargetAllocator.CreatePlacedResource(&desc, D3D12_RESOURCE_STATE_COMMON, &v, IID_PPV_ARGS(&resource));
 
         // Create the shader resource view
         D3D12_SHADER_RESOURCE_VIEW_DESC viewDesc = {};
@@ -269,10 +288,10 @@ namespace TiledResources
         DescriptorHandle srv[2] = { srvDepth, srvStencil };
 
         //Create depth stencil view
-        DescriptorHandle dsvReadWrite            = m_texturesDescriptorHeap.Allocate();
-        DescriptorHandle dsvReadDepth            = m_texturesDescriptorHeap.Allocate();
-        DescriptorHandle dsvReadStencil          = m_texturesDescriptorHeap.Allocate();
-        DescriptorHandle dsvReadDepthStencil     = m_texturesDescriptorHeap.Allocate();
+        DescriptorHandle dsvReadWrite            = m_depthBufferDescriptorHeap.Allocate();
+        DescriptorHandle dsvReadDepth            = m_depthBufferDescriptorHeap.Allocate();
+        DescriptorHandle dsvReadStencil          = m_depthBufferDescriptorHeap.Allocate();
+        DescriptorHandle dsvReadDepthStencil     = m_depthBufferDescriptorHeap.Allocate();
 
         D3D12_DEPTH_STENCIL_VIEW_DESC desc2      = {};
 
@@ -309,7 +328,7 @@ namespace TiledResources
         rtv.ViewDimension                 = D3D12_RTV_DIMENSION_TEXTURE2D;
         rtv.Texture2D.MipSlice            = 0;
 
-        auto handle                       = m_texturesDescriptorHeap.Allocate();
+        auto handle                       = m_pixelBufferDescriptorHeap.Allocate();
         m_device->CreateRenderTargetView(resource, &rtv, handle);
 
         return GpuBackBuffer(resource, handle);

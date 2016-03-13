@@ -19,7 +19,7 @@ namespace TiledResources
     {
         inline SIZE_T Align(SIZE_T size, SIZE_T alignment)
         {
-            return ( size + alignment - 1 ) & ( alignment - 1 );
+            return  ( size + alignment - 1 ) & ~( alignment - 1 );
         }
 
         /*
@@ -83,6 +83,8 @@ namespace TiledResources
 
         Microsoft::WRL::ComPtr<ID3D12Device>    m_device;
         GpuResourceDescriptorHeap               m_texturesDescriptorHeap;
+        GpuPixelBufferDescriptorHeap            m_pixelBufferDescriptorHeap;
+        GpuDepthBufferDescriptorHeap            m_depthBufferDescriptorHeap;
 
         details::PlacementHeapAllocator         m_uploadAllocator[3];
         details::PlacementHeapAllocator         m_readBackAllocator[3];
