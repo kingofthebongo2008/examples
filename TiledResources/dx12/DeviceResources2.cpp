@@ -6,14 +6,14 @@
 //// Copyright (c) Microsoft Corporation. All rights reserved
 
 #include "pch.h"
-#include "DeviceResources.h"
+#include "DeviceResources2.h"
 
 #include "DirectXHelper.h"                   // For ThrowIfFailed
 #include <windows.ui.xaml.media.dxinterop.h> // For SwapChainBackgroundPanel native methods
 
 using namespace TiledResources;
 
-using namespace D2D1;
+//using namespace D2D1;
 using namespace DirectX;
 using namespace Microsoft::WRL;
 
@@ -25,7 +25,7 @@ DeviceResources::DeviceResources() :
     m_d3dFeatureLevel(D3D_FEATURE_LEVEL_9_1),
     m_d3dRenderTargetSize(),
     m_windowBounds(),
-    m_tiledResourcesTier(D3D11_TILED_RESOURCES_NOT_SUPPORTED)
+    m_tiledResourcesTier(D3D12_TILED_RESOURCES_TIER_NOT_SUPPORTED)
 {
     CreateDeviceIndependentResources();
     CreateDeviceResources();
@@ -43,7 +43,16 @@ void DeviceResources::CreateDeviceResources()
 
     HR hr = S_OK;
 
+#if defined(_DEBUG) // this must be first, before everything else, otherwise d3d12 has problems
+    DX::ThrowIfFailed(D3D12GetDebugInterface(IID_PPV_ARGS(&m_debug)));
+    m_debug->EnableDebugLayer();
+#endif
+
+#if defined(_DEBUG)
+    hr = CreateDXGIFactory2(DXGI_CREATE_FACTORY_DEBUG,IID_PPV_ARGS(&m_dxgiFactory));
+#else
     hr = CreateDXGIFactory2(0, IID_PPV_ARGS(&m_dxgiFactory));
+#endif
 
     wcout << L"Finding an adapter that supports tiled resources..." << endl;
     UINT i = 0;
@@ -64,61 +73,38 @@ void DeviceResources::CreateDeviceResources()
             DXGI_ADAPTER_DESC1 desc = { 0 };
             hr = adapter->GetDesc1(&desc);
             wcout << i << L": " << desc.Description << L" - ";
-            UINT flags = D3D11_CREATE_DEVICE_BGRA_SUPPORT;
-#ifdef _DEBUG
-            flags |= D3D11_CREATE_DEVICE_DEBUG; // for now, disable debug spew (currently incorrect regarding barrier warning)
-#endif
-            D3D_FEATURE_LEVEL featureLevels [] =
-            {
-                D3D_FEATURE_LEVEL_11_1,
-                D3D_FEATURE_LEVEL_11_0
-            };
-            ComPtr<ID3D11Device> dev;
-            ComPtr<ID3D11DeviceContext> con;
-            D3D_FEATURE_LEVEL featureLevel;
-            HRESULT chr = D3D11CreateDevice(
-                adapter.Get(), //nullptr,//adapter.Get(),
-                D3D_DRIVER_TYPE_UNKNOWN, //D3D_DRIVER_TYPE_WARP, //D3D_DRIVER_TYPE_UNKNOWN,
-                NULL,
-                flags,
-                featureLevels,
-                ARRAYSIZE(featureLevels),
-                D3D11_SDK_VERSION,
-                &dev,
-                &featureLevel,
-                &con
-                );
+
+            ComPtr<ID3D12Device> dev;
+            HRESULT chr = D3D12CreateDevice( adapter.Get(), D3D_FEATURE_LEVEL_11_0, IID_PPV_ARGS(&dev));
+
             if (FAILED(chr))
             {
-                wcout << L"couldn't create feature level 11+ device" << endl;
+                wcout << L"couldn't create feature level 11 device " << endl;
             }
             else
             {
-                D3D11_FEATURE_DATA_D3D11_OPTIONS1 supportData;
-                hr = dev->CheckFeatureSupport(D3D11_FEATURE_D3D11_OPTIONS1, &supportData, sizeof(supportData));
-                if (supportData.TiledResourcesTier == D3D11_TILED_RESOURCES_NOT_SUPPORTED)
+                D3D12_FEATURE feature = D3D12_FEATURE_D3D12_OPTIONS;
+                D3D12_FEATURE_DATA_D3D12_OPTIONS options = {};
+                hr = dev->CheckFeatureSupport(feature, &options, sizeof(options));
+
+                std::wstring messages[] =
                 {
-                    wcout << L"no support for tiled resources" << endl;
-                }
-                else
+                    L"no support for tiled resources ",
+                    L"supports tier 1 ",
+                    L"supports tier 2 ",
+                    L"supports tier 3 ",
+                    L"Unknown tier"
+                };
+
+                UINT index = options.TiledResourcesTier <= D3D12_TILED_RESOURCES_TIER_3 ? options.TiledResourcesTier : D3D12_TILED_RESOURCES_TIER_3 + 1;
+
+                wcout << messages[index] << endl;
+
+                if ( options.TiledResourcesTier > D3D12_TILED_RESOURCES_TIER_NOT_SUPPORTED )
                 {
-                    if (supportData.TiledResourcesTier == D3D11_TILED_RESOURCES_TIER_1)
-                    {
-                        wcout << L"supports tier 1 - ";
-                    }
-                    else if (supportData.TiledResourcesTier == D3D11_TILED_RESOURCES_TIER_2)
-                    {
-                        wcout << L"supports tier 2 - ";
-                    }
-                    else
-                    {
-                        wcout << L"supports unknown tier - ";
-                    }
-                    hr = dev.As(&m_d3dDevice);
-                    hr = con.As(&m_d3dContext);
-                    m_tiledResourcesTier = supportData.TiledResourcesTier;
-					m_tiledResourcesTier = D3D11_TILED_RESOURCES_TIER_1; // for now, force tier-1 behavior - still some issues in the sample code
+                    m_tiledResourcesTier = D3D12_TILED_RESOURCES_TIER_1; // for now, force tier-1 behavior - still some issues in the sample code
                     wcout << L"using this adapter" << endl;
+                    m_d3dDevice = dev;
                     break;
                 }
             }
@@ -126,11 +112,13 @@ void DeviceResources::CreateDeviceResources()
         i++;
     }
 
-    // Create the Direct2D device object and a corresponding context.
-    ComPtr<IDXGIDevice3> dxgiDevice;
-    DX::ThrowIfFailed(
-        m_d3dDevice.As(&dxgiDevice)
-        );
+    //Create the direct command queue to the gpu
+    D3D12_COMMAND_QUEUE_DESC queue_desc = {};
+    queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+    queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+    DX::ThrowIfFailed(m_d3dDevice->CreateCommandQueue(&queue_desc, IID_PPV_ARGS(&m_directQueue)));
+
 }
 
 // These resources need to be recreated every time the window size is changed.
@@ -178,103 +166,50 @@ void DeviceResources::CreateWindowSizeDependentResources()
     else
     {
         // Otherwise, create a new one using the same adapter as the existing Direct3D device.
-        DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {0};
+        DXGI_MODE_DESC mode = {};
+        DXGI_SWAP_CHAIN_DESC desc = {};
 
-        swapChainDesc.Width = static_cast<UINT>(m_d3dRenderTargetSize.cx); // Match the size of the window.
-        swapChainDesc.Height = static_cast<UINT>(m_d3dRenderTargetSize.cy);
-        swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM; // This is the most common swap chain format.
-        swapChainDesc.Stereo = false;
-        swapChainDesc.SampleDesc.Count = 1; // Don't use multi-sampling.
-        swapChainDesc.SampleDesc.Quality = 0;
-        swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-        swapChainDesc.BufferCount = 2; // Use double-buffering to minimize latency.
-        swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL; // All Windows Store apps must use this SwapEffect.
-        swapChainDesc.Flags = 0;
+        mode.RefreshRate.Numerator = 60;
+        mode.RefreshRate.Denominator = 1;
 
-        swapChainDesc.Scaling = DXGI_SCALING_STRETCH;
+        mode.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
 
-        swapChainDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE; // When using XAML interop, this value cannot be DXGI_ALPHA_MODE_PREMULTIPLIED
-
-        // This sequence obtains the DXGI factory that was used to create the Direct3D device above.
-        ComPtr<IDXGIDevice3> dxgiDevice;
-        DX::ThrowIfFailed(
-            m_d3dDevice.As(&dxgiDevice)
-            );
+        desc.BufferDesc = mode;
+        desc.Windowed = m_window != 0;
+        desc.OutputWindow = m_window;
+        desc.BufferCount = 2;
+        desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+        desc.SampleDesc.Count = 1;
+        desc.SampleDesc.Quality = 0;
+        desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+        desc.Flags = 0;
 
         DX::ThrowIfFailed(
-            m_dxgiFactory->CreateSwapChainForHwnd(
-                m_d3dDevice.Get(),
-                m_window,
-                &swapChainDesc,
-                NULL,
-                NULL,
+            m_dxgiFactory->CreateSwapChain(
+                m_directQueue.Get(),
+                &desc,
                 &m_swapChain
                 )
-            );
-
-        // Ensure that DXGI does not queue more than one frame at a time. This both reduces latency and
-        // ensures that the application will only render after each VSync, minimizing power consumption.
-        DX::ThrowIfFailed(
-            dxgiDevice->SetMaximumFrameLatency(1)
             );
     }
 
     // Create a render target view of the swap chain back buffer.
-    ComPtr<ID3D11Texture2D> backBuffer;
-    DX::ThrowIfFailed(
-        m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer))
-        );
+    ComPtr<ID3D12Resource> backBuffer;
+    DX::ThrowIfFailed( m_swapChain->GetBuffer(0, IID_PPV_ARGS(&backBuffer)) );
 
-    DX::ThrowIfFailed(
-        m_d3dDevice->CreateRenderTargetView(
-        backBuffer.Get(),
-        nullptr,
-        &m_d3dRenderTargetView
-        )
-        );
+    m_resourceCreateContext = std::make_unique< GpuResourceCreateContext >(m_d3dDevice.Get());
 
-    // Create a depth stencil view for use with 3D rendering if needed.
-    CD3D11_TEXTURE2D_DESC depthStencilDesc(
-        DXGI_FORMAT_D24_UNORM_S8_UINT,
-        static_cast<UINT>(m_d3dRenderTargetSize.cx),
-        static_cast<UINT>(m_d3dRenderTargetSize.cy),
-        1, // This depth stencil view has only one texture.
-        1, // Use a single mipmap level.
-        D3D11_BIND_DEPTH_STENCIL
-        );
-
-    ComPtr<ID3D11Texture2D> depthStencil;
-    DX::ThrowIfFailed(
-        m_d3dDevice->CreateTexture2D(
-            &depthStencilDesc,
-            nullptr,
-            &depthStencil
-            )
-        );
-
-    CD3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc(D3D11_DSV_DIMENSION_TEXTURE2D);
-    DX::ThrowIfFailed(
-        m_d3dDevice->CreateDepthStencilView(
-        depthStencil.Get(),
-        &depthStencilViewDesc,
-        &m_d3dDepthStencilView
-        )
-        );
+    m_d3dRenderTargetView   =  m_resourceCreateContext->CreateBackBuffer(backBuffer.Get());
+    m_d3dDepthStencilView   =  m_resourceCreateContext->CreateDepthBuffer(m_d3dRenderTargetSize.cx, m_d3dRenderTargetSize.cy, DXGI_FORMAT_D24_UNORM_S8_UINT);
 
     // Set the 3D rendering viewport to target the entire window.
-    m_screenViewport = CD3D11_VIEWPORT(
-        0.0f,
-        0.0f,
-        (float)m_d3dRenderTargetSize.cx,
-        (float)m_d3dRenderTargetSize.cy
-        );
-
-    m_d3dContext->RSSetViewports(1, &m_screenViewport);
-
-    ComPtr<IDXGISurface2> dxgiBackBuffer;
-    DX::ThrowIfFailed(
-        m_swapChain->GetBuffer(0, IID_PPV_ARGS(&dxgiBackBuffer))
-        );
+    m_screenViewport.TopLeftX = 0.0f;
+    m_screenViewport.TopLeftY = 0.0f;
+    m_screenViewport.Width    = (float)m_d3dRenderTargetSize.cx;
+    m_screenViewport.Height   = (float)m_d3dRenderTargetSize.cy;
+    m_screenViewport.MinDepth = 0.0f;
+    m_screenViewport.MaxDepth = 1.0f;
+   
 }
 
 // This method is called when the CoreWindow is created (or re-created)
@@ -290,11 +225,11 @@ void DeviceResources::SetWindow(HWND window)
 // This method is called in the event handler for the SizeChanged event.
 void DeviceResources::UpdateForWindowSizeChange()
 {
+    /*
     ID3D11RenderTargetView* nullViews[] = {nullptr};
     m_d3dContext->OMSetRenderTargets(ARRAYSIZE(nullViews), nullViews, nullptr);
-    m_d3dRenderTargetView = nullptr;
-    m_d3dDepthStencilView = nullptr;
     m_d3dContext->Flush();
+    */
     CreateWindowSizeDependentResources();
 }
 
@@ -310,10 +245,10 @@ void DeviceResources::Present()
     // Discard the contents of the render target.
     // This is a valid operation only when the existing contents will be entirely
     // overwritten. If dirty or scroll rects are used, this call should be removed.
-    m_d3dContext->DiscardView(m_d3dRenderTargetView.Get());
+    //m_d3dContext->DiscardView(m_d3dRenderTargetView.Get());
 
     // Discard the contents of the depth stencil.
-    m_d3dContext->DiscardView(m_d3dDepthStencilView.Get());
+    //m_d3dContext->DiscardView(m_d3dDepthStencilView.Get());
 
     // If the device was removed either by a disconnect or a driver upgrade, we 
     // must recreate all device resources.

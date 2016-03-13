@@ -306,10 +306,10 @@ namespace TiledResources
     GpuBackBuffer GpuResourceCreateContext::CreateBackBuffer( ID3D12Resource* resource)
     {
         D3D12_RENDER_TARGET_VIEW_DESC rtv = {};
-        rtv.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
-        rtv.Texture2D.MipSlice = 0;
+        rtv.ViewDimension                 = D3D12_RTV_DIMENSION_TEXTURE2D;
+        rtv.Texture2D.MipSlice            = 0;
 
-        auto handle = m_texturesDescriptorHeap.Allocate();
+        auto handle                       = m_texturesDescriptorHeap.Allocate();
         m_device->CreateRenderTargetView(resource, &rtv, handle);
 
         return GpuBackBuffer(resource, handle);

@@ -14,6 +14,11 @@ namespace TiledResources
 
         public:
 
+        GpuDepthBuffer() : Base(nullptr)
+        {
+
+        }
+
         GpuDepthBuffer(ID3D12Resource* resource, DescriptorHandle srv[2], DescriptorHandle dsv[4] ) : Base(resource)
         {
             m_SRV[0] = srv[0];

@@ -22,10 +22,12 @@ namespace TiledResources
             return ( size + alignment - 1 ) & ( alignment - 1 );
         }
 
+        /*
         inline UINT64 Align(UINT64 size, UINT64 alignment)
         {
             return (size + alignment - 1) & (alignment - 1);
         }
+        */
 
         inline SIZE_T MB(SIZE_T size)
         {

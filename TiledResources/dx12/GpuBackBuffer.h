@@ -2,6 +2,7 @@
 
 #include "GpuResource.h"
 #include "GpuPixelBuffer.h"
+#include "GpuDescriptorHeap.h"
 
 namespace TiledResources
 {
@@ -12,6 +13,16 @@ namespace TiledResources
         using Base = GpuPixelBuffer;
 
     public:
+        GpuBackBuffer() : Base(nullptr)
+        {
+
+        }
+
+        GpuBackBuffer(ID3D12Resource* resource) : Base(nullptr)
+        {
+
+        }
+
         GpuBackBuffer(ID3D12Resource* resource, DescriptorHandle rtv) : Base(resource)
             , m_RTV(rtv)
         {

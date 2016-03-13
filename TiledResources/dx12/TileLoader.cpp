@@ -14,8 +14,6 @@
 
 using namespace TiledResources;
 
-GpuResourceDescriptorHeap h(nullptr, 200);
-
 using namespace concurrency;
 
 #define ADD_TILE_BORDERS 1

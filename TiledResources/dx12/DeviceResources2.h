@@ -8,14 +8,14 @@
 #pragma once
 
 #include <d3d12.h>
-#include <dxgi1_2.h>
+#include <dxgi1_4.h>
 #include <wrl/client.h>
 
 #include "GpuBackBuffer.h"
 #include "GpuDepthBuffer.h"
 #include "GpuCommandContext.h"
+#include "GpuResourceCreateContext.h"
 
-class IDXGISwapChain1;
 
 namespace TiledResources
 {
@@ -32,11 +32,11 @@ namespace TiledResources
         RECT                        GetWindowBounds() const                 { return m_windowBounds; }
         // D3D Accessors.
         ID3D12Device*               GetD3DDevice() const                    { return m_d3dDevice.Get(); }
-        GpuCommandContext*          GetD3DDeviceContext() const             { return &m_d3dContext; }
-        IDXGISwapChain1*            GetSwapChain() const                    { return m_swapChain.Get(); }
+        const GpuCommandContext*    GetD3DDeviceContext() const             { return &m_d3dContext; }
+        IDXGISwapChain*             GetSwapChain() const                    { return m_swapChain.Get(); }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const           { return m_d3dFeatureLevel; }
-        GpuBackBuffer*              GetBackBufferRenderTargetView() const   { return &m_d3dRenderTargetView; }
-        GpuDepthBuffer*             GetDepthStencilView() const             { return &m_d3dDepthStencilView; }
+        const GpuBackBuffer*        GetBackBufferRenderTargetView() const   { return &m_d3dRenderTargetView; }
+        const GpuDepthBuffer*       GetDepthStencilView() const             { return &m_d3dDepthStencilView; }
         
         D3D12_VIEWPORT              GetScreenViewport() const               { return m_screenViewport; }
 
@@ -50,11 +50,16 @@ namespace TiledResources
 
         DXGI_MODE_ROTATION ComputeDisplayRotation();
 
+        std::unique_ptr<GpuResourceCreateContext>                           m_resourceCreateContext;
         // Direct3D objects.
         Microsoft::WRL::ComPtr<ID3D12Device>                                m_d3dDevice;
+        Microsoft::WRL::ComPtr <ID3D12CommandQueue>                         m_directQueue;
         GpuCommandContext                                                   m_d3dContext;
-        Microsoft::WRL::ComPtr<IDXGISwapChain1>                             m_swapChain;
-        Microsoft::WRL::ComPtr<IDXGIFactory2>                               m_dxgiFactory;
+        Microsoft::WRL::ComPtr<IDXGISwapChain>                              m_swapChain;
+        Microsoft::WRL::ComPtr<IDXGIFactory4>                               m_dxgiFactory;
+        #if defined(_DEBUG)
+        Microsoft::WRL::ComPtr<ID3D12Debug>                                 m_debug;
+        #endif
 
         // Direct3D rendering objects. Required for 3D.
         GpuBackBuffer                                                       m_d3dRenderTargetView;
@@ -65,11 +70,11 @@ namespace TiledResources
         HWND m_window;
 
         // Cached device properties.
-        D3D_FEATURE_LEVEL                           m_d3dFeatureLevel;
-        SIZE                                        m_d3dRenderTargetSize;
-        RECT                                        m_windowBounds;
+        D3D_FEATURE_LEVEL                                                   m_d3dFeatureLevel;
+        SIZE                                                                m_d3dRenderTargetSize;
+        RECT                                                                m_windowBounds;
 
         // Tiled Resources Tier.
-        D3D12_TILED_RESOURCES_TIER                  m_tiledResourcesTier;
+        D3D12_TILED_RESOURCES_TIER                                          m_tiledResourcesTier;
     };
 }
