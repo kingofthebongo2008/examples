@@ -73,6 +73,8 @@ namespace TiledResources
         //Tiled Resources
         GpuTiledCubeTexture     CreateTiledCubeTexture();
 
+        GpuBackBuffer           CreateBackBuffer(ID3D12Resource* r);
+
         void Sync();
 
         private:

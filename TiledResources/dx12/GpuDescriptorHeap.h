@@ -9,6 +9,12 @@ namespace TiledResources
     class DescriptorHandle
     {
         public: 
+        DescriptorHandle()
+        {
+            m_h0.ptr = 0;
+            m_h1.ptr = 1;
+        }
+
         DescriptorHandle(D3D12_CPU_DESCRIPTOR_HANDLE h0, D3D12_GPU_DESCRIPTOR_HANDLE h1) :
             m_h0(h0)
             , m_h1(h1)
@@ -23,7 +29,7 @@ namespace TiledResources
 
         operator D3D12_CPU_DESCRIPTOR_HANDLE() const
         {
-            m_h0;
+            return m_h0;
         }
 
     private:

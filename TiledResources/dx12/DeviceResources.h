@@ -7,6 +7,9 @@
 
 #pragma once
 
+#include "GpuBackBuffer.h"
+#include "GpuDepthBuffer.h"
+
 namespace TiledResources
 {
     // Controls all the DirectX device resources.
@@ -22,12 +25,12 @@ namespace TiledResources
         RECT                    GetWindowBounds() const                 { return m_windowBounds; }
 
         // D3D Accessors.
-        ID3D12Device*               GetD3DDevice() const                    { return m_d3dDevice.Get(); }
-        ID3D11DeviceContext2*       GetD3DDeviceContext() const             { return m_d3dContext.Get(); }
-        IDXGISwapChain1*            GetSwapChain() const                    { return m_swapChain.Get(); }
+        ID3D12Device*               GetD3DDevice() const                { return m_d3dDevice.Get(); }
+//        ID3D11DeviceContext2*       GetD3DDeviceContext() const             { return m_d3dContext.Get(); }
+ //       IDXGISwapChain1*            GetSwapChain() const                    { return m_swapChain.Get(); }
         D3D_FEATURE_LEVEL           GetDeviceFeatureLevel() const           { return m_d3dFeatureLevel; }
-        ID3D11RenderTargetView*     GetBackBufferRenderTargetView() const   { return m_d3dRenderTargetView.Get(); }
-        ID3D11DepthStencilView*     GetDepthStencilView() const             { return m_d3dDepthStencilView.Get(); }
+        GpuBackBuffer*              GetBackBufferRenderTargetView() const   { return m_d3dRenderTargetView.Get(); }
+        GpuDepthBuffer*             GetDepthStencilView() const             { return m_d3dDepthStencilView.Get(); }
         
         D3D12_VIEWPORT              GetScreenViewport() const               { return m_screenViewport; }
 
@@ -42,7 +45,7 @@ namespace TiledResources
         DXGI_MODE_ROTATION ComputeDisplayRotation();
 
         // Direct3D objects.
-        Microsoft::WRL::ComPtr<ID3D11Device2>        m_d3dDevice;
+        Microsoft::WRL::ComPtr<ID3D12Device>        m_d3dDevice;
         Microsoft::WRL::ComPtr<ID3D11DeviceContext2> m_d3dContext;
         Microsoft::WRL::ComPtr<IDXGISwapChain1>      m_swapChain;
         Microsoft::WRL::ComPtr<IDXGIFactory2>        m_dxgiFactory;

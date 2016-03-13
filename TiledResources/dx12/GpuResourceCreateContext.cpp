@@ -64,14 +64,14 @@ namespace TiledResources
         inline Microsoft::WRL::ComPtr<ID3D12Heap> CreateUploadHeap(ID3D12Device* device, SIZE_T size)
         {
             D3D12_HEAP_DESC d = {};
-            d.Properties.Type = D3D12_HEAP_TYPE_UPLOAD;
-            d.Properties.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
+            d.Properties.Type                 = D3D12_HEAP_TYPE_UPLOAD;
+            d.Properties.CPUPageProperty      = D3D12_CPU_PAGE_PROPERTY_WRITE_COMBINE;
             d.Properties.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
-            d.Properties.CreationNodeMask = 1;
-            d.Properties.VisibleNodeMask = 1;
+            d.Properties.CreationNodeMask     = 1;
+            d.Properties.VisibleNodeMask      = 1;
 
-            d.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-            d.SizeInBytes = Align(size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            d.Alignment     = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            d.SizeInBytes   = Align(size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
 
             Microsoft::WRL::ComPtr<ID3D12Heap> result;
 
@@ -88,8 +88,8 @@ namespace TiledResources
             d.Properties.CreationNodeMask = 1;
             d.Properties.VisibleNodeMask = 1;
 
-            d.Alignment = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
-            d.SizeInBytes = Align(size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
+            d.Alignment     = D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT;
+            d.SizeInBytes   = Align(size, D3D12_DEFAULT_RESOURCE_PLACEMENT_ALIGNMENT);
 
             Microsoft::WRL::ComPtr<ID3D12Heap> result;
 
@@ -213,34 +213,106 @@ namespace TiledResources
 
     GpuColorBuffer  GpuResourceCreateContext::CreateColorBuffer(UINT width, UINT height, DXGI_FORMAT format)
     {
-        D3D12_CLEAR_VALUE get_clear_value(DXGI_FORMAT f)
-        {
-        
-            return v;
-        }
-
         D3D12_CLEAR_VALUE v = {};
-        v.Format = f;
+        v.Format = format;
 
         auto desc = details::DescribeColorBuffer(width, height, format, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS );
 
         Microsoft::WRL::ComPtr<ID3D12Resource>  resource;
         auto allocator = GetReadBackAllocator();
 
-        allocator->CreatePlacedResource(&desc, D3D12_RESOURCE_STATE_COMMON, IID_PPV_ARGS(&resource));
-        return GpuColorBuffer(resource.Get(), m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate() );
+        D3D12_RENDER_TARGET_VIEW_DESC rtv = {};
+        rtv.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+        rtv.Texture2D.MipSlice = 0;
+
+        allocator->CreatePlacedResource(&desc, D3D12_RESOURCE_STATE_COMMON, &v, IID_PPV_ARGS(&resource));
+
+        auto handle = m_texturesDescriptorHeap.Allocate();
+        m_device->CreateRenderTargetView( resource.Get() , &rtv, handle);
+
+        return GpuColorBuffer(resource.Get(), handle, m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate() );
     }
 
     //Depth Buffer
     GpuDepthBuffer  GpuResourceCreateContext::CreateDepthBuffer(UINT width, UINT height, DXGI_FORMAT format)
     {
-        auto desc = details::DescribeColorBuffer(width, height, format, D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET | D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS);
+        D3D12_CLEAR_VALUE v = {};
+        v.Format = format;
+
+        auto desc = details::DescribeColorBuffer(width, height, format, D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL );
 
         Microsoft::WRL::ComPtr<ID3D12Resource>  resource;
         auto allocator = GetReadBackAllocator();
 
-        allocator->CreatePlacedResource(&desc, D3D12_RESOURCE_STATE_COMMON, IID_PPV_ARGS(&resource));
-        return GpuColorBuffer(resource.Get(), m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate());
+        allocator->CreatePlacedResource(&desc, D3D12_RESOURCE_STATE_COMMON, &v, IID_PPV_ARGS(&resource));
+
+        // Create the shader resource view
+        D3D12_SHADER_RESOURCE_VIEW_DESC viewDesc = {};
+        viewDesc.Format                          = GetDepthFormat(format);
+        viewDesc.ViewDimension                   = D3D12_SRV_DIMENSION_TEXTURE2D;
+        viewDesc.Shader4ComponentMapping         = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        viewDesc.Texture2D.MipLevels             = 1;
+
+        DescriptorHandle srvDepth                = m_texturesDescriptorHeap.Allocate();
+        DescriptorHandle srvStencil              = m_texturesDescriptorHeap.Allocate();;
+
+        m_device->CreateShaderResourceView(resource.Get(), &viewDesc, srvDepth);
+
+        // If stencil format is something else, use it
+        DXGI_FORMAT stencilFormat = GetStencilFormat(format);
+        if ( stencilFormat != DXGI_FORMAT_UNKNOWN )
+        {
+            viewDesc.Format = stencilFormat;
+        }
+        m_device->CreateShaderResourceView(resource.Get(), &viewDesc, srvStencil);
+
+        DescriptorHandle srv[2] = { srvDepth, srvStencil };
+
+        //Create depth stencil view
+        DescriptorHandle dsvReadWrite            = m_texturesDescriptorHeap.Allocate();
+        DescriptorHandle dsvReadDepth            = m_texturesDescriptorHeap.Allocate();
+        DescriptorHandle dsvReadStencil          = m_texturesDescriptorHeap.Allocate();
+        DescriptorHandle dsvReadDepthStencil     = m_texturesDescriptorHeap.Allocate();
+
+        D3D12_DEPTH_STENCIL_VIEW_DESC desc2      = {};
+
+        desc2.ViewDimension                      = D3D12_DSV_DIMENSION_TEXTURE2D;
+        desc2.Texture2D.MipSlice                 = 0;
+        desc2.Flags                              = D3D12_DSV_FLAG_NONE;
+
+        m_device->CreateDepthStencilView(resource.Get(), &desc2, dsvReadWrite);
+
+        desc2.Flags                              = D3D12_DSV_FLAG_READ_ONLY_DEPTH;
+        m_device->CreateDepthStencilView(resource.Get(), &desc2, dsvReadDepth);
+
+        desc2.Flags                              = D3D12_DSV_FLAG_READ_ONLY_DEPTH | D3D12_DSV_FLAG_READ_ONLY_STENCIL;
+        m_device->CreateDepthStencilView(resource.Get(), &desc2, dsvReadDepth);
+
+        if (stencilFormat != DXGI_FORMAT_UNKNOWN)
+        {
+            desc2.Flags = D3D12_DSV_FLAG_READ_ONLY_STENCIL;
+            m_device->CreateDepthStencilView(resource.Get(), &desc2, dsvReadStencil);
+        }
+        else
+        {
+            dsvReadStencil = dsvReadDepthStencil;
+        }
+
+        DescriptorHandle dsv[4]                  = { dsvReadWrite, dsvReadDepth, dsvReadStencil, dsvReadDepthStencil };
+
+        return GpuDepthBuffer(resource.Get(), srv, dsv);
+    }
+
+    GpuBackBuffer GpuResourceCreateContext::CreateBackBuffer( ID3D12Resource* resource)
+    {
+        D3D12_RENDER_TARGET_VIEW_DESC rtv = {};
+        rtv.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
+        rtv.Texture2D.MipSlice = 0;
+
+        auto handle = m_texturesDescriptorHeap.Allocate();
+        m_device->CreateRenderTargetView(resource, &rtv, handle);
+
+        return GpuBackBuffer(resource, handle);
     }
 
     void GpuResourceCreateContext::Sync()
