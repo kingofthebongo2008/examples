@@ -225,7 +225,7 @@ namespace TiledResources
         return GpuReadBackBuffer(resource.Get());
     }
 
-    GpuTiledCubeTexture GpuResourceCreateContext::CreateTiledCubeTexture()
+    GpuTiledCubeTexture GpuResourceCreateContext::CreateTiledCubeTexture(UINT width, UINT height, DXGI_FORMAT format)
     {
         return GpuTiledCubeTexture(nullptr, m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate());
     }

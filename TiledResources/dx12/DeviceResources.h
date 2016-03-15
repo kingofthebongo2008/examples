@@ -4,7 +4,7 @@
 //// PARTICULAR PURPOSE.
 ////
 //// Copyright (c) Microsoft Corporation. All rights reserved
-
+/*
 #pragma once
 
 #include "GpuBackBuffer.h"
@@ -67,3 +67,4 @@ namespace TiledResources
         D3D12_TILED_RESOURCES_TIER m_tiledResourcesTier;
     };
 }
+*/
