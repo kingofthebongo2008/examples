@@ -1,5 +1,3 @@
-#include "precompiled.h"
-
 #include <math/math_functions.h>
 
 namespace math
