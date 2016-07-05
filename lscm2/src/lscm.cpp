@@ -849,10 +849,10 @@ class sample_application2 : public sample_application
 
         auto scale      = math::scaling( math::set( 40.0f, 40.0f, 40.0f, 1.0f) );
 
+        //do simple update
         static uint32_t step = 0;
-        auto rotation   = math::rotation_y(rotation_radian(step++, 360));
-
-        auto w          = math::mul(rotation, math::mul(scale, math::identity_matrix()) ) ;
+        auto rotation        = math::rotation_y(rotation_radian(step++, 360));
+        auto w               = math::mul(rotation, math::mul(scale, math::identity_matrix()) ) ;
 
         m_depth_prepass_vs_buffer.set_w( w );
         m_depth_prepass_ps_buffer.set_instance_id( 255 );
@@ -967,33 +967,9 @@ class sample_application2 : public sample_application
 DEFINE_GUID(DXGI_DEBUG_ALL, 0xe48ae283, 0xda80, 0x490b, 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8);
 
 
-static uint8_t vmulub(uint8_t a, uint8_t b)
-{
-    uint8_t r = 0;
-
-    //while ( a != 0 )
-    for ( uint32_t i = 0; i < 8; ++i )
-    {
-        if ( a & 0x1 )
-        {
-            r = r + b;
-        }
-            
-        b = b << 1;
-        a = a >> 1;
-    }
-
-    return r;
-}
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-    auto r = vmulub( 254, 255 );// , 1);
-
-    auto k = (uint8_t) ( (uint8_t)(254) * (uint8_t)(255) );
-
-    auto    l = (254) * (255);
-    uint8_t k1 = static_cast<uint32_t>  ( l );
 
 
     using namespace lscm::indexed_face_set;
