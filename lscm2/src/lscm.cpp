@@ -497,7 +497,7 @@ class sample_application : public gx::default_application
         , m_d2d_resource ( gx::create_render_target_resource( m_context.m_device, 8, 8, DXGI_FORMAT_R8G8B8A8_UNORM ) )
         , m_opaque_state ( gx::create_opaque_blend_state( m_context.m_device ) )
         , m_premultiplied_alpha_state(gx::create_premultiplied_alpha_blend_state(m_context.m_device))
-        , m_cull_back_raster_state ( gx::create_cull_back_rasterizer_state( m_context.m_device ) )
+        , m_cull_back_raster_state ( gx::create_cull_back_rasterizer_state_wireframe( m_context.m_device ) )
         , m_cull_none_raster_state(gx::create_cull_none_rasterizer_state(m_context.m_device))
         , m_depth_disable_state( gx::create_depth_test_disable_state( m_context.m_device ) )
         , m_point_sampler(gx::create_point_sampler_state(m_context.m_device ))
@@ -783,6 +783,11 @@ gx::compute_resource create_draw_instance_info_compute_resource(ID3D11Device* de
     return gx::create_structured_compute_resource(device, static_cast<uint32_t> (end - begin), static_cast<uint32_t> (sizeof(draw_instance_info)), begin);
 }
 
+inline float rotation_radian(uint32_t step, uint32_t max_steps)
+{
+    static const float PI = std::atanf(1.0f) * 4;
+    return  ( (step %  max_steps) * 2 * PI / max_steps ) ;
+}
 
 class sample_application2 : public sample_application
 {
@@ -842,8 +847,12 @@ class sample_application2 : public sample_application
         d3d11::vs_set_shader( device_context, m_shader_database.m_depth_prepass_vs );
         d3d11::ps_set_shader( device_context, m_shader_database.m_depth_prepass_ps );
 
-        auto scale = math::scaling( math::set( 20.0f, 20.0f, 20.0f, 1.0f) );
-        auto w = math::mul(scale, math::identity_matrix());
+        auto scale      = math::scaling( math::set( 40.0f, 40.0f, 40.0f, 1.0f) );
+
+        static uint32_t step = 0;
+        auto rotation   = math::rotation_y(rotation_radian(step++, 360));
+
+        auto w          = math::mul(rotation, math::mul(scale, math::identity_matrix()) ) ;
 
         m_depth_prepass_vs_buffer.set_w( w );
         m_depth_prepass_ps_buffer.set_instance_id( 255 );

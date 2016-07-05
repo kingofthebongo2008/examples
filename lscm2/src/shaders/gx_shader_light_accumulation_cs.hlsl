@@ -62,5 +62,6 @@ void main( uint3 dispatch_thread_id : SV_DispatchThreadID )
         light += r;
     }
 
-    blend_light( linear_address ( dispatch_thread_id.xy ), light * rcp(sample_count) );
+    //blend_light( linear_address ( dispatch_thread_id.xy ), light * rcp(sample_count) );
+    blend_light(linear_address(dispatch_thread_id.xy), light);
 }

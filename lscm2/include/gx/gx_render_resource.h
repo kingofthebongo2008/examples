@@ -448,6 +448,16 @@ namespace gx
         return d3d11::create_raster_state( device, &rasterizer);
     }
 
+    inline d3d11::irasterizerstate_ptr      create_cull_back_rasterizer_state_wireframe(ID3D11Device* device)
+    {
+        D3D11_RASTERIZER_DESC rasterizer = {};
+        rasterizer.FillMode = D3D11_FILL_WIREFRAME;
+        rasterizer.CullMode = D3D11_CULL_BACK;
+        rasterizer.DepthClipEnable = 1;
+
+        return d3d11::create_raster_state(device, &rasterizer);
+    }
+
     inline d3d11::irasterizerstate_ptr      create_cull_none_rasterizer_state(ID3D11Device* device)
     {
         D3D11_RASTERIZER_DESC rasterizer = {};
