@@ -52,6 +52,7 @@
 
 #include "indexed_face_set/indexed_face_set_mesh.h"
 #include "indexed_face_set/indexed_face_set_renderable_mesh.h"
+#include "indexed_face_set/indexed_face_set_functions.h"
 
 
 class sample_application : public gx::default_application
@@ -505,6 +506,8 @@ int _tmain(int argc, _TCHAR* argv[])
     loading.wait();
 
     app->set_mesh(m);
+
+    std::cout << "Area of mesh: " << area(m.get()) << std::endl;
 
     auto result = app->run();
 

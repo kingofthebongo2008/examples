@@ -7,6 +7,9 @@ namespace lscm
 {
     namespace indexed_face_set
     {
+        using vertex = math::float4;
+        using normal = math::float4;
+
         struct mesh
         {
         public:
@@ -110,7 +113,6 @@ namespace lscm
 
             void initialize()
             {
-
                 auto f1 = std::async([=]
                 {
                     clean_degenerate_faces();
@@ -151,7 +153,6 @@ namespace lscm
                 f3.wait();
                 f4.wait();
                 f5.wait();
-
             }
 
             void build_edges()
@@ -183,7 +184,7 @@ namespace lscm
 
                 math::float4 sum = math::zero();
 
-                std::for_each(m_vertices.begin(), m_vertices.end(), [&](const vertex& v)
+                std::for_each(m_vertices.begin(), m_vertices.end(), [&](const mesh::vertex& v)
                 {
                     sum = math::add(sum, v);
                 }
@@ -192,8 +193,7 @@ namespace lscm
                 sum = math::div(sum, math::set(vertex_size, vertex_size, vertex_size, vertex_size ));
                 sum = math::mul(sum, math::set(1.0f, 1.0f, 1.0f, 0.0f));
 
-
-                std::transform(m_vertices.begin(), m_vertices.end(), vertices.begin(), [&](const vertex& v)
+                std::transform(m_vertices.begin(), m_vertices.end(), vertices.begin(), [&](const mesh::vertex& v)
                 {
                     return math::sub(v, sum);
                 }

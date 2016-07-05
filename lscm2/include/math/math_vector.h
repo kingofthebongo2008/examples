@@ -470,11 +470,21 @@ namespace math
         return l;
     }
 
+    inline float4 norm2(float4 v)
+    {
+        return length2(v);
+    }
+
     inline float4 length3(float4 v)
     {
         float4 d = dot3(v, v);
         float4 l = sqrt(d);
         return l;
+    }
+
+    inline float4 norm3(float4 v)
+    {
+        return length3(v);
     }
 
     inline float4 length4(float4 v)
@@ -484,12 +494,19 @@ namespace math
         return l;
     }
 
+    inline float4 norm4(float4 v)
+    {
+        return length4(v);
+    }
+
     inline float4 normalize2(float4 v)
     {
         float4 l = length2(v);
         float4 n = div(v, l);
         return n;
     }
+
+    
 
     inline float4 normalize3(float4 v)
     {
@@ -556,7 +573,7 @@ namespace math
         template <uint32_t c> inline float get_component(float4 v)
         {
             float4 v1 = swizzle<c,c,c,c>(v);
-            float __declspec( align(16) ) f;
+            float alignas(16) f;
             store1(&f, v1);
             return f;
         }
