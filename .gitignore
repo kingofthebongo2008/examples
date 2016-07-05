@@ -128,3 +128,11 @@ visibilitybuffer/
 *.sdf
 *.bin
 *.opendb
+cache_aware_hybrid_sorter/ConsoleApplication1/ConsoleApplication1.sln
+cache_aware_hybrid_sorter/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.cpp
+cache_aware_hybrid_sorter/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.vcxproj
+cache_aware_hybrid_sorter/ConsoleApplication1/ConsoleApplication1/ConsoleApplication1.vcxproj.filters
+cache_aware_hybrid_sorter/ConsoleApplication1/ConsoleApplication1/ReadMe.txt
+cache_aware_hybrid_sorter/ConsoleApplication1/ConsoleApplication1/stdafx.cpp
+cache_aware_hybrid_sorter/ConsoleApplication1/ConsoleApplication1/stdafx.h
+cache_aware_hybrid_sorter/ConsoleApplication1/ConsoleApplication1/targetver.h
