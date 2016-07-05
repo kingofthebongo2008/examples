@@ -206,6 +206,8 @@
     <ClInclude Include="..\include\util\util_memory.h" />
     <ClInclude Include="..\include\util\util_noncopyable.h" />
     <ClInclude Include="..\include\util\util_utf8_conv.h" />
+    <ClInclude Include="..\src\indexed_face_set\indexed_face_set_mesh.h" />
+    <ClInclude Include="..\src\indexed_face_set\indexed_face_set_renderable_mesh.h" />
     <ClInclude Include="..\src\shaders\gx_global_buffers.h" />
     <ClInclude Include="..\src\shaders\gx_shader_depth_prepass_ps.h" />
     <ClInclude Include="..\src\shaders\gx_shader_depth_prepass_vs.h" />
