@@ -13,21 +13,8 @@ namespace lscm
 
             typedef uint32_t pointer;
 
-            struct vertex
-            {
-                float x;
-                float y;
-                float z;
-                float w;
-            };
-
-            struct normal
-            {
-                float nx;
-                float ny;
-                float nz;
-                float nw;
-            };
+            using vertex = math::float4;
+            using normal = math::float4;
 
             struct face
             {
@@ -194,30 +181,21 @@ namespace lscm
                 std::vector< mesh::vertex > vertices(m_vertices.size());
                 auto vertex_size = m_vertices.size();
 
-                double sum0 = 0.0;
-                double sum1 = 0.0;
-                double sum2 = 0.0;
-                double sum3 = 0.0;
+                math::float4 sum = math::zero();
 
                 std::for_each(m_vertices.begin(), m_vertices.end(), [&](const vertex& v)
                 {
-                    sum0 += v.x;
-                    sum1 += v.y;
-                    sum2 += v.z;
-                    sum3 += v.w;
+                    sum = math::add(sum, v);
                 }
                 );
 
-                sum0 /= vertex_size;
-                sum1 /= vertex_size;
-                sum2 /= vertex_size;
-                sum3 = 0.0;
+                sum = math::div(sum, math::set(vertex_size, vertex_size, vertex_size, vertex_size ));
+                sum = math::mul(sum, math::set(1.0f, 1.0f, 1.0f, 0.0f));
 
 
                 std::transform(m_vertices.begin(), m_vertices.end(), vertices.begin(), [&](const vertex& v)
                 {
-                    vertex v_new = { static_cast<float> (v.x - sum0) , static_cast<float> (v.y - sum1) , static_cast<float> (v.z - sum2), static_cast<float> (v.w - sum3) };
-                    return std::move(v_new);
+                    return math::sub(v, sum);
                 }
                 );
 
@@ -380,14 +358,27 @@ namespace lscm
 
                 for (uint32_t i = 0; i < vertex_count && file.good(); ++i)
                 {
-                    mesh::vertex v = { 0.0f, 0.0f, 0.0f, 1.0f };
-                    mesh::normal n = {};
+                    {
+                        float x;
+                        float y;
+                        float z;
 
-                    file >> v.x >> v.y >> v.z;
-                    file >> n.nx >> n.ny >> n.nz;
+                        file >> x >> y >> z;
 
-                    vertices.push_back(v);
-                    normals.push_back(n);
+                        mesh::vertex v = math::set(x, y, z, 1.0f);
+                        vertices.push_back(v);
+                    }
+
+                    {
+                        mesh::normal n = {};
+
+                        float nx;
+                        float ny;
+                        float nz;
+                        file >> nx >> ny >> nz;
+                        n = math::set(nx, ny, nz, 0.0f);
+                        normals.push_back(n);
+                    }
                 }
 
                 for (uint32_t i = 0; i < face_count && file.good(); ++i)
