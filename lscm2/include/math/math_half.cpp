@@ -1,4 +1,4 @@
-//#include "precompiled.h"
+#include "precompiled.h"
 
 #include <math/math_half.h>
 
