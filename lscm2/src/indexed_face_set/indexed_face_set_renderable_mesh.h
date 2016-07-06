@@ -47,9 +47,9 @@ namespace lscm
             auto index_count = 3 * static_cast<uint32_t> (mesh->m_faces.size());
 
             return std::make_shared<renderable_mesh>(
-                d3d11::create_immutable_vertex_buffer(device, &mesh->m_vertices[0], mesh->m_vertices.size() * sizeof(mesh::vertex)),
+                d3d11::create_immutable_vertex_buffer(device, &positions[0], positions.size() * sizeof(math::half)),
                 d3d11::create_immutable_index_buffer(device, &mesh->m_faces[0], mesh->m_faces.size() * sizeof(mesh::face)),
-                sizeof(mesh::vertex),
+                4 * sizeof(math::half),
                 vertex_count,
                 index_count
                 );
