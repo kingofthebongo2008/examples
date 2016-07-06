@@ -104,7 +104,7 @@ namespace os
 
         inline HWND create_window( uint32_t width, uint32_t height, HINSTANCE instance, const wchar_t* window_name )
         {
-            RECT r = { 0, 0, width, height };
+            RECT r = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
 
             throw_if_failed<win32_exception> ( ::AdjustWindowRect(&r, WS_OVERLAPPEDWINDOW, false) );
 

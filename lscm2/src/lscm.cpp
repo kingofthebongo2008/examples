@@ -477,12 +477,16 @@ class sample_application2 : public sample_application
     //scene
     std::shared_ptr<lscm::indexed_face_set::renderable_mesh>  m_mesh;
 };
-
+#if defined(DEFINE_GUID)
+#undef DEFINE_GUID
+#endif
 #define DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
     EXTERN_C const GUID DECLSPEC_SELECTANY name \
     = { l, w1, w2, { b1, b2, b3, b4, b5, b6, b7, b8 } }
 
+
 DEFINE_GUID(DXGI_DEBUG_ALL, 0xe48ae283, 0xda80, 0x490b, 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8);
+
 
 
 

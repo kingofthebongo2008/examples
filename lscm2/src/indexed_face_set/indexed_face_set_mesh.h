@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <vector>
+#include <unordered_map>
 
 #include <ppl.h>
 #include <ppltasks.h>
@@ -11,8 +12,11 @@ namespace lscm
 {
     namespace indexed_face_set
     {
-        using vertex = math::float4;
-        using normal = math::float4;
+        using vertex    = math::float4;
+        using normal    = math::float4;
+        using pointer   = uint32_t;
+
+        static const uint32_t null_pointer = 0xFFFFFFFF;
 
         struct storage_vertex
         {
@@ -28,36 +32,74 @@ namespace lscm
             float z;
         };
 
+        struct face
+        {
+            pointer v0 = null_pointer;
+            pointer v1 = null_pointer;
+            pointer v2 = null_pointer;
+        };
+
+        struct edge
+        {
+            pointer v0 = null_pointer;
+            pointer v1 = null_pointer;
+        };
+
+        struct winged_edge
+        {
+            pointer v0 = null_pointer; //start vertex
+            pointer v1 = null_pointer; //end   vertex
+
+            pointer f0 = null_pointer; // left   face
+            pointer f1 = null_pointer; // right  face
+
+            pointer l_p = null_pointer; // left  predecessor
+            pointer r_p = null_pointer; // right predecessor
+
+            pointer l_s = null_pointer; // left  successor
+            pointer r_s = null_pointer; // right successor
+        };
+
+        struct half_edge
+        {
+            pointer o = null_pointer;  //opposite half edge
+            pointer n = null_pointer;  //next half edge
+
+            pointer v = null_pointer;  //vertex
+            pointer f = null_pointer;  //face
+        };
+    }
+}
+
+namespace std
+{
+    // hash functor for bool
+    template<> struct hash<lscm::indexed_face_set::edge>
+    {
+        using this_type = lscm::indexed_face_set::edge;
+
+        size_t operator()(const this_type val) const
+        {
+            uint64_t op = ( (uint64_t ) val.v0 << 32ULL ) | val.v1;
+            hash<uint64_t> v;
+            return v(op);
+        }
+    };
+}
+
+namespace lscm
+{
+    namespace indexed_face_set
+    {
+
         struct mesh
         {
-        public:
 
-            typedef uint32_t pointer;
+        public:
 
             using vertex = storage_vertex;
             using normal = storage_normal;
-
-            struct face
-            {
-                pointer v0;
-                pointer v1;
-                pointer v2;
-            };
-
-            struct winged_edge
-            {
-                pointer v0; //start vertex
-                pointer v1; //end   vertex
-
-                pointer f0; // left   face
-                pointer f1; // right  face
-
-                pointer l_p; // left  predecessor
-                pointer r_p; // right predecessor
-
-                pointer l_s; // left  successor
-                pointer r_s; // right successor
-            };
+            using face = ::lscm::indexed_face_set::face;
 
             struct progress_notifier
             {
@@ -111,21 +153,27 @@ namespace lscm
                 return &m_faces[static_cast<uint32_t> (p)];
             }
 
-            winged_edge*   get_edge(pointer p)
+            half_edge*   get_edge(pointer p)
             {
-                return &m_edges[static_cast<uint32_t> (p)];
+                return &m_edges_storage[static_cast<uint32_t> (p)];
             }
 
-            const winged_edge*   get_edge(pointer p) const
+            const half_edge*   get_edge(pointer p) const
             {
-                return &m_edges[static_cast<uint32_t> (p)];
+                return &m_edges_storage[static_cast<uint32_t> (p)];
             }
 
-            std::vector< vertex >          m_vertices;
-            std::vector< normal >          m_normals;
-            std::vector< face >            m_faces;
-            std::vector< winged_edge >     m_edges;
-            progress_notifier              m_notifier;
+            bool is_half_edge( pointer p ) const
+            {
+                return static_cast<uint32_t>(p) < m_edges_storage.size();
+            }
+
+            std::vector< vertex >                m_vertices;
+            std::vector< normal >                m_normals;
+            std::vector< face >                  m_faces;
+            std::vector< half_edge >             m_edges_storage;
+            std::unordered_map < edge, pointer > m_edges;
+            progress_notifier                    m_notifier;
 
             void initialize()
             {
@@ -151,6 +199,7 @@ namespace lscm
             void build_edges()
             {
 
+
             }
 
             std::vector< normal > build_face_normals() const
@@ -175,7 +224,7 @@ namespace lscm
             void calculate_pivot()
             {
                 std::vector< mesh::vertex > vertices(m_vertices.size());
-                auto vertex_size = m_vertices.size();
+                
 
                 math::float4 sum = math::zero();
 
@@ -187,6 +236,7 @@ namespace lscm
                 }
                 );
 
+                auto vertex_size = static_cast<float>(m_vertices.size());
                 sum = math::div(sum, math::set(vertex_size, vertex_size, vertex_size, vertex_size ));
                 sum = math::mul(sum, math::set(1.0f, 1.0f, 1.0f, 0.0f));
 
