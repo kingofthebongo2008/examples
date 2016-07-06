@@ -7,7 +7,7 @@ cbuffer per_object : register(SLOT_PER_DRAW_CALL)
 
 struct vs_input
 {
-    float4   position_os : position;
+    float3   position_os : position;
 };
 
 struct vs_output
@@ -18,6 +18,6 @@ struct vs_output
 vs_output main( in  vs_input input)
 {
     vs_output output;
-    output.position_ps = project_vertex( input.position_os, m_w, m_v, m_p);
+    output.position_ps = project_vertex(float4( input.position_os.xyz,1.0f ), m_w, m_v, m_p);
     return output;
 }

@@ -507,7 +507,8 @@ int _tmain(int argc, _TCHAR* argv[])
 
     app->set_mesh(m);
 
-    std::cout << "Area of mesh: " << area(m.get()) << std::endl;
+    //std::cout << "Area of mesh: " << area(m.get()) << std::endl;
+    //std::cout << "Symmetric hausdorff distance: " << math::get_x(symmetric_hausdorff_distance(m.get(), m.get())) << std::endl;
 
     auto result = app->run();
 

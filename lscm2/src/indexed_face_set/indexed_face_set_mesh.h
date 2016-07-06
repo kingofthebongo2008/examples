@@ -3,6 +3,10 @@
 #include <cstdint>
 #include <vector>
 
+#include <ppl.h>
+#include <ppltasks.h>
+#include <concrt.h>
+
 namespace lscm
 {
     namespace indexed_face_set
@@ -10,14 +14,28 @@ namespace lscm
         using vertex = math::float4;
         using normal = math::float4;
 
+        struct storage_vertex
+        {
+            float x;
+            float y;
+            float z;
+        };
+
+        struct storage_normal
+        {
+            float x;
+            float y;
+            float z;
+        };
+
         struct mesh
         {
         public:
 
             typedef uint32_t pointer;
 
-            using vertex = math::float4;
-            using normal = math::float4;
+            using vertex = storage_vertex;
+            using normal = storage_normal;
 
             struct face
             {
@@ -31,13 +49,13 @@ namespace lscm
                 pointer v0; //start vertex
                 pointer v1; //end   vertex
 
-                pointer f0; // left face
-                pointer f1; // right face
+                pointer f0; // left   face
+                pointer f1; // right  face
 
-                pointer l_p; // left predeccesor
-                pointer r_p; // right predeccesor
+                pointer l_p; // left  predecessor
+                pointer r_p; // right predecessor
 
-                pointer l_s; // left successor
+                pointer l_s; // left  successor
                 pointer r_s; // right successor
             };
 
@@ -45,7 +63,6 @@ namespace lscm
             {
 
             };
-
 
             mesh(
                 const std::vector< vertex >&   vertices,
@@ -107,52 +124,28 @@ namespace lscm
             std::vector< vertex >          m_vertices;
             std::vector< normal >          m_normals;
             std::vector< face >            m_faces;
-            std::vector< normal >          m_face_normals;
             std::vector< winged_edge >     m_edges;
             progress_notifier              m_notifier;
 
             void initialize()
             {
-                auto f1 = std::async([=]
+                clean_duplicate_faces();
+                clear_vertices_not_referenced_by_faces();
+                calculate_pivot();
+
+                concurrency::task_group r;
+
+                r.run([this]
                 {
-                    clean_degenerate_faces();
+                    build_normals();
                 });
 
-                auto f2 = std::async([&]
+                r.run([this]
                 {
-                    f1.wait();
-                    clear_vertices_not_referenced_by_faces();
-                });
-
-                auto f3 = std::async([&]
-                {
-                    f1.wait();
-                    f2.wait();
-
-                    calculate_pivot();
-
-                    auto f6 = std::async([=]
-                    {
-                        build_face_normals();
-                    });
-
-                    f6.wait();
-                });
-
-                auto f4 = std::async([=]
-                {
-                    normalize_normals();
-                });
-
-                auto f5 = std::async([&]
-                {
-                    f2.wait();
                     build_edges();
                 });
 
-                f3.wait();
-                f4.wait();
-                f5.wait();
+                r.wait();
             }
 
             void build_edges()
@@ -160,21 +153,23 @@ namespace lscm
 
             }
 
-            void build_face_normals()
+            std::vector< normal > build_face_normals() const
             {
                 std::vector< normal > face_normals(m_faces.size());
 
                 for (uint32_t i = 0; i < face_normals.size(); ++i)
                 {
-                    math::float4 v0 = math::load4(&m_vertices[m_faces[i].v0]);
-                    math::float4 v1 = math::load4(&m_vertices[m_faces[i].v1]);
-                    math::float4 v2 = math::load4(&m_vertices[m_faces[i].v2]);
+                    math::float4 v0 = math::load3u_point(&m_vertices[m_faces[i].v0]);
+                    math::float4 v1 = math::load3u_point(&m_vertices[m_faces[i].v1]);
+                    math::float4 v2 = math::load3u_point(&m_vertices[m_faces[i].v2]);
 
-                    math::float4 n = math::cross3(math::sub(v0, v1), math::sub(v1, v2));
+                    math::float4 n      = math::cross3(math::sub(v0, v1), math::sub(v1, v2));
                     math::float4 normal = math::normalize3(n);
 
-                    math::store4(&face_normals[i], normal);
+                    math::store3u_vector(&face_normals[i], normal);
                 }
+
+                return face_normals;
             }
 
             void calculate_pivot()
@@ -184,9 +179,11 @@ namespace lscm
 
                 math::float4 sum = math::zero();
 
+                //todo: parallel
                 std::for_each(m_vertices.begin(), m_vertices.end(), [&](const mesh::vertex& v)
                 {
-                    sum = math::add(sum, v);
+                    math::float4 v0 = math::load3u_point(&v);
+                    sum = math::add(sum, v0);
                 }
                 );
 
@@ -195,7 +192,15 @@ namespace lscm
 
                 std::transform(m_vertices.begin(), m_vertices.end(), vertices.begin(), [&](const mesh::vertex& v)
                 {
-                    return math::sub(v, sum);
+                    math::float4 v0 = math::load3u_point(&v);
+
+                    v0 = math::sub(v0, sum);
+                    
+                    mesh::vertex r;
+
+                    math::store3u_point(&r, v0);
+
+                    return r;
                 }
                 );
 
@@ -212,23 +217,49 @@ namespace lscm
                 });
 
                 faces.resize(std::distance(faces.begin(), last));
-
                 m_faces = std::move(faces);
             }
 
-            void normalize_normals()
+            void build_normals()
             {
-                std::vector< normal > normals(m_normals.size());
+                std::vector< normal > normals(m_vertices.size());
 
-                std::transform(m_normals.begin(), m_normals.end(), normals.begin(), [=](normal& n0)
+                auto face_size = m_faces.size();
+
+                for (uint32_t i = 0; i < face_size; ++i)
                 {
-                    math::float4 n = math::load3(&n0);
+                    auto i0 = m_faces[i].v0;
+                    auto i1 = m_faces[i].v1;
+                    auto i2 = m_faces[i].v2;
+
+                    math::float4 v0     = math::load3u_point(&m_vertices[i0]);
+                    math::float4 v1     = math::load3u_point(&m_vertices[i1]);
+                    math::float4 v2     = math::load3u_point(&m_vertices[i2]);
+
+                    math::float4 n      = math::cross3(math::sub(v0, v1), math::sub(v1, v2));
+
+                    math::float4 n0     = math::load3u_vector(&normals[i0]);
+                    math::float4 n1     = math::load3u_vector(&normals[i1]);
+                    math::float4 n2     = math::load3u_vector(&normals[i2]);
+
+                    n0 = math::add(n0, n);
+                    n1 = math::add(n1, n);
+                    n2 = math::add(n2, n);
+                    
+                    math::store3u_point(&normals[i0], n0);
+                    math::store3u_point(&normals[i1], n1);
+                    math::store3u_point(&normals[i2], n2);
+
+                }
+
+                std::transform(normals.begin(), normals.end(), normals.begin(), [=](normal& n0)
+                {
+                    math::float4 n  = math::load3u_vector(&n0);
                     math::float4 n1 = math::normalize3(n);
 
                     normal result;
 
-                    math::store3(&result, n1);
-
+                    math::store3u_vector(&result, n1);
                     return result;
                 });
 
@@ -247,7 +278,7 @@ namespace lscm
                     {
                         const face& f = m_faces[k];
 
-                        //face references the ith vertex, then it is used
+                        //face references the i-th vertex, then it is used
                         if (f.v0 == i || f.v1 == i || f.v2 == i)
                         {
                             vertices[j] = m_vertices[i];
@@ -359,25 +390,14 @@ namespace lscm
                 for (uint32_t i = 0; i < vertex_count && file.good(); ++i)
                 {
                     {
-                        float x;
-                        float y;
-                        float z;
-
-                        file >> x >> y >> z;
-
-                        mesh::vertex v = math::set(x, y, z, 1.0f);
+                        mesh::vertex v;
+                        file >> v.x >> v.y >> v.z;
                         vertices.push_back(v);
                     }
 
                     {
                         mesh::normal n = {};
-
-                        float nx;
-                        float ny;
-                        float nz;
-                        file >> nx >> ny >> nz;
-                        n = math::set(nx, ny, nz, 0.0f);
-                        normals.push_back(n);
+                        file >> n.x >> n.y >> n.z; //skip normals, we calculate them
                     }
                 }
 

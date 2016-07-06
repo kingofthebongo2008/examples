@@ -879,6 +879,47 @@ namespace math
 
         return result;
     }
+
+    inline float4 load3_point(const void* __restrict const address)
+    {
+        return load3(address, 0x3f800000);
+    }
+
+    inline float4 load3u_point(const void* __restrict const address)
+    {
+        return load3u(address, 0x3f800000);
+    }
+
+    inline float4 load3_vector(const void* __restrict const address)
+    {
+        return load3(address, 0);
+    }
+
+    inline float4 load3u_vector(const void* __restrict const address)
+    {
+        return load3u(address, 0);
+    }
+
+    inline void store3_point(void* __restrict address, float4 point)
+    {
+        store3(address, point);
+    }
+
+    inline void store3u_point(void* __restrict address, float4 point)
+    {
+        store3u(address, point);
+    }
+
+    inline void store3_vector(void* __restrict address, float4 point)
+    {
+        store3(address, point);
+    }
+
+    inline void store3u_vector(void* __restrict address, float4 point)
+    {
+        store3u(address, point);
+    }
+
 }
 
 
