@@ -73,7 +73,7 @@ namespace TiledResources
         GpuDepthBuffer          CreateDepthBuffer(UINT width, UINT height, DXGI_FORMAT format);
 
         //Tiled Resources
-        GpuTiledCubeTexture     CreateTiledCubeTexture();
+        GpuTiledCubeTexture     CreateTiledCubeTexture(UINT width, UINT height, DXGI_FORMAT format);
 
         GpuBackBuffer           CreateBackBuffer(ID3D12Resource* r);
 

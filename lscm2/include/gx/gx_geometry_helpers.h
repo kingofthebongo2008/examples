@@ -9,9 +9,9 @@
 
 namespace gx
 {
-    std::vector<math::half>  create_positions_x_y_z( const float * positions_x_y_z, uint32_t count_triplet, float w = 1.0f )
+    std::vector<math::half>  create_positions_x_y_z( const float * positions_x_y_z, uint32_t count, float w = 1.0f )
     {
-        auto size = count_triplet / 3;
+        auto size = count;
         auto padded_size = 24 * ((size + 23) / 24);
 
         std::vector<math::half> positions_h(4 * padded_size);

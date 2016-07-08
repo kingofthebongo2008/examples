@@ -532,9 +532,9 @@ int _tmain(int argc, _TCHAR* argv[])
 {
     using namespace lscm::indexed_face_set;
 
-    auto app = sample_application (  L"Sample Application" );
+    sample_application app(L"Sample Application") ;
 
-    //auto mesh = create_from_noff_file( L"../media/meshes/bunny_nf4000.noff" ) ;
+    auto mesh = create_from_noff_file( L"../media/meshes/bunny_nf4000.noff" ) ;
 
     return app.run();
 }

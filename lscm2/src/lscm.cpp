@@ -50,437 +50,10 @@
 #include "shaders/gx_shader_work_list_build_cs.h"
 #include "shaders/gx_shader_work_list_sort_cs.h"
 
+#include "indexed_face_set/indexed_face_set_mesh.h"
+#include "indexed_face_set/indexed_face_set_renderable_mesh.h"
+#include "indexed_face_set/indexed_face_set_functions.h"
 
-namespace lscm
-{
-    class renderable_mesh;
-
-    namespace indexed_face_set
-    {
-        class mesh
-        {
-            public:
-
-            typedef uint32_t pointer;
-
-            struct vertex
-            {
-                float x;
-                float y;
-                float z;
-                float w;
-            };
-
-            struct normal
-            {
-                float nx;
-                float ny;
-                float nz;
-                float nw;
-            };
-
-            struct face
-            {
-                pointer v0;
-                pointer v1;
-                pointer v2;
-            };
-
-            struct winged_edge
-            {
-                pointer v0; //start vertex
-                pointer v1; //end   vertex
-
-                pointer f0; // left face
-                pointer f1; // right face
-
-                pointer l_p; // left predeccesor
-                pointer r_p; // right predeccesor
-
-                pointer l_s; // left successor
-                pointer r_s; // right successor
-            };
-
-            struct progress_notifier
-            {
-
-            };
-
-
-            mesh (
-                    const std::vector< vertex >&   vertices,
-                    const std::vector< normal >&   normals,
-                    const std::vector< face >&     faces,
-                    const progress_notifier&       notifier
-                 )  : m_vertices(vertices)
-                    , m_normals(normals)
-                    , m_faces(faces)
-                    , m_notifier(notifier)
-            {
-                initialize();
-            }
-
-            mesh (
-                    std::vector< vertex > &&     vertices,
-                    std::vector< normal > &&     normals,
-                    std::vector< face >   &&     faces,
-                    progress_notifier     &&    notifier
-                 ) : 
-                      m_vertices(std::move( vertices ) ) 
-                    , m_normals(std::move (normals ) )
-                    , m_faces( std::move(faces) )
-                    , m_notifier( std::move(notifier) )
-            {
-                initialize();
-            }
-
-            vertex* get_vertex( pointer p )
-            {
-                return &m_vertices[ static_cast<uint32_t> ( p ) ];
-            }
-
-            const vertex* get_vertex( pointer p ) const
-            {
-                return &m_vertices[ static_cast<uint32_t> ( p ) ];
-            }
-
-            face*   get_face( pointer p )
-            {
-                return &m_faces[ static_cast<uint32_t> ( p ) ];
-            }
-
-            const face*   get_face( pointer p ) const
-            {
-                return &m_faces[ static_cast<uint32_t> ( p ) ];
-            }
-
-            winged_edge*   get_edge( pointer p )
-            {
-                return &m_edges[ static_cast<uint32_t> ( p ) ];
-            }
-
-            const winged_edge*   get_edge( pointer p ) const
-            {
-                return &m_edges[ static_cast<uint32_t> ( p ) ];
-            }
-
-            private:
-
-            std::vector< vertex >          m_vertices;
-            std::vector< normal >          m_normals;
-            std::vector< face >            m_faces;
-            std::vector< normal >          m_face_normals;
-            std::vector< winged_edge >     m_edges;
-            progress_notifier              m_notifier;
-
-            friend std::shared_ptr< renderable_mesh > create_renderable_mesh(ID3D11Device* device, std::shared_ptr< lscm::indexed_face_set::mesh > mesh);
-
-            void initialize()
-            {
-
-                auto f1 = std::async ( [=]
-                {
-                    clean_degenerate_faces();
-                });
-
-                auto f2 = std::async ( [&]
-                {
-                    f1.wait();
-                    clear_vertices_not_referenced_by_faces();
-                });
-
-                auto f3 = std::async ( [&]
-                {
-                    f1.wait();
-                    f2.wait();
-
-                    calculate_pivot();
-
-                    auto f6 = std::async ( [=]
-                    {
-                        build_face_normals();
-                    });
-
-                    f6.wait();
-                });
-
-                auto f4 = std::async ( [=]
-                {
-                    normalize_normals();
-                });
-
-                auto f5 = std::async ( [&]
-                {
-                    f2.wait();
-                    build_edges();
-                });
-
-                f3.wait();
-                f4.wait();
-                f5.wait();
-
-            }
-
-            void build_edges()
-            {
-
-            }
-
-            void build_face_normals()
-            {
-                std::vector< normal > face_normals( m_faces.size() );
-
-                for (uint32_t i = 0; i < face_normals.size(); ++i)
-                {
-                    math::float4 v0 = math::load4(&m_vertices[ m_faces[i].v0 ] );
-                    math::float4 v1 = math::load4(&m_vertices[ m_faces[i].v1 ] );
-                    math::float4 v2 = math::load4(&m_vertices[ m_faces[i].v2 ] );
-
-                    math::float4 n = math::cross3 ( math::sub ( v0, v1 ), math::sub ( v1, v2 ) );
-                    math::float4 normal = math::normalize3 ( n );
-
-                    math::store4( &face_normals[i], normal );
-                }
-            }
-
-            void calculate_pivot()
-            {
-                std::vector< mesh::vertex > vertices( m_vertices.size() ) ;
-                auto vertex_size = m_vertices.size();
-
-                double sum0 = 0.0;
-                double sum1 = 0.0;
-                double sum2 = 0.0;
-                double sum3 = 0.0;
-
-                std::for_each ( m_vertices.begin(), m_vertices.end(), [&] ( const vertex& v )
-                {
-                    sum0 += v.x;
-                    sum1 += v.y;
-                    sum2 += v.z;
-                    sum3 += v.w;
-                }
-                );
-
-                sum0 /= vertex_size;
-                sum1 /= vertex_size;
-                sum2 /= vertex_size;
-                sum3  = 0.0;
-
-
-                std::transform ( m_vertices.begin(), m_vertices.end(), vertices.begin(),  [&] ( const vertex& v )
-                {
-                    vertex v_new = { static_cast<float> ( v.x - sum0 ) , static_cast<float> ( v.y - sum1 ) , static_cast<float> ( v.z - sum2 ), static_cast<float> ( v.w - sum3 ) };
-                    return std::move( v_new );
-                }
-                );
-
-                m_vertices = std::move(vertices);
-            }
-
-            void clean_degenerate_faces()
-            {
-                std::vector< face > faces( m_faces.size() ) ;
-                
-                auto last = std::copy_if ( m_faces.begin(), m_faces.end(), faces.begin(),  [ =  ] ( const face& f )
-                {
-                    return ( f.v0 != f.v1 && f.v0 != f.v2 && f.v1 != f.v2 ) ;
-                });
-
-                faces.resize ( std::distance( faces.begin(), last ) );
-                
-                m_faces = std::move( faces );
-            }
-
-            void normalize_normals()
-            {
-                std::vector< normal > normals( m_normals.size() ) ;
-
-                std::transform( m_normals.begin(), m_normals.end(), normals.begin(), [=]( normal& n0 ) 
-                {
-                    math::float4 n = math::load3(&n0);
-                    math::float4 n1 = math::normalize3(n);
-
-                    normal result;
-
-                    math::store3( &result, n1 );
-
-                    return result;
-                });
-
-                m_normals = std::move(normals);
-            }
-
-            void clear_vertices_not_referenced_by_faces()
-            {
-                std::vector< mesh::vertex > vertices( m_vertices.size() ) ;
-
-                uint32_t j = 0;
-
-                for( uint32_t i = 0; i < m_vertices.size(); ++i)
-                {
-                    for (uint32_t k = 0; k < m_faces.size(); ++k )
-                    {
-                        const face& f = m_faces[k];
-
-                        //face references the ith vertex, then it is used
-                        if (  f.v0 == i || f.v1 == i || f.v2 == i )
-                        {
-                            vertices[j] = m_vertices[i];
-                            ++j;
-                            break;
-                        }
-                    }
-                }
-                
-                vertices.resize ( j );
-                m_vertices = std::move( vertices );
-            }
-
-            void clean_duplicate_faces()
-            {
-                struct equal_faces
-                {
-                    struct hash_function
-                    {
-                        size_t operator() ( const face& f ) const 
-                        {
-                            return ( ( ( size_t ) f.v0 ) << 42UL ) | ( ( ( size_t ) f.v1 ) << 21UL ) | f.v2 ;
-                        }
-                    };
-
-                    static void sort( uint32_t* f )
-                    {
-                        uint32_t n = 3;
-
-                        do
-                        {
-                            uint32_t new_n = 0;
-
-                            for (uint32_t i = 1;  i <= n-1; ++i )
-                            {
-                                if ( f[i-1] > f[i] )
-                                {
-                                    std::swap ( f[i-1], f[i] );
-                                    new_n = i;
-                                }
-                            }
-
-                            n = new_n;
-                        }
-                        while ( n > 0 );
-                    }
-
-                    bool operator()( const face& f0, const face& f1 ) const
-                    {
-                        uint32_t f_0[3] = { f0.v0, f0.v1, f0.v2 };
-                        uint32_t f_1[3] = { f1.v0, f1.v1, f1.v2 };
-
-                        sort (&f_0[0]);
-                        sort (&f_1[0]);
-
-                        uint32_t difference [3] = { f_0[0] - f_1[0] , f_0[1] - f_1[1] , f_0[2] - f_1[2]  };
-                        return difference[0] == 0 && difference[1] == 0 && difference[2] == 0;
-                    }
-                };
-
-                std::unordered_set< face, equal_faces::hash_function, equal_faces > unique_faces;
-
-                std::for_each ( m_faces.begin(), m_faces.end(), [&] ( const face& f )
-                {
-                    face f0 = f;
-
-                    equal_faces::sort(&f0.v0);
-
-                    if ( unique_faces.find( f0 ) == unique_faces.end() )
-                    {
-                        unique_faces.insert(f0);
-                    }
-                });
-
-                std::vector< mesh::face> faces;
-                faces.resize ( unique_faces.size() );
-
-                std::copy( unique_faces.begin(), unique_faces.end(), faces.begin() );
-
-                m_faces = std::move( faces );
-            }
-        };
-
-        std::shared_ptr<mesh> create_from_noff_file( const std::wstring& filename )
-        {
-            std::vector< mesh::vertex >   vertices;
-            std::vector< mesh::normal >   normals;
-            std::vector< mesh::face >     faces;
-
-            mesh::progress_notifier       notifier;
-
-            std::ifstream file(filename, std::ifstream::in);
-
-            if (file.good())
-            {
-                std::string type;
-                file >> type;
-
-                uint32_t vertex_count = 0;
-                uint32_t face_count = 0;
-                uint32_t edge_count = 0;
-
-                file >> vertex_count;
-                file >> face_count;
-                file >> edge_count;
-
-                vertices.reserve(vertex_count);
-                faces.reserve(face_count);
-
-                for ( uint32_t i = 0; i < vertex_count && file.good(); ++i )
-                {
-                    mesh::vertex v = { 0.0f, 0.0f, 0.0f, 1.0f};
-                    mesh::normal n = {};
-
-                    file >> v.x >> v.y >> v.z;
-                    file >> n.nx >> n.ny >> n.nz;
-
-                    vertices.push_back ( v );
-                    normals.push_back ( n );
-                }
-
-                for ( uint32_t i = 0; i < face_count && file.good(); ++i )
-                {
-                    mesh::face  face;
-                    uint32_t    face_size;
-
-                    file >> face_size;
-                    file >> face.v0 >> face.v1 >> face.v2;
-                    faces.push_back ( face );
-                }
-            }
-
-            return std::shared_ptr<mesh> ( new mesh( std::move(vertices), std::move(normals), std::move( faces ), std::move(notifier) ) );
-        };
-
-
-        bool mesh_is_manifold( std::shared_ptr<mesh> mesh )
-        {
-            return false;
-        }
-    }
-
-    class half_vertex
-    {
-
-    };
-
-    class half_edge
-    {
-
-    };
-
-    class half_face
-    {
-
-    };
-}
 
 class sample_application : public gx::default_application
 {
@@ -497,7 +70,7 @@ class sample_application : public gx::default_application
         , m_d2d_resource ( gx::create_render_target_resource( m_context.m_device, 8, 8, DXGI_FORMAT_R8G8B8A8_UNORM ) )
         , m_opaque_state ( gx::create_opaque_blend_state( m_context.m_device ) )
         , m_premultiplied_alpha_state(gx::create_premultiplied_alpha_blend_state(m_context.m_device))
-        , m_cull_back_raster_state ( gx::create_cull_back_rasterizer_state( m_context.m_device ) )
+        , m_cull_back_raster_state ( gx::create_cull_back_rasterizer_state_wireframe( m_context.m_device ) )
         , m_cull_none_raster_state(gx::create_cull_none_rasterizer_state(m_context.m_device))
         , m_depth_disable_state( gx::create_depth_test_disable_state( m_context.m_device ) )
         , m_point_sampler(gx::create_point_sampler_state(m_context.m_device ))
@@ -656,59 +229,6 @@ class sample_application : public gx::default_application
 };
 
 
-namespace lscm
-{
-    class renderable_mesh
-    {
-    public:
-
-        renderable_mesh( d3d11::ibuffer_ptr vertices, d3d11::ibuffer_ptr triangles, uint32_t vertex_count, uint32_t index_count) :
-              m_positions ( vertices )
-            , m_triangles ( triangles )
-            , m_vertex_count( vertex_count )
-            , m_index_count( index_count )
-        {
-
-        }
-
-        void draw(ID3D11DeviceContext* context)
-        {
-            d3d11::ia_set_primitive_topology(context, D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST );
-            d3d11::ia_set_vertex_buffer(context, m_positions, 16);
-
-
-            d3d11::ia_set_index_buffer(context, m_triangles, DXGI_FORMAT_R32_UINT);
-            context->DrawIndexed( m_index_count, 0, 0);
-        }
-
-    private:
-
-        d3d11::ibuffer_ptr  m_positions;
-        d3d11::ibuffer_ptr  m_triangles;
-        uint32_t            m_vertex_count;
-        uint32_t            m_index_count;
-    };
-
-    namespace indexed_face_set
-    {
-        std::shared_ptr< renderable_mesh > create_renderable_mesh(ID3D11Device* device, std::shared_ptr< lscm::indexed_face_set::mesh > mesh)
-        {
-            auto positions = gx::create_positions_x_y_z_w( (const float*)&mesh->m_vertices[0], static_cast<uint32_t> ( mesh->m_vertices.size() ) );
-            auto vertex_count = static_cast<uint32_t> (mesh->m_vertices.size());
-            
-            //triangle list
-            auto index_count = 3 * static_cast<uint32_t> (mesh->m_faces.size());
-
-            return std::make_shared<renderable_mesh>(
-                d3d11::create_immutable_vertex_buffer(device, &mesh->m_vertices[0], mesh->m_vertices.size() * sizeof( mesh::vertex ) ),
-                d3d11::create_immutable_index_buffer(device, &mesh->m_faces[0], mesh->m_faces.size() * sizeof(  mesh::face ) ), 
-                vertex_count,
-                index_count
-                );
-        }
-    }
-}
-
 typedef std::future < d3d11::icomputeshader_ptr >   compute_shader;
 typedef std::future < d3d11::ipixelshader_ptr >     pixel_shader;
 
@@ -783,6 +303,11 @@ gx::compute_resource create_draw_instance_info_compute_resource(ID3D11Device* de
     return gx::create_structured_compute_resource(device, static_cast<uint32_t> (end - begin), static_cast<uint32_t> (sizeof(draw_instance_info)), begin);
 }
 
+inline float rotation_radian(uint32_t step, uint32_t max_steps)
+{
+    static const float PI = std::atanf(1.0f) * 4;
+    return  ( (step %  max_steps) * 2 * PI / max_steps ) ;
+}
 
 class sample_application2 : public sample_application
 {
@@ -842,8 +367,12 @@ class sample_application2 : public sample_application
         d3d11::vs_set_shader( device_context, m_shader_database.m_depth_prepass_vs );
         d3d11::ps_set_shader( device_context, m_shader_database.m_depth_prepass_ps );
 
-        auto scale = math::scaling( math::set( 20.0f, 20.0f, 20.0f, 1.0f) );
-        auto w = math::mul(scale, math::identity_matrix());
+        auto scale      = math::scaling( math::set( 40.0f, 40.0f, 40.0f, 1.0f) );
+
+        //do simple update
+        static uint32_t step = 0;
+        auto rotation        = math::rotation_y(rotation_radian(step++, 360));
+        auto w               = math::mul(rotation, math::mul(scale, math::identity_matrix()) ) ;
 
         m_depth_prepass_vs_buffer.set_w( w );
         m_depth_prepass_ps_buffer.set_instance_id( 255 );
@@ -918,9 +447,7 @@ class sample_application2 : public sample_application
 
     void set_mesh( std::shared_ptr< lscm::indexed_face_set::mesh > m )
     {
-
         m_mesh = lscm::indexed_face_set::create_renderable_mesh( m_context.m_device, m );
-
     }
 
     private:
@@ -948,43 +475,23 @@ class sample_application2 : public sample_application
     d3d11::iunordered_access_view_ptr       m_back_buffer_view;
 
     //scene
-    std::shared_ptr<lscm::renderable_mesh>  m_mesh;
+    std::shared_ptr<lscm::indexed_face_set::renderable_mesh>  m_mesh;
 };
-
+#if defined(DEFINE_GUID)
+#undef DEFINE_GUID
+#endif
 #define DEFINE_GUID(name, l, w1, w2, b1, b2, b3, b4, b5, b6, b7, b8) \
     EXTERN_C const GUID DECLSPEC_SELECTANY name \
     = { l, w1, w2, { b1, b2, b3, b4, b5, b6, b7, b8 } }
 
+
 DEFINE_GUID(DXGI_DEBUG_ALL, 0xe48ae283, 0xda80, 0x490b, 0x87, 0xe6, 0x43, 0xe9, 0xa9, 0xcf, 0xda, 0x8);
 
 
-static uint8_t vmulub(uint8_t a, uint8_t b)
-{
-    uint8_t r = 0;
 
-    //while ( a != 0 )
-    for ( uint32_t i = 0; i < 8; ++i )
-    {
-        if ( a & 0x1 )
-        {
-            r = r + b;
-        }
-            
-        b = b << 1;
-        a = a >> 1;
-    }
-
-    return r;
-}
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-    auto r = vmulub( 254, 255 );// , 1);
-
-    auto k = (uint8_t) ( (uint8_t)(254) * (uint8_t)(255) );
-
-    auto    l = (254) * (255);
-    uint8_t k1 = static_cast<uint32_t>  ( l );
 
 
     using namespace lscm::indexed_face_set;
@@ -1003,6 +510,9 @@ int _tmain(int argc, _TCHAR* argv[])
     loading.wait();
 
     app->set_mesh(m);
+
+    //std::cout << "Area of mesh: " << area(m.get()) << std::endl;
+    //std::cout << "Symmetric hausdorff distance: " << math::get_x(symmetric_hausdorff_distance(m.get(), m.get())) << std::endl;
 
     auto result = app->run();
 

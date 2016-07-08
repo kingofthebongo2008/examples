@@ -2,7 +2,7 @@
 #include <memory>
 
 //comment this, if you do not want c++ allocations to go through streamflow
-#define MEM_STREAMFLOW_OVERRIDE_OPERATOR_NEW
+//#define MEM_STREAMFLOW_OVERRIDE_OPERATOR_NEW
 
 #if defined(MEM_STREAMFLOW_OVERRIDE_OPERATOR_NEW)
 

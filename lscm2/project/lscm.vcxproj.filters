@@ -52,6 +52,9 @@
     <Filter Include="include\math">
       <UniqueIdentifier>{0f059bda-128f-4b56-bad1-34a416e9c965}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\indexed_face_set">
+      <UniqueIdentifier>{7e699667-7766-4041-8a9a-849057a4336c}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="../src/precompiled.h">
@@ -230,6 +233,15 @@
     </ClInclude>
     <ClInclude Include="..\src\shaders\gx_shader_work_list_sort_cs.h">
       <Filter>Source Files\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\indexed_face_set\indexed_face_set_mesh.h">
+      <Filter>Source Files\indexed_face_set</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\indexed_face_set\indexed_face_set_renderable_mesh.h">
+      <Filter>Source Files\indexed_face_set</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\indexed_face_set\indexed_face_set_functions.h">
+      <Filter>Source Files\indexed_face_set</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -140,10 +140,22 @@ namespace math
         return reinterpret_cast<__m128 *>(&v)[0];
     }
 
+    inline float4 load3(const void* __restrict const address, uint32_t w_component)
+    {
+        float4 v = set_uint32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, w_component);
+        return _mm_and_ps(v, _mm_load_ps( reinterpret_cast< const float* __restrict > (address)) );
+    }
+
+    inline float4 load3u(const void* __restrict const address, uint32_t w_component)
+    {
+        float4 v = set_uint32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0);
+        return _mm_and_ps(v, _mm_loadu_ps(reinterpret_cast<const float* __restrict> (address)));
+    }
+
     inline float4 load3(const void* __restrict const address)
     {
         float4 v = set_uint32(0xFFFFFFFF, 0xFFFFFFFF, 0xFFFFFFFF, 0);
-        return _mm_and_ps(v, _mm_load_ps( reinterpret_cast< const float* __restrict > (address)) );
+        return _mm_and_ps(v, _mm_load_ps(reinterpret_cast<const float* __restrict> (address)));
     }
 
     inline float4 load3u(const void* __restrict const address)
@@ -208,11 +220,21 @@ namespace math
         store1( reinterpret_cast<float* __restrict> (address) + 2, v1);
     }
 
+    inline void store3u(void* __restrict address, float4 value)
+    {
+        store3(address, value);
+    }
+
     inline void store3(float* __restrict address, float4 value)
     {
         float4 v1 = splat_z(value);
         store2( address, value);
         store1( reinterpret_cast<float* __restrict> (address) + 2, v1);
+    }
+
+    inline void store3u(float* __restrict address, float4 value)
+    {
+        store3(address, value);
     }
 
     inline void store4(void* __restrict address, float4 value)
@@ -470,11 +492,21 @@ namespace math
         return l;
     }
 
+    inline float4 norm2(float4 v)
+    {
+        return length2(v);
+    }
+
     inline float4 length3(float4 v)
     {
         float4 d = dot3(v, v);
         float4 l = sqrt(d);
         return l;
+    }
+
+    inline float4 norm3(float4 v)
+    {
+        return length3(v);
     }
 
     inline float4 length4(float4 v)
@@ -484,12 +516,19 @@ namespace math
         return l;
     }
 
+    inline float4 norm4(float4 v)
+    {
+        return length4(v);
+    }
+
     inline float4 normalize2(float4 v)
     {
         float4 l = length2(v);
         float4 n = div(v, l);
         return n;
     }
+
+    
 
     inline float4 normalize3(float4 v)
     {
@@ -556,7 +595,7 @@ namespace math
         template <uint32_t c> inline float get_component(float4 v)
         {
             float4 v1 = swizzle<c,c,c,c>(v);
-            float __declspec( align(16) ) f;
+            float alignas(16) f;
             store1(&f, v1);
             return f;
         }
