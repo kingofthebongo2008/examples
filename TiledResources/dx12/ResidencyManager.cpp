@@ -20,6 +20,8 @@ unsigned g_frame = 0;
 
 ResidencyManager::ResidencyManager(const std::shared_ptr<DeviceResources>& deviceResources) :
 {
+    int temp = 0;
+
     /*
     m_deviceResources(deviceResources),
         m_debugMode(true),

@@ -24,6 +24,28 @@ namespace TiledResources
             return desc;
         }
 
+        inline D3D12_RESOURCE_DESC DescribeTexture2D(UINT width, UINT height, UINT depth, UINT mips, DXGI_FORMAT format, UINT flags)
+        {
+            D3D12_RESOURCE_DESC Desc = {};
+            Desc.Alignment = 0;
+            Desc.DepthOrArraySize = (UINT16)depth;
+            Desc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
+            Desc.Flags = (D3D12_RESOURCE_FLAGS)flags;
+            Desc.Format = GetBaseFormat(format);
+            Desc.Height = height;
+            Desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
+            Desc.MipLevels = 1;
+            Desc.SampleDesc.Count = 1;
+            Desc.SampleDesc.Quality = 0;
+            Desc.Width = width;
+            return Desc;
+        }
+
+        inline D3D12_RESOURCE_DESC DescribeTexture2D(UINT width, UINT height, DXGI_FORMAT format, UINT flags = D3D12_RESOURCE_FLAG_NONE)
+        {
+            return DescribeTexture2D(width, height, 1, 1, format, flags);
+        }
+
         inline D3D12_RESOURCE_DESC DescribeColorBuffer(UINT width, UINT height, UINT d, DXGI_FORMAT format, UINT flags)
         {
             D3D12_RESOURCE_DESC Desc = {};
@@ -197,12 +219,42 @@ namespace TiledResources
 
         m_renderTargetAllocator     = details::CreateDefaultHeapTexturesAllocator(device, details::MB(32));
         m_tiledResourcesAllocator   = details::CreateDefaultHeapTexturesAllocator(device, details::MB(32));
-
     }
 
-    GpuTexture2D GpuResourceCreateContext::CreateTexture2D()
+    GpuTexture2D GpuResourceCreateContext::CreateTexture2D(UINT width, UINT height, DXGI_FORMAT format)
     {
-        return GpuTexture2D(nullptr, m_texturesDescriptorHeap.Allocate(), m_texturesDescriptorHeap.Allocate());
+        auto desc = details::DescribeTexture2D(width, height, format );
+
+        Microsoft::WRL::ComPtr<ID3D12Resource>  resource;
+        auto allocator = GetGpuMemoryAllocator();
+
+        allocator->CreatePlacedResource(&desc, D3D12_RESOURCE_STATE_COMMON, IID_PPV_ARGS(&resource));
+
+        auto uav = m_texturesDescriptorHeap.Allocate();
+        auto srv = m_texturesDescriptorHeap.Allocate();
+
+        D3D12_SHADER_RESOURCE_VIEW_DESC  descSRV = {};
+        D3D12_UNORDERED_ACCESS_VIEW_DESC descUAV = {};
+
+        descSRV.Format                      = format;
+        descSRV.ViewDimension               = D3D12_SRV_DIMENSION_TEXTURE2D;
+        descSRV.Shader4ComponentMapping     = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+        descSRV.Texture2D.MipLevels         = 1;
+        descSRV.Texture2D.MostDetailedMip   = 0;
+        descSRV.Texture2D.PlaneSlice        = 0;
+
+        descUAV.Format                      = format;
+        descUAV.ViewDimension               = D3D12_UAV_DIMENSION_TEXTURE2D;
+        descUAV.Texture2D.MipSlice          = 0;
+        descUAV.Texture2D.PlaneSlice        = 0;
+
+
+        m_device->CreateUnorderedAccessView( resource.Get(), nullptr, &descUAV, uav);
+        m_device->CreateShaderResourceView(  resource.Get(), &descSRV, srv );
+
+
+       
+        return GpuTexture2D(resource.Get(), uav, srv);
     }
 
     GpuUploadBuffer GpuResourceCreateContext::CreateUploadBuffer(SIZE_T size)

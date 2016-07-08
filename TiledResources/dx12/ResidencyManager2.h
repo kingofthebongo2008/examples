@@ -7,10 +7,9 @@
 
 #pragma once
 
-#include "DeviceResources.h"
-#include "FreeCamera.h"
-#include "SamplingRenderer.h"
+#include "DeviceResources2.h"
 #include "TileLoader.h"
+
 #include "GpuTexture2D.h"
 
 namespace TiledResources
@@ -18,16 +17,16 @@ namespace TiledResources
     // Data and metadata for a tiled resource layer.
     struct ManagedTiledResource
     {
-        GpuTexture2D*        texture;
-        D3D12_RESOURCE_DESC  textureDesc;
-        UINT totalTiles;
-        D3D12_PACKED_MIP_INFO packedMipDesc;
-        D3D12_TILE_SHAPE tileShape;
-        std::vector<D3D12_SUBRESOURCE_TILING> subresourceTilings;
-        std::unique_ptr<TileLoader> loader;
-        std::vector<byte> residency[6];
-        
-        GpuTexture2D           residencyTexture;
+        GpuTexture2D*                           texture;
+        D3D12_RESOURCE_DESC                     textureDesc;
+        UINT                                    totalTiles;
+        D3D12_PACKED_MIP_INFO                   packedMipDesc;
+        D3D12_TILE_SHAPE                        tileShape;
+        std::vector<D3D12_SUBRESOURCE_TILING>   subresourceTilings;
+        std::unique_ptr<TileLoader>             loader;
+        std::vector<byte>                       residency[6];
+
+        GpuTexture2D                            residencyTexture;
     };
 
     // Unique identifier for a tile.
@@ -81,7 +80,7 @@ namespace TiledResources
 
         //ID3D11ShaderResourceView* ManageTexture(ID3D11Texture2D* texture, const std::wstring& filename);
         concurrency::task<void> InitializeManagedResourcesAsync();
-        void EnqueueSamples(const std::vector<DecodedSample>& samples);
+        //void EnqueueSamples(const std::vector<DecodedSample>& samples);
         void ProcessQueues();
 
         void RenderVisualization();
@@ -95,48 +94,8 @@ namespace TiledResources
     private:
         // Cached pointer to device resources.
         std::shared_ptr<DeviceResources> m_deviceResources;
-
         GpuTexture2D                     m_tempTexture; //null mapped tile;
 
-        /*
-        Microsoft::WRL::ComPtr<ID3D11Buffer> m_viewerVertexBuffer;
-        Microsoft::WRL::ComPtr<ID3D11Buffer> m_viewerIndexBuffer;
-        Microsoft::WRL::ComPtr<ID3D11InputLayout> m_viewerInputLayout;
-        Microsoft::WRL::ComPtr<ID3D11VertexShader> m_viewerVertexShader;
-        Microsoft::WRL::ComPtr<ID3D11PixelShader> m_viewerPixelShader;
-        Microsoft::WRL::ComPtr<ID3D11SamplerState> m_sampler;
-        Microsoft::WRL::ComPtr<ID3D11Buffer> m_viewerVertexShaderConstantBuffer;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_viewerState;
-        Microsoft::WRL::ComPtr<ID3D11DepthStencilState> m_viewerDisabledState;
-
-
-        unsigned int m_indexCount;
-
-        // Set of resources managed by this class.
-        std::vector<std::shared_ptr<ManagedTiledResource>> m_managedResources;
-
-        // Tiled Resource tile pool.
-        Microsoft::WRL::ComPtr<ID3D11Buffer> m_tilePool;
-
-        // Map of all tracked tiles.
-        std::map<TileKey, std::shared_ptr<TrackedTile>> m_trackedTiles;
-
-        // List of seen tiles ready for loading.
-        std::list<std::shared_ptr<TrackedTile>> m_seenTileList;
-
-        // List of loading and loaded tiles.
-        std::list<std::shared_ptr<TrackedTile>> m_loadingTileList;
-
-        // List of mapped tiles.
-        std::list<std::shared_ptr<TrackedTile>> m_mappedTileList;
-
-        volatile LONG m_activeTileLoadingOperations;
-
-        UINT m_reservedTiles;
-        UINT m_defaultTileIndex;
-
-        bool m_debugMode;
-        */
     };
 
     static bool LoadPredicate(const std::shared_ptr<TiledResources::TrackedTile>& a, const std::shared_ptr<TiledResources::TrackedTile>& b)

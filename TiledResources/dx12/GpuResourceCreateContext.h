@@ -60,7 +60,7 @@ namespace TiledResources
         GpuResourceCreateContext(ID3D12Device* device);
     
         //Read only assets
-        GpuTexture2D            CreateTexture2D();
+        GpuTexture2D            CreateTexture2D(UINT width, UINT height, DXGI_FORMAT format);
 
         //Transfer accross the pci bus
         GpuUploadBuffer         CreateUploadBuffer(SIZE_T size);
@@ -101,6 +101,11 @@ namespace TiledResources
         details::PlacementHeapAllocator*   GetReadBackAllocator()
         {
             return &m_readBackAllocator[m_frameIndex];
+        }
+
+        details::PlacementHeapAllocator*    GetGpuMemoryAllocator()
+        {
+            return &m_tiledResourcesAllocator;
         }
     };
 }

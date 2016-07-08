@@ -43,6 +43,8 @@ namespace TiledResources
 
         // Sample-specific Accessors.
         D3D12_TILED_RESOURCES_TIER GetTiledResourcesTier() const            { return m_tiledResourcesTier; }
+        GpuResourceCreateContext*  GetResourceCreateContext() const         { return m_resourceCreateContext.get(); }
+
 
 
         void Sync();

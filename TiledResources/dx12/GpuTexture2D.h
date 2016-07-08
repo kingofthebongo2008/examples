@@ -12,6 +12,10 @@ namespace TiledResources
         using Base = GpuResource;
 
         public:
+        GpuTexture2D() : Base(nullptr)
+        {
+
+        }
 
         GpuTexture2D( ID3D12Resource* resource, DescriptorHandle uav, DescriptorHandle srv ) : Base(resource)
         , m_uav(uav)
