@@ -1,0 +1,367 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\src\map_viewer\precompiled.cpp" />
+    <ClCompile Include="..\include\img\targa.c">
+      <Filter>include\img</Filter>
+    </ClCompile>
+    <ClCompile Include="..\include\img\targa_image.cpp">
+      <Filter>include\img</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\map_viewer\platforms\pc\main.cpp">
+      <Filter>platforms\pc</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\gx\gx_application.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_color.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_default_application.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_pinhole_camera.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_view.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\gx_view_port.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\platforms\pc\gx_platform_application.h">
+      <Filter>include\gx\platforms\pc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gx\platforms\pc\gx_platform_default_application.h">
+      <Filter>include\gx\platforms\pc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\io\io_keyboard.h">
+      <Filter>include\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\io\io_mouse.h">
+      <Filter>include\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\img\targa.h">
+      <Filter>include\img</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\img\targa_image.h">
+      <Filter>include\img</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_functions.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_functions_details.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_geometry.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_graphics.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_half.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_matrix.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_quaternion.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\math\math_vector.h">
+      <Filter>include\math</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_array_view.h">
+      <Filter>include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_bits.h">
+      <Filter>include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_iterator.h">
+      <Filter>include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_memory.h">
+      <Filter>include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_noncopyable.h">
+      <Filter>include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\util\util_utf8_conv.h">
+      <Filter>include\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\application.h">
+      <Filter>include\os</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\base_application.h">
+      <Filter>include\os</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\wnd_application.h">
+      <Filter>include\os</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_error.h">
+      <Filter>include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_initializer.h">
+      <Filter>include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_pointers.h">
+      <Filter>include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\com_ptr.h">
+      <Filter>include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\dxgi_pointers.h">
+      <Filter>include\os\windows</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\windows\platforms\pc\pc_dxgi_pointers.h">
+      <Filter>include\os\windows\platforms\pc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\platforms\pc\platform_wnd_application.h">
+      <Filter>include\os\platforms\pc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\os\platforms\pc\platform_application.h">
+      <Filter>include\os\platforms\pc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\platforms\pc\pc_d3d11_helpers.h">
+      <Filter>include\d3d11\platforms\pc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\platforms\pc\pc_d3d11_pointers.h">
+      <Filter>include\d3d11\platforms\pc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\platforms\pc\pc_d3d11_system.h">
+      <Filter>include\d3d11\platforms\pc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_error.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_exception.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_system.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\dxgi_helpers.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_pointers.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_helpers.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\platforms\pc\platform_application.h">
+      <Filter>platforms\pc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\shaders\full_screen_quad_shader.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\shaders\clear_color_shader.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\application.h" />
+    <ClInclude Include="..\src\map_viewer\base_application.h" />
+    <ClInclude Include="..\src\map_viewer\precompiled.h" />
+    <ClInclude Include="..\src\map_viewer\targetver.h" />
+    <ClInclude Include="..\include\gx\gx_render_resource.h">
+      <Filter>include\gx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\shaders\display_texture_shader.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\map_utils.h" />
+    <ClInclude Include="..\src\map_viewer\world_map.h" />
+    <ClInclude Include="..\include\d3d11\d3d11_helpers_types.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d3d11\d3d11_helpers_constants.h">
+      <Filter>include\d3d11</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\shaders\world_map_pixel_shader.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\shaders\world_map_vertex_shader.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\shaders\input_layout_database.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gxu\gxu_camera_command.h">
+      <Filter>include\gxu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\gxu\gxu_pinhole_camera_dispatcher.h">
+      <Filter>include\gxu</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\io\io_pad.h">
+      <Filter>include\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\io\platforms\pc\native_io_pad.h">
+      <Filter>include\io\platforms\pc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\io\io_pad_state.h">
+      <Filter>include\io</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\shaders\main_pass_vertex.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\shaders\stripe_pixel_shader.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\shaders\stripe_vertex_shader.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\world_map_sampling_renderer.h" />
+    <ClInclude Include="..\src\map_viewer\shaders\sampling_pixel_shader.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\shaders\sampling_vertex_shader.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\map_viewer\tile.h" />
+    <ClInclude Include="..\src\map_viewer\world_map_residency_manager.h" />
+    <ClInclude Include="..\src\map_viewer\tiled_texture.h" />
+    <ClInclude Include="..\src\map_viewer\shaders\mip_map_utils.h">
+      <Filter>platforms\shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_pointers.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_exception.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\dwrite_pointers.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_error.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\d2d_helpers.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\dwrite_helpers.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\dwrite_error.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\dwrite_exception.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\d2d\dwrite.h">
+      <Filter>include\d2d</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{b4063b02-d6c4-48b9-9d1e-f943ccc467ac}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\gx">
+      <UniqueIdentifier>{50270825-b17e-4d87-a342-a447f5d67ee3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\gx\platforms">
+      <UniqueIdentifier>{1d5cc8d2-2d6d-44da-8328-4325b00b42ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\gx\platforms\pc">
+      <UniqueIdentifier>{c2b0bba1-9d26-4a3a-b551-02cb53c592b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\io">
+      <UniqueIdentifier>{db791ce1-ea96-4da8-bbfc-72a0af6f0d0d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\img">
+      <UniqueIdentifier>{97f3a1a1-dd9a-4e46-b5b6-4a81dcef3ce9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\math">
+      <UniqueIdentifier>{8ff0e4d4-1960-4749-86f8-96022ae17fbe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\os">
+      <UniqueIdentifier>{d3a318fb-daa5-4da1-a909-a523c64ec060}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\util">
+      <UniqueIdentifier>{9f6ada51-7a98-4b85-b2b2-a4f5cb9b8661}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\os\windows">
+      <UniqueIdentifier>{6c4ca07a-ada7-49d7-a2ed-afd086471954}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\os\platforms">
+      <UniqueIdentifier>{ee7d68a5-41bf-4c5b-98db-8b1b69d806e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\os\windows\platforms">
+      <UniqueIdentifier>{731f1447-ade6-4b31-853b-000e9b4c9dde}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\os\windows\platforms\pc">
+      <UniqueIdentifier>{869743a7-6922-4aa8-ade0-98e0e04c2099}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\os\platforms\pc">
+      <UniqueIdentifier>{83826f08-7db0-470d-8096-c789f1588ee2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\d3d11">
+      <UniqueIdentifier>{ff995217-9df4-4ae7-85cf-06ad8bdc5d55}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\d3d11\platforms">
+      <UniqueIdentifier>{a0c294da-0bc1-403a-8498-4eb59006e5a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\d3d11\platforms\pc">
+      <UniqueIdentifier>{e45d5e43-82de-44e0-83f3-160b080611e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platforms">
+      <UniqueIdentifier>{f00d891f-daf6-4b70-a962-34aba6e5ebec}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platforms\pc">
+      <UniqueIdentifier>{26118b6d-2496-4c17-a059-4f4d230bbf05}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="platforms\shaders">
+      <UniqueIdentifier>{2c815ce4-d002-44cc-89ef-ad47448b0f48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\gxu">
+      <UniqueIdentifier>{1981c479-9485-4b31-afa0-876be49e2e3c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\io\platforms">
+      <UniqueIdentifier>{8870600d-c138-4e8b-b564-17bc27b5aed8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\io\platforms\pc">
+      <UniqueIdentifier>{3ec8368b-ef3f-4147-a9e6-23d269b172af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\d2d">
+      <UniqueIdentifier>{6b21d5e0-bfb0-4e4a-88f3-ae383bccf929}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="..\src\map_viewer\shaders\full_screen_quad.hlsl">
+      <Filter>platforms\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\map_viewer\shaders\clear_color.hlsl">
+      <Filter>platforms\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\map_viewer\shaders\display_texture.hlsl">
+      <Filter>platforms\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\map_viewer\shaders\world_map_pixel.hlsl">
+      <Filter>platforms\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\map_viewer\shaders\world_map_vertex.hlsl">
+      <Filter>platforms\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\map_viewer\shaders\sampling_vertex.hlsl">
+      <Filter>platforms\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\map_viewer\shaders\sampling_pixel.hlsl">
+      <Filter>platforms\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\map_viewer\shaders\prototype_vertex.hlsl">
+      <Filter>platforms\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\map_viewer\shaders\stripe_pixel.hlsl">
+      <Filter>platforms\shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="..\src\map_viewer\shaders\stripe_vertex.hlsl">
+      <Filter>platforms\shaders</Filter>
+    </FxCompile>
+  </ItemGroup>
+</Project>
