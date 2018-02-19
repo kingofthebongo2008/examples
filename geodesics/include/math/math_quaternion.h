@@ -366,9 +366,9 @@ namespace math
 
         if ( T > 0.0f )
         {
-			float4 t = math::set(T, T, T, T);
+            float4 t = math::set(T, T, T, T);
             float4 k_ = swizzle<w,w,w,w>(q);
-			float4 k = sqrt( add(k_,t) );
+            float4 k = sqrt( add(k_,t) );
             float4 xyz = div( b, k );
             xyz = mul ( xyz, mask_half );
             float4 w = mul (k, mask_half );
@@ -385,11 +385,11 @@ namespace math
                     float4  q_012 = swizzle< w, z, y, w > ( a );            // 0, m01 + m10,  m02 + m20, 0
                     float4  w_012 = swizzle< w, w, w, x > ( b );            // 0, 0, 0, -m12 + m21
 
-                    float4 q = add( q_012, w_012 );
-                    q = div ( q, q0 );
-                    q = mul ( q, mask_quarter) ;
-                    q = select ( q, q0, v_mask_x );
-                    return q;
+                    float4 qx = add( q_012, w_012 );
+                    qx = div ( qx, q0 );
+                    qx = mul ( qx, mask_quarter) ;
+                    qx = select ( qx, q0, v_mask_x );
+                    return qx;
                 }
                 else
                 {
@@ -398,11 +398,11 @@ namespace math
                     float4  q_120 = swizzle< y, x, w, w > ( a );            // m20 + m02,   m12 + m21,  0,         0
                     float4  w_120 = swizzle< w, w, w, z > ( b );            // 0, 0, 0, m01 - m10
 
-                    float4 q = add( q_120, w_120 );
-                    q = div ( q, q2 );
-                    q = mul ( q, mask_quarter) ;
-                    q = select ( q, q2, v_mask_z );
-                    return q;
+                    float4 qx = add( q_120, w_120 );
+                    qx = div ( qx, q2 );
+                    qx = mul ( qx, mask_quarter) ;
+                    qx = select ( qx, q2, v_mask_z );
+                    return qx;
                 }
 
             }
@@ -416,11 +416,11 @@ namespace math
                     float4  w_201 = swizzle< w, w, w, y > ( b );            // 0, 0, 0, -m02 + m20
 
 
-                    float4 q = add( q_201, w_201 );
-                    q = div ( q, q1 );
-                    q = mul ( q, mask_quarter) ;
-                    q = select ( q, q1, v_mask_y );
-                    return q;
+                    float4 qx = add( q_201, w_201 );
+                    qx = div ( qx, q1 );
+                    qx = mul ( qx, mask_quarter) ;
+                    qx = select ( qx, q1, v_mask_y );
+                    return qx;
 
                 }
                 else
@@ -430,11 +430,11 @@ namespace math
                     float4  q_120 = swizzle< y, x, w, w > ( a );            // m20 + m02,   m12 + m21,  0,         0
                     float4  w_120 = swizzle< w, w, w, z > ( b );            // 0, 0, 0, m01 - m10
 
-                    float4 q = add( q_120, w_120 );
-                    q = div ( q, q2 );
-                    q = mul ( q, mask_quarter) ;
-                    q = select ( q, q2, v_mask_z );
-                    return q;                }
+                    float4 qx = add( q_120, w_120 );
+                    qx = div ( qx, q2 );
+                    qx = mul ( qx, mask_quarter) ;
+                    qx = select ( qx, q2, v_mask_z );
+                    return qx;                }
             }
         }
    }
