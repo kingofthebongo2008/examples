@@ -29,9 +29,7 @@ namespace TiledResources
         DirectX::XMFLOAT4X4 GetViewMatrix() const;
         DirectX::XMFLOAT4X4 GetProjectionMatrix() const;
 
-    //private:
-        //DirectX::XMVECTOR m_position;
-        //DirectX::XMVECTOR m_orientation;
+    private:
         DirectX::XMFLOAT3 m_position;
         DirectX::XMFLOAT4 m_orientation;
         DirectX::XMFLOAT4X4 m_projectionMatrix;
