@@ -28,7 +28,10 @@ using namespace std;
 
 #define	NREGIONS_TWO	2
 #define	NREGIONS_THREE	3
-#define	DBL_MAX	(1.0e37)		// doesn't have to be really dblmax, just bigger than any possible squared error
+
+#if !defined(DBL_MAX)
+    //#define	DBL_MAX	(1.0e37)		// doesn't have to be really dblmax, just bigger than any possible squared error
+#endif
 
 class AVPCL
 {
