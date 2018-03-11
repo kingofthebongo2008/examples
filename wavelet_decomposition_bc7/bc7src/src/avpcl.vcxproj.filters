@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4d2fbcdf-ba1b-496c-b148-58bb81b8220d}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Source Files\arvo">
+      <UniqueIdentifier>{9bfcdf23-652c-4a9b-80aa-d378bc928b7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{7d8f63a5-ebbf-4170-bef0-d58e20480da6}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Header Files\arvo">
+      <UniqueIdentifier>{f2f52c9d-936e-4a30-8df8-ceff46afaccb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{0de1b96f-dce8-4fb4-981a-b587e09a318d}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="avpcl.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avpcl_mode0.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avpcl_mode1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avpcl_mode2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avpcl_mode3.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avpcl_mode4.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avpcl_mode5.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avpcl_mode6.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avpcl_mode7.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="avpclc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="targa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="utils.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\ArvoMath.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\Char.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\Complex.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\Matrix.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\Perm.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\Rand.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\SphTri.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\SVD.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\Token.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\Vec2.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\Vec3.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\Vec4.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+    <ClCompile Include="arvo\Vector.cpp">
+      <Filter>Source Files\arvo</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="avpcl.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="bits.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="endpts.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="rgba.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="shapes_three.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="shapes_two.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="targa.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="tile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="utils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\ArvoMath.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\Char.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\Complex.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\form.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\Matrix.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\Perm.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\Rand.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\SI_units.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\SphTri.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\SVD.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\Token.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\Vec2.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\Vec3.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\Vec4.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+    <ClInclude Include="arvo\Vector.h">
+      <Filter>Header Files\arvo</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

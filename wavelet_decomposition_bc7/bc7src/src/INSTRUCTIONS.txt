@@ -1,0 +1,7 @@
+INSTRUCTIONS
+
+This is the BC7 compiler encoder we have used for the paper "Texture Compression using Wavelet Decomposition". 
+This source is based on the open source Nvidia Texture Tools. Our method requires the use of arbitrary quantization weights for the RGB channels, therefore we have modified the utils.cpp code in order to specify the weights for each channel. 
+
+For the tests the paper, we have compiled 4 different versions of the code with the weights shown on the utils.cpp file. We perform the encoding for all the weights and in the end we keep the version with the lowest PSNR. In our proof-of-concept tests, this was done with some bash scripts in a unix (cygwin) environment. 
+
