@@ -17,6 +17,7 @@
 #include <cmath>
 #include <stdio.h>
 #include <stdlib.h>
+#include <algorithm>
 
 #define PRINT_DEBUGGING_OUTPUT
 #define USE_SCALAR_IMPLEMENTATION
