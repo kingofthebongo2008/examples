@@ -13,21 +13,21 @@ std::int32_t main(int argc, _TCHAR* argv[])
 
     typedef svd::cpu_scalar number;
 
-    auto m11 = svd::math::splat<number>( 2.0f );
-    auto m12 = svd::math::splat<number>( -0.2f );
-    auto m13 = svd::math::splat<number>( 1.0f );
+    const auto m11 = svd::math::splat<number>( 2.0f );
+	const auto m12 = svd::math::splat<number>( -0.2f );
+	const auto m13 = svd::math::splat<number>( 1.0f );
 
-    auto m21 = svd::math::splat<number>( -0.2f);
-    auto m22 = svd::math::splat<number>( 1.0f);
-    auto m23 = svd::math::splat<number>( 6.0f);
+	const auto m21 = svd::math::splat<number>( -0.2f);
+	const auto m22 = svd::math::splat<number>( 1.0f);
+	const auto m23 = svd::math::splat<number>( 6.0f);
 
-    auto m31 = svd::math::splat<number>( 0.0f);
-    auto m32 = svd::math::splat<number>( 0.0f);
-    auto m33 = svd::math::splat<number>( 0.0f);
+	const auto m31 = svd::math::splat<number>( 0.0f);
+	const auto m32 = svd::math::splat<number>( 0.0f);
+	const auto m33 = svd::math::splat<number>( 0.0f);
 
-    auto urv = svd::compute_as_matrix_rusv<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+	const auto urv = svd::compute_as_matrix_rusv<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
 
-    auto urv1 = svd::compute_as_quaternion_rusv<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
+	const auto urv1 = svd::compute_as_quaternion_rusv<number>( svd::create_matrix ( m11, m12, m13, m21, m22, m23, m31, m32, m33 ) );
 
 
     svd::vector3<number> p[3];
