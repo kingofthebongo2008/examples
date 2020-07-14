@@ -380,7 +380,7 @@ namespace svd
         ch = w * ch;
         sh = w * sh;
 
-        return std::make_pair ( ch, sh );
+        return std::make_tuple ( ch, sh );
     }
 
     //(1,2), (1,3), (2,3)
