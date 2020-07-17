@@ -3,6 +3,7 @@
 
 #ifdef __cplusplus
 #include <cmath>
+#pragma warning( disable : 4244 )
 #endif
 
 namespace svdhlslcpp
@@ -117,4 +118,7 @@ namespace svdhlslcpp
     }
 }
 
+#if defined(__cplusplus)
+#pragma warning( default : 4244 )
+#endif
 #endif
