@@ -11,6 +11,9 @@
 
 std::int32_t main1(int argc, _TCHAR* argv[])
 {
+    argc;
+    argv;
+
     using namespace svd;
     using namespace svd::math;
 

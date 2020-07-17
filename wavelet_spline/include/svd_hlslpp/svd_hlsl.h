@@ -1,6 +1,12 @@
 #ifndef __svd_hlsl_h__
 #define __svd_hlsl_h__
 
+#if defined(__cplusplus)
+#pragma warning(disable : 4189)
+#pragma warning(disable : 4127)
+#endif
+
+
 #include "svd_hlsl_types.h"
 #include "svd_hlsl_math.h"
 
@@ -1251,5 +1257,9 @@ namespace svdhlslcpp
 
 }
 
+#if defined(__cplusplus)
+#pragma warning(default : 4189)
+#pragma warning(default : 4127)
+#endif
 
 #endif

@@ -1,6 +1,11 @@
 #ifndef __svd_svd_h__
 #define __svd_svd_h__
 
+#if defined(__cplusplus)
+#pragma warning(disable : 4189)
+#pragma warning(disable : 4127)
+#endif
+
 #include <algorithm>
 #include <cstdint>
 #include <iterator>
@@ -1239,5 +1244,9 @@ namespace svd
     }
 }
 
+#if defined(__cplusplus)
+#pragma warning(default : 4189)
+#pragma warning(default : 4127)
+#endif
 
 #endif
