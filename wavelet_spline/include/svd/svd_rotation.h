@@ -1,5 +1,5 @@
-#ifndef __svd_svd_rotation_h__
-#define __svd_svd_rotation_h__
+#ifndef __svd_rotation_h__
+#define __svd_rotation_h__
 
 #include <cstdint>
 

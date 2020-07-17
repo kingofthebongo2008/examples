@@ -20,7 +20,14 @@ Notes: For production usage please consider inlining all functions into one. Thi
 
 namespace svd
 {
-    template <typename t> inline std::tuple< t, t > approximate_givens_quaternion( t a11, t a12, t a22 )
+    template <typename t>
+    struct givens_quaternion_t
+    {
+        t m_ch;
+        t m_sh;
+    };
+
+    template <typename t> inline givens_quaternion_t<t> approximate_givens_quaternion( t a11, t a12, t a22 )
     {
         using namespace math;
         auto half = splat<t> ( 0.5f );
@@ -48,7 +55,7 @@ namespace svd
         sh = blend ( sh, splat<t>( sine_pi_over_eight ), b );
         ch = blend ( ch, splat<t>( cosine_pi_over_eight ), b );
 
-        return std::make_tuple<t,t>( std::move(ch), std::move(sh) );
+        return { ch, sh };
     }
 
     //(1,2), (1,3), (2,3)
@@ -66,8 +73,8 @@ namespace svd
         if ( p == 1 && q == 2 )
         {
             auto r  = approximate_givens_quaternion<t> ( a11, a21, a22 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            auto ch = r.m_ch;
+            auto sh = r.m_sh;
 
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
@@ -117,8 +124,8 @@ namespace svd
         else if ( p == 2 && q == 3 )
         {
             auto r  = approximate_givens_quaternion<t> ( a22, a32, a33 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            auto ch = r.m_ch;
+            auto sh = r.m_sh;
 
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
@@ -166,8 +173,8 @@ namespace svd
         else if ( p == 1 && q == 3 )
         {
             auto r  = approximate_givens_quaternion<t> ( a33, a31, a11 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            auto ch = r.m_ch;
+            auto sh = r.m_sh;
 
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
@@ -347,7 +354,7 @@ namespace svd
         }
     }
 
-    template <typename t> inline std::tuple< t, t > givens_quaternion( t a1, t a2 )
+    template <typename t> inline givens_quaternion_t<t> givens_quaternion( t a1, t a2 )
     {
         using namespace math;
 
@@ -380,7 +387,7 @@ namespace svd
         ch = w * ch;
         sh = w * sh;
 
-        return std::make_tuple ( ch, sh );
+        return { ch, sh };
     }
 
     //(1,2), (1,3), (2,3)
@@ -398,8 +405,8 @@ namespace svd
         if ( p == 1 && q == 2 )
         {
             auto r  = givens_quaternion<t> ( a11, a21 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            auto ch = r.m_ch;
+            auto sh = r.m_sh;
 
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
@@ -446,8 +453,8 @@ namespace svd
         else if ( p == 2 && q == 3 )
         {
             auto r  = givens_quaternion<t> ( a22, a32 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            auto ch = r.m_ch;
+            auto sh = r.m_sh;
 
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
@@ -494,8 +501,8 @@ namespace svd
         else if ( p == 1 && q == 3 )
         {
             auto r  = givens_quaternion<t> ( a11, a31 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            auto ch = r.m_ch;
+            auto sh = r.m_sh;
 
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
@@ -698,43 +705,56 @@ namespace svd
         s.x = a11;
         s.y = a22;
         s.z = a33;
-
     }
 
+    template <typename t>
+    struct svd_result_quaternion_usv
+    {
+        quaternion<t> m_u;
+        vector3<t>	  m_s;
+        quaternion<t> m_v;
+    };
+
+    template <typename t>
+    struct svd_result_quaternion_uv
+    {
+        quaternion<t> m_u;
+        quaternion<t> m_v;
+    };
+
     //obtain A = USV' 
-    template < typename t > inline std::tuple< quaternion<t>, vector3<t>, quaternion<t> > compute_as_quaternion_rusv( const matrix3x3<t>& in )
+    template < typename t > inline svd_result_quaternion_usv<t> compute_as_quaternion_rusv( const matrix3x3<t>& in )
     {
         quaternion<t> u;
         quaternion<t> v;
         vector3<t>    s;
         compute( in, u, s, v );
-        return std::make_tuple ( std::move(u), std::move(s), std::move(v) );
+        return { u, s, v };
     }
 
     //obtain A = USV' 
-    template < typename t > inline std::tuple< quaternion<t>, quaternion<t> > compute_as_quaternion_ruv( const matrix3x3<t>& in )
+    template < typename t > inline svd_result_quaternion_uv<t> compute_as_quaternion_ruv( const matrix3x3<t>& in )
     {
         quaternion<t> u;
         quaternion<t> v;
         vector3<t>    s;
         compute( in, u, s, v );
-        return std::make_tuple ( std::move(u), std::move(v) );
+        return { u, v };
     }
 
     //obtain A = USV' 
-    template < typename t > inline std::tuple< quaternion<t>, vector3<t>, quaternion<t> > compute_as_quaternion_usv( const matrix3x3<t>& in, quaternion<t>& u, vector3<t>& s, quaternion<t>& v )
+    template < typename t > inline  void compute_as_quaternion_usv( const matrix3x3<t>& in, quaternion<t>& u, vector3<t>& s, quaternion<t>& v )
     {
         compute( in, u, s, v );
      }
 
     //obtain A = USV' 
-    template < typename t > inline std::tuple< quaternion<t>, quaternion<t> > compute_as_quaternion_uv( const matrix3x3<t>& in, quaternion<t>& u, quaternion<t>& v )
+    template < typename t > inline void  compute_as_quaternion_uv( const matrix3x3<t>& in, quaternion<t>& u, quaternion<t>& v )
     {
         
         vector3<t>    s;
         compute( in, u, s, v );
     }
-
 
     //(1,2), (1,3), (2,3)
     //jacobi conjugation of a symmetric matrix
@@ -754,8 +774,8 @@ namespace svd
         if ( p == 1 && q == 2 )
         {
             auto r  = givens_quaternion<t> ( a11, a21 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            auto ch = r.m_ch;
+            auto sh = r.m_sh;
 
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
@@ -832,8 +852,8 @@ namespace svd
         else if ( p == 2 && q == 3 )
         {
             auto r  = givens_quaternion<t> ( a22, a32 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            auto ch = r.m_ch;
+            auto sh = r.m_sh;
 
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
@@ -896,8 +916,8 @@ namespace svd
         else if ( p == 1 && q == 3 )
         {
             auto r  = givens_quaternion<t> ( a11, a31 );
-            auto ch = std::get<0>( r );
-            auto sh = std::get<1>( r );
+            auto ch = r.m_ch;
+            auto sh = r.m_sh;
 
             auto ch_minus_sh_2 = ch * ch - sh * sh;
             auto ch_sh_2       = ch * sh + ch * sh;
@@ -1168,17 +1188,31 @@ namespace svd
         vv.a31 = v31;
         vv.a32 = v32;
         vv.a33 = v33;
-
     }
 
+    template <typename t>
+    struct svd_result_matrix_usv
+    {
+        matrix3x3<t> m_u;
+        vector3<t>	 m_s;
+        matrix3x3<t> m_v;
+    };
+
+    template <typename t>
+    struct svd_result_matrix_uv
+    {
+        matrix3x3<t> m_u;
+        matrix3x3<t> m_v;
+    };
+
     //obtain A = USV' 
-    template < typename t > inline std::tuple< matrix3x3<t>, vector3<t>, matrix3x3<t> > compute_as_matrix_rusv( const matrix3x3<t>& in )
+    template < typename t > inline svd_result_matrix_usv<t> compute_as_matrix_rusv( const matrix3x3<t>& in )
     {
         matrix3x3<t> u;
         matrix3x3<t> v;
         vector3<t>    s;
         compute( in, u, s, v );
-        return std::make_tuple ( std::move(u), std::move(s), std::move(v) );
+        return { u,s,v };
     }
 
     //obtain A = USV' 
@@ -1188,13 +1222,13 @@ namespace svd
     }
 
     //obtain A = USV' 
-    template < typename t > inline std::tuple< matrix3x3<t>, matrix3x3<t> > compute_as_matrix_ruv( const matrix3x3<t>& in )
+    template < typename t > inline svd_result_matrix_uv<t> compute_as_matrix_ruv( const matrix3x3<t>& in )
     {
         matrix3x3<t> u;
         matrix3x3<t> v;
         vector3<t>    s;
         compute( in, u, s, v );
-        return std::make_tuple ( std::move(u), std::move(v) );
+        return { u, v };
     }
 
     //obtain A = USV' 
