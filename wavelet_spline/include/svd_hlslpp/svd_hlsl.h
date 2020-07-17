@@ -16,12 +16,13 @@ Notes: For production usage please consider inlining all functions into one. Thi
 */
 
 #if defined(__cplusplus)
-#define IN_OUT(v) v&
-#define IN(v)     const v&
+#define HLSLCPP_IN_OUT(v)   v&
+#define HLSLCPP_IN(v)    const v&
 #else
-#define IN_OUT(v) inout v
-#define IN(v)     const in v 
+#define HLSLCPP_HLSLCPP_IN_OUT(v)   inout v
+#define HLSLCPP_IN_HLSLCPP_IN(v)    const in v 
 #endif
+
 
 
 
@@ -72,10 +73,10 @@ namespace svdhlslcpp
                                                         (   
                                                             const int p,
                                                             const int q,
-                                                            IN_OUT(float) a11, //t&  a12, t&  a13,
-                                                            IN_OUT(float) a21, IN_OUT(float) a22, //t&  a23,
-                                                            IN_OUT(float) a31, IN_OUT(float) a32, IN_OUT(float)  a33,
-                                                            IN_OUT(float) qx,  IN_OUT(float) qy,  IN_OUT(float)  qz, IN_OUT(float) qw
+                                                            HLSLCPP_IN_OUT(float) a11, //t&  a12, t&  a13,
+                                                            HLSLCPP_IN_OUT(float) a21, HLSLCPP_IN_OUT(float) a22, //t&  a23,
+                                                            HLSLCPP_IN_OUT(float) a31, HLSLCPP_IN_OUT(float) a32, HLSLCPP_IN_OUT(float)  a33,
+                                                            HLSLCPP_IN_OUT(float) qx,  HLSLCPP_IN_OUT(float) qy,  HLSLCPP_IN_OUT(float)  qz, HLSLCPP_IN_OUT(float) qw
                                                         )
     {
         if ( p == 1 && q == 2 )
@@ -231,12 +232,12 @@ namespace svdhlslcpp
 
     //(1,2), (1,3), (2,3)
     //jacobi conjugation of a symmetric matrix
-    inline void jacobi_conjugation ( const int p, const int q, IN_OUT(symmetric_matrix3x3) m, IN_OUT(quaternion) quaternion )
+    inline void jacobi_conjugation ( const int p, const int q, HLSLCPP_IN_OUT(symmetric_matrix3x3) m, HLSLCPP_IN_OUT(quaternion) quaternion )
     {
         jacobi_conjugation ( p, q, m.a11, m.a21, m.a22, m.a31, m.a32, m.a33, quaternion.x, quaternion.y, quaternion.z, quaternion.w) ;
     }
 
-    inline symmetric_matrix3x3 create_symmetric_matrix ( IN(matrix3x3) inp  )
+    inline symmetric_matrix3x3 create_symmetric_matrix ( HLSLCPP_IN(matrix3x3) inp  )
     {
         float a11 = inp.a11 * inp.a11 + inp.a21 * inp.a21 + inp.a31 * inp.a31;
         float a12 = inp.a11 * inp.a12 + inp.a21 * inp.a22 + inp.a31 * inp.a32;
@@ -267,7 +268,7 @@ namespace svdhlslcpp
         return create_quaternion( q.x * w, q.y * w, q.z * w, q.w * w);
     }
 
-    inline void conditional_swap( float c, IN_OUT(float) x, IN_OUT(float) y )
+    inline void conditional_swap( float c, HLSLCPP_IN_OUT(float) x, HLSLCPP_IN_OUT(float) y )
     {
         float a = x;
         float b = y;
@@ -282,7 +283,7 @@ namespace svdhlslcpp
         return blend(-one(), one(), 1.0f - c);
     }
 
-    inline void conditional_swap( const int axis, IN_OUT(quaternion) v, float c )
+    inline void conditional_swap( const int axis, HLSLCPP_IN_OUT(quaternion) v, float c )
     {
         if (axis == 3 )
         {
@@ -376,10 +377,10 @@ namespace svdhlslcpp
     inline void givens_conjugation
                                                         (   
                                                             const int p, const int q,
-                                                            IN_OUT(float) a11, IN_OUT(float) a12, IN_OUT(float) a13,
-                                                            IN_OUT(float) a21, IN_OUT(float) a22, IN_OUT(float) a23,
-                                                            IN_OUT(float) a31, IN_OUT(float) a32, IN_OUT(float) a33,
-                                                            IN_OUT(float) qx,  IN_OUT(float) qy,  IN_OUT(float) qz, IN_OUT(float) qw
+                                                            HLSLCPP_IN_OUT(float) a11, HLSLCPP_IN_OUT(float) a12, HLSLCPP_IN_OUT(float) a13,
+                                                            HLSLCPP_IN_OUT(float) a21, HLSLCPP_IN_OUT(float) a22, HLSLCPP_IN_OUT(float) a23,
+                                                            HLSLCPP_IN_OUT(float) a31, HLSLCPP_IN_OUT(float) a32, HLSLCPP_IN_OUT(float) a33,
+                                                            HLSLCPP_IN_OUT(float) qx,  HLSLCPP_IN_OUT(float) qy,  HLSLCPP_IN_OUT(float) qz, HLSLCPP_IN_OUT(float) qw
                                                         )
     {
         if ( p == 1 && q == 2 )
@@ -528,7 +529,7 @@ namespace svdhlslcpp
     }
 
     //obtain A = USV' 
-    inline void compute( IN(matrix3x3) inp, IN_OUT(quaternion) u, IN_OUT(vector3) s, IN_OUT(quaternion) v )
+    inline void compute( HLSLCPP_IN(matrix3x3) inp, HLSLCPP_IN_OUT(quaternion) u, HLSLCPP_IN_OUT(vector3) s, HLSLCPP_IN_OUT(quaternion) v )
     {
         // initial value of v as a quaternion
         float vx = splat( 0.0f );
@@ -699,7 +700,7 @@ namespace svdhlslcpp
     };
 
     //obtain A = USV' 
-    inline svd_result_quaternion_usv compute_as_quaternion_rusv( IN(matrix3x3) inp )
+    inline svd_result_quaternion_usv compute_as_quaternion_rusv( HLSLCPP_IN(matrix3x3) inp )
     {
         quaternion u;
         quaternion v;
@@ -713,7 +714,7 @@ namespace svdhlslcpp
     }
 
     //obtain A = USV' 
-    inline svd_result_quaternion_uv compute_as_quaternion_ruv( IN(matrix3x3) inp )
+    inline svd_result_quaternion_uv compute_as_quaternion_ruv( HLSLCPP_IN(matrix3x3) inp )
     {
         quaternion		u;
         quaternion		v;
@@ -726,13 +727,13 @@ namespace svdhlslcpp
     }
 
     //obtain A = USV' 
-    inline  void compute_as_quaternion_usv( IN(matrix3x3) inp, IN_OUT(quaternion) u, IN_OUT(vector3) s, IN_OUT(quaternion) v )
+    inline  void compute_as_quaternion_usv( HLSLCPP_IN(matrix3x3) inp, HLSLCPP_IN_OUT(quaternion) u, HLSLCPP_IN_OUT(vector3) s, HLSLCPP_IN_OUT(quaternion) v )
     {
         compute( inp, u, s, v );
      }
 
     //obtain A = USV' 
-    inline void  compute_as_quaternion_uv( IN(matrix3x3) inp, IN_OUT(quaternion) u, IN_OUT(quaternion) v )
+    inline void  compute_as_quaternion_uv( HLSLCPP_IN(matrix3x3) inp, HLSLCPP_IN_OUT(quaternion) u, HLSLCPP_IN_OUT(quaternion) v )
     {
         vector3    s;
         compute( inp, u, s, v );
@@ -744,13 +745,13 @@ namespace svdhlslcpp
                                                         ( 
                                                             const int p,
                                                             const int q,
-                                                            IN_OUT(float)  a11, IN_OUT(float)  a12, IN_OUT(float)  a13,
-                                                            IN_OUT(float)  a21, IN_OUT(float)  a22, IN_OUT(float)  a23,
-                                                            IN_OUT(float)  a31, IN_OUT(float)  a32, IN_OUT(float)  a33,
+                                                            HLSLCPP_IN_OUT(float)  a11, HLSLCPP_IN_OUT(float)  a12, HLSLCPP_IN_OUT(float)  a13,
+                                                            HLSLCPP_IN_OUT(float)  a21, HLSLCPP_IN_OUT(float)  a22, HLSLCPP_IN_OUT(float)  a23,
+                                                            HLSLCPP_IN_OUT(float)  a31, HLSLCPP_IN_OUT(float)  a32, HLSLCPP_IN_OUT(float)  a33,
 
-                                                            IN_OUT(float)  u11, IN_OUT(float)  u12, IN_OUT(float)  u13,
-                                                            IN_OUT(float)  u21, IN_OUT(float)  u22, IN_OUT(float)  u23,
-                                                            IN_OUT(float)  u31, IN_OUT(float)  u32, IN_OUT(float)  u33
+                                                            HLSLCPP_IN_OUT(float)  u11, HLSLCPP_IN_OUT(float)  u12, HLSLCPP_IN_OUT(float)  u13,
+                                                            HLSLCPP_IN_OUT(float)  u21, HLSLCPP_IN_OUT(float)  u22, HLSLCPP_IN_OUT(float)  u23,
+                                                            HLSLCPP_IN_OUT(float)  u31, HLSLCPP_IN_OUT(float)  u32, HLSLCPP_IN_OUT(float)  u33
                                                         )
     {
         if ( p == 1 && q == 2 )
@@ -981,7 +982,7 @@ namespace svdhlslcpp
     }
 
     //obtain A = USV' 
-    inline void compute(IN(matrix3x3) inp, IN_OUT(matrix3x3) uu, IN_OUT(vector3) s, IN_OUT(matrix3x3) vv )
+    inline void compute(HLSLCPP_IN(matrix3x3) inp, HLSLCPP_IN_OUT(matrix3x3) uu, HLSLCPP_IN_OUT(vector3) s, HLSLCPP_IN_OUT(matrix3x3) vv )
     {
         // initial value of v as a quaternion
         float vx = splat( 0.0f );
@@ -1183,7 +1184,7 @@ namespace svdhlslcpp
     };
 
     //obtain A = USV' 
-    svd_result_matrix_usv compute_as_matrix_rusv( IN(matrix3x3) inp )
+    svd_result_matrix_usv compute_as_matrix_rusv( HLSLCPP_IN(matrix3x3) inp )
     {
         matrix3x3 u;
         matrix3x3 v;
@@ -1200,13 +1201,13 @@ namespace svdhlslcpp
     }
 
     //obtain A = USV' 
-    inline void compute_as_matrix_usv( IN(matrix3x3) inp, IN_OUT(matrix3x3) u, IN_OUT(vector3) s, IN_OUT(matrix3x3) v)
+    inline void compute_as_matrix_usv( HLSLCPP_IN(matrix3x3) inp, HLSLCPP_IN_OUT(matrix3x3) u, HLSLCPP_IN_OUT(vector3) s, HLSLCPP_IN_OUT(matrix3x3) v)
     {
         compute( inp, u, s, v );
     }
 
     //obtain A = USV' 
-    inline svd_result_matrix_uv compute_as_matrix_ruv( IN(matrix3x3) inp )
+    inline svd_result_matrix_uv compute_as_matrix_ruv( HLSLCPP_IN(matrix3x3) inp )
     {
         matrix3x3 u;
         matrix3x3 v;
@@ -1222,7 +1223,7 @@ namespace svdhlslcpp
     }
 
     //obtain A = USV' 
-    inline void compute_as_matrix_uv( IN(matrix3x3) inp, IN_OUT(matrix3x3) u, IN_OUT(matrix3x3) v)
+    inline void compute_as_matrix_uv( HLSLCPP_IN(matrix3x3) inp, HLSLCPP_IN_OUT(matrix3x3) u, HLSLCPP_IN_OUT(matrix3x3) v)
     {
         vector3 s;
         compute( inp, u, s, v );
@@ -1235,7 +1236,7 @@ namespace svdhlslcpp
     };
 
 
-    inline svd_result_polar compute_as_matrix_polar_decomposition(IN(matrix3x3) inp)
+    inline svd_result_polar compute_as_matrix_polar_decomposition(HLSLCPP_IN(matrix3x3) inp)
     {
         svd_result_matrix_usv usv = compute_as_matrix_rusv(inp);
 
