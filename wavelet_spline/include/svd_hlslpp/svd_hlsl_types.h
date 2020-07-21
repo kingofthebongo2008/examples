@@ -3,6 +3,10 @@
 
 #include "svd_hlsl_math.h"
 
+#if defined(__cplusplus)
+#include <cmath>
+#endif
+
 namespace svdhlslcpp
 {
     struct matrix3x3
@@ -109,6 +113,46 @@ namespace svdhlslcpp
 
         return r;
     }
+
+#if defined(__cplusplus)
+    float norm_inf(matrix3x3 b)
+    {
+        float r = 0;
+
+        r = std::max<float>(std::abs(b.a11), r);
+        r = std::max<float>(std::abs(b.a12), r);
+        r = std::max<float>(std::abs(b.a13), r);
+
+        r = std::max<float>(std::abs(b.a21), r);
+        r = std::max<float>(std::abs(b.a22), r);
+        r = std::max<float>(std::abs(b.a23), r);
+
+
+        r = std::max<float>(std::abs(b.a31), r);
+        r = std::max<float>(std::abs(b.a32), r);
+        r = std::max<float>(std::abs(b.a33), r);
+        return r;
+    }
+
+    matrix3x3 sub(matrix3x3 a, matrix3x3 b)
+    {
+        matrix3x3 r;
+
+        r.a11 = a.a11 - b.a11;
+        r.a12 = a.a12 - b.a12;
+        r.a13 = a.a13 - b.a13;
+
+        r.a21 = a.a21 - b.a21;
+        r.a22 = a.a22 - b.a22;
+        r.a23 = a.a23 - b.a23;
+
+        r.a31 = a.a31 - b.a31;
+        r.a32 = a.a32 - b.a32;
+        r.a33 = a.a33 - b.a33;
+
+        return r;
+    }
+#endif
 }
 
 
