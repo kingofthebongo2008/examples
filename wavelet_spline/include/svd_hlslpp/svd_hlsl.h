@@ -1249,7 +1249,7 @@ namespace svdhlslcpp
         svd_result_polar res;
 
         res.m_u = mul(usv.m_u, transpose(usv.m_v));
-        res.m_h = mul(usv.m_s, usv.m_v);
+        res.m_h = mul(usv.m_v, mul(usv.m_s, transpose(usv.m_v)));
 
         return res;
     }
