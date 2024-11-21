@@ -6,7 +6,7 @@
 namespace util
 {
     template<class container>
-    class push_iterator : public std::iterator<std::output_iterator_tag, void, void, void, void>
+    class push_iterator
     {	
 
         public:
@@ -15,6 +15,10 @@ namespace util
         typedef container container_type;
         typedef typename container::const_reference const_reference;
         typedef typename container::value_type value_type;
+        typedef std::output_iterator_tag iterator_category;
+        typedef void difference_type;
+        typedef void pointer;
+        typedef void reference;
 
         explicit push_iterator(container& cont)
             : m_container(&cont)
@@ -60,6 +64,7 @@ namespace util
     };
 }
 
+#if defined(_MSC_VER) && _MSC_VER < 1915
 namespace std
 {
     template<class container>
@@ -69,5 +74,6 @@ namespace std
         // mark push_iterator as checked
     };
 }
+#endif
 
 #endif
